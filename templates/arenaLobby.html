@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Lobby</title>
+    <link rel="website icon" href="img/lobby.png">
+    <link rel="stylesheet" href="css/arenaLobby.css">
+    <link rel="stylesheet" href="css/modal.css">
+<style>
+    body {
+        margin: 0;
+        height: 100%;
+        background: 
+            url("{{ url_for('static', filename='img/starry sky.jpeg') }}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        padding-bottom: 10vh;
+    }
+</style>
+</head>
+<body>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div id="modal-message"></div>
+        </div>
+    </div>
+
+    {% block music %}
+    {% include 'includes/_sound-effects.html' %}
+    {% endblock %}
+
+    {% block navbar %}
+    {% include 'includes/_navbar.html' %}
+    {% endblock %}
+
+    <div class="lobby-container">
+        <div class="lobby">
+            <div class="lobby-header">Available Matches</div>
+            <div class="rooms-container">
+                <div class="lobby-rooms">
+                    <div class="user-information">
+                        <div class="profile-picture"></div>
+                        <div class="username">Username</div>
+                    </div>
+                    <div class="join"><p>FIGHT</p></div>
+                </div>
+
+                <div class="lobby-rooms"></div>
+                <div class="lobby-rooms"></div>
+                <div class="lobby-rooms"></div>
+                <div class="lobby-rooms"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="button-container">
+        <a href="{{ url_for('sleeves') }}" class="custom-button">Select Sleeves</a>
+        <a href="{{ url_for('deck_builder') }}" class="custom-button selected-deck">
+            <span>Select Deck</span>
+            <div id="selected-deck-name" class="selected-deck-name">{{ selected_deck if selected_deck else "No Deck Selected"}}</div>
+        </a>
+        <a href="#" class="custom-button create-room">Create Room</a>
+    </div>
+
+    
+    <script src="js/arenaLobby.js"></script>
+    <script src="js/modal.js"></script>
+</body>
+</html>

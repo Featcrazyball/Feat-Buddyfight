@@ -1,0 +1,219 @@
+body {
+    height: 100vh;
+    margin: 0;
+    background: linear-gradient(to bottom, rgb(0, 119, 255),rgb(0, 8, 255), #290099);
+    overflow: hidden;
+}
+
+.lines {
+    position: absolute;
+    top: 0;
+    left: 0; 
+    z-index: -2;
+    width: 100%;
+    height: 100%; 
+    background-image: 
+    repeating-linear-gradient(
+        0deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0.2) 1px,
+        transparent 2px, 
+        transparent 30px 
+    ), 
+    repeating-linear-gradient(
+        90deg, 
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0.2) 1px, 
+        transparent 2px, 
+        transparent 70px 
+    );
+    pointer-events: none; 
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 70vh;
+    justify-content: space-around;
+    align-items: center;
+    margin-top: 12vh;
+}
+
+.shop-item-top-row, .shop-item-bottom-row{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 70vw;
+    height: 40vh;
+    gap: 50px;
+    margin-top: 10px;
+}
+
+.shop-item {
+    position: relative;
+    width: 17vw; 
+    height: 40vh; 
+    background-color: #fff;
+    box-shadow: 0 4px 15px blue;
+    background:linear-gradient(to bottom, rgb(255, 0, 200),rgb(0, 8, 255)); ;
+    border: 1px solid white;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.shop-item:hover{
+    z-index: 1;
+    transform: scale(1.2);
+}
+
+.ticket-icon{
+    height: 80%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ticket-icon img{
+    max-width: 80%;
+    aspect-ratio: 1/1;
+}
+
+.ticket-icon h6{
+    position: absolute;
+    right: 5vw;
+    margin-top: 20vh;
+    font-size: 3rem;
+}
+
+.price-holder{
+    height: 20%;
+    border-top: 1px solid white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+}
+
+/* payment container */
+.payment-modal {
+    display: none; 
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background: radial-gradient(circle, rgba(10, 10, 25, 0.95), rgba(5, 5, 15, 1));
+    backdrop-filter: blur(8px); 
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.payment-modal-content {
+    position: relative;
+    margin: 10% auto;
+    background: linear-gradient(145deg, rgba(50, 0, 100, 0.9), rgba(0, 10, 70, 0.95));
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    padding: 20px;
+    width: 50%;
+    box-shadow: 0px 0px 50px rgba(150, 0, 255, 0.8), 0px 0px 100px rgba(50, 100, 255, 0.6);
+    animation: slideDownFromUp 0.7s ease-out;
+}
+
+.payment-modal-content .close {
+    color: rgba(255, 255, 255, 0.8);
+    float: right;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease-in-out;
+}
+
+.payment-modal-content .close:hover {
+    color: rgba(255, 0, 200, 1);
+}
+
+.payment-modal-content h2 {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 0, 200, 0.6);
+}
+
+.payment-modal-content form input[type="tel"],
+.payment-modal-content form input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(20, 20, 50, 0.85);
+    color: rgba(255, 255, 255, 0.9);
+    outline: none;
+    transition: all 0.3s ease-in-out;
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.payment-modal-content form input[type="tel"]:focus,
+.payment-modal-content form input[type="text"]:focus {
+    border-color: rgba(150, 0, 255, 1);
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.6), inset 0 0 10px rgba(255, 0, 255, 0.3);
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.half-width {
+    width: 48%;
+}
+
+.payment-modal-content form button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.95);
+    background: linear-gradient(145deg, rgba(50, 0, 150, 1), rgba(150, 0, 255, 1));
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0px 0px 30px rgba(150, 0, 255, 0.7), 0px 0px 40px rgba(50, 0, 200, 0.5);
+    transition: all 0.3s ease-in-out;
+    margin-top: 20px;
+}
+
+.payment-modal-content form button:hover {
+    background: linear-gradient(145deg, rgba(200, 0, 255, 1), rgba(50, 0, 150, 1));
+    box-shadow: 0px 0px 50px rgba(255, 0, 255, 1), 0px 0px 70px rgba(100, 0, 255, 0.8);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideDownFromUp {
+    from {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

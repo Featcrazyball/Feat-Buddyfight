@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatrooms</title>
+    <link rel="website icon" href="img/chat.png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/chat.css">
+    <link rel="stylesheet" href="css/modal.css">
+</head>
+<body>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div id="modal-message"></div>
+        </div>
+    </div>
+
+    {% block music %}
+    {% include 'includes/_sound-effects.html' %}
+    {% endblock %}
+
+    {% block navbar %}
+    {% include 'includes/_navbar.html' %}
+    {% endblock %}
+
+    <div class="tabs-nav">
+        <div class="private-rooms">
+            <div class="create-room">Create Room</div>
+            <form action="/join_room">
+                <input type="text" name="roomCode" id="roomCode" placeholder="Enter Code">
+                <button type="submit">Join Room</button>
+            </form>
+        </div>
+        <div class="tabs">
+            <button class="tablinks active" data-tab="General">General</button>
+            <button class="tablinks" data-tab="Deck">Deck</button>
+            <button class="tablinks" data-tab="Events">Events</button>
+        </div>
+    </div>
+    
+    <div class="all-container">
+        <div class="container">
+            <div class="chat-rooms-container">
+                <div id="General" class="tabcontent active">
+                    <h3>General</h3>
+                    <div class="messages"></div>
+                </div>
+                <div id="Deck" class="tabcontent">
+                    <h3>Deck Sharing</h3>
+                    <div class="messages"></div>
+                </div>
+                <div id="Events" class="tabcontent">
+                    <h3>Events</h3>
+                    <div class="messages"></div>
+                </div>
+            </div>
+        </div>
+        <div class="message-input">
+            <input type="text" id="messageInput" placeholder="Type your message...">
+            <button id="sendMessage">Send</button>
+        </div>
+    </div>
+    
+    <script src="js/modal.js"></script>
+    <script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
+    <script src="js/chat.js"></script>
+</body>
+</html>

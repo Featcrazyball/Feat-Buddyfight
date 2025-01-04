@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buddyfight</title>
+    <link rel="stylesheet" href="css/arenaHome.css">
+    <link rel="website icon" href="img/Logo.webp">
+</head>
+<body>
+    {% block music %}
+    {% include 'includes/_sound-effects.html' %}
+    {% endblock %}
+    <div class="container">
+
+        <div class="sidebar">
+            <div class="home-icon">
+                <a href="{{ url_for('home', usr=session['user']) }}">
+                    <img src="img/home.jpg" alt="Home Icon">
+                </a>
+            </div>
+            <div class="logo-container">
+                <img src="img/Logo.webp" alt="Buddyfight Logo" class="logo">
+            </div>
+            <ul class="menu">
+                <li><span class="dot"></span><a href="{{ url_for('arenaLobby', usr=session['user']) }}" class="menu-link active">PLAY</a></li>
+                <li><span class="dot"></span><a href="{{ url_for('deck_builder', usr=session['user']) }}" class="menu-link">DECKS</a></li>
+                <li><span class="dot"></span><a href="{{ url_for('chat', usr=session['user']) }}" class="menu-link">CHAT ROOMS</a></li>
+                <li><span class="dot"></span><a href="{{ url_for('gacha', usr=session['user']) }}" class="menu-link">GACHA</a></li>
+                <li><span class="dot"></span><a href="{{ url_for('settings', usr=session['user']) }}" class="menu-link">SETTINGS</a></li>
+            </ul>
+        </div>
+        
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <img src="{{ url_for('static', filename='img/kyoya.jpeg') }}" alt="Background Image" class="main-image">
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const menuItems = document.querySelectorAll(".menu li");
+            menuItems.forEach((item, index) => {
+                item.style.setProperty("--delay", `${index * 0.2}s`); 
+            });
+
+            const playItem = document.querySelector(".menu li .menu-link");
+            const playDot = playItem.closest("li").querySelector(".dot");
+        
+            playItem.classList.add("active");
+            playItem.style.fontSize = "28px";
+            playItem.style.fontWeight = "bold";
+            playItem.style.color = "#FF00FF";
+            playItem.style.backgroundColor = "white"; 
+            playDot.style.backgroundColor = "#FF00FF";
+            playDot.style.transform = "scale(1.2)";
+        
+            menuItems.forEach((item) => {
+                item.addEventListener("click", function () {
+                    menuItems.forEach((otherItem) => {
+                        const dot = otherItem.querySelector(".dot");
+                        const link = otherItem.querySelector(".menu-link");
+        
+                        dot.style.backgroundColor = "white";
+                        dot.style.transform = "scale(1)";
+                        link.classList.remove("active");
+                        link.style.fontSize = "20px";
+                        link.style.fontWeight = "normal";
+                        link.style.color = "white";
+                        link.style.backgroundColor = "transparent";
+                    });
+
+                    const activeDot = this.querySelector(".dot");
+                    const activeLink = this.querySelector(".menu-link");
+        
+                    activeDot.style.backgroundColor = "#FF00FF";
+                    activeDot.style.transform = "scale(1.2)";
+                    activeLink.classList.add("active");
+                    activeLink.style.fontSize = "28px";
+                    activeLink.style.fontWeight = "bold";
+                    activeLink.style.color = "#FF00FF";
+                    activeLink.style.backgroundColor = "white";
+                });
+
+                item.addEventListener("mouseenter", function () {
+                    const hoverDot = this.querySelector(".dot");
+                    const hoverLink = this.querySelector(".menu-link");
+        
+                    hoverDot.style.backgroundColor = "#FF00FF";
+                    hoverDot.style.transform = "scale(1.2)";
+                    hoverLink.style.fontSize = "24px";
+                    hoverLink.style.color = "#FF00FF";
+                    hoverLink.style.backgroundColor = "white";
+                    hoverLink.style.fontWeight = "bold";
+                });
+
+                item.addEventListener("mouseleave", function () {
+                    const leaveDot = this.querySelector(".dot");
+                    const leaveLink = this.querySelector(".menu-link");
+        
+                    if (!leaveLink.classList.contains("active")) {
+                        leaveDot.style.backgroundColor = "white";
+                        leaveDot.style.transform = "scale(1)";
+                        leaveLink.style.fontSize = "20px";
+                        leaveLink.style.color = "white";
+                        leaveLink.style.backgroundColor = "transparent";
+                    }
+                });
+            });
+        });
+        
+    </script>
+</body>
+</html>

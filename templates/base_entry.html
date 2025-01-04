@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/entry.css">
+    <link rel="website icon" type="png" href="img/Logo.webp">
+    <link rel="stylesheet" href="css/required.css">
+</head>
+<body>
+
+    {% block music %}
+    {% include 'includes/_sound-effects.html' %}
+    {% endblock %}
+
+    <div class="lines"></div>
+    <div class="container box">
+        {% block entry %}{% endblock %}
+    </div>
+    <div class="containerShadow box"></div>
+    <img src="img/Logo.webp" class="logo">
+    <img src="img/Gao.png" class="gao">
+    <img src="img/Gao_black.png" class="gao" id="gaoShadow">
+    <img src="img/tasuku.png" class="tasuku">
+    <img src="img/tasuku_black.png" class="tasuku" id="tasukuShadow">
+    
+    <!-- Flash Message Modal -->
+    <div class="modal fade" id="flashModal" tabindex="-1" aria-labelledby="flashModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="flashModalLabel">Notification</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-unstyled"></ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="closeBTN btn btn-secondary" data-bs-dismiss="modal"><p class="close">Close</p></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var flashMessages = {{ get_flashed_messages(with_categories=true) | tojson}};
+
+            if (flashMessages.length > 0) {
+                var modalBody = document.querySelector("#flashModal .modal-body ul");
+                modalBody.innerHTML = "";  
+                
+                flashMessages.forEach(function (msg) {
+                    var category = msg[0];  
+                    var message = msg[1]; 
+
+                    var li = document.createElement("li");
+                    li.textContent = message;
+                    li.classList.add("text-" + category); 
+                    modalBody.appendChild(li);
+                });
+
+                // Show the modal
+                var flashModal = new bootstrap.Modal(document.getElementById('flashModal'));
+                flashModal.show();
+            }
+        });
+    </script>
+</body>
+</html>

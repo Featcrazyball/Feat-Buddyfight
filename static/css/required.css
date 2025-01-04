@@ -1,0 +1,61 @@
+/* Styling for Inputs with Placeholder (No User Input) */
+*:required:placeholder-shown {
+    border-color: #007bff; 
+    background: linear-gradient(145deg, #eef7ff, #dbefff); 
+    color: #666;
+}
+
+/* Styling for Inputs When User Starts Typing (Invalid State) */
+*:required:not(:placeholder-shown):invalid {
+    border-color: #ff4d4f; 
+    background: linear-gradient(145deg, #ffe6e6, #ffcccc); 
+    color: #721c24;
+    animation: shake 0.3s ease-in-out;
+}
+
+/* Styling for Inputs with Valid Data */
+*:required:not(:placeholder-shown):valid {
+    border-color: #28a745; 
+    background: linear-gradient(145deg, #eaffea, #d4f9d4);
+    color: #155724; 
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.6); 
+}
+
+/* Glow Effect on Focus */
+*:required:focus {
+    border-color: #0056b3; 
+    background: linear-gradient(145deg, #ffffff, #f0f0f0); 
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.6); 
+    transform: scale(1.02); 
+    animation: pulse 1.5s infinite; 
+}
+
+/* Placeholder Text Styling */
+*:required::placeholder {
+    color: #aaa;
+    font-style: italic;
+    transition: color 0.3s ease;
+}
+
+/* Placeholder Fades Out on Focus */
+*:required:focus::placeholder {
+    color: transparent;
+}
+
+/* Keyframes for Shake Animation */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+}
+
+/* Keyframes for Pulsing Animation */
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 8px rgba(0, 123, 255, 0.6);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(0, 123, 255, 0.8);
+    }
+}

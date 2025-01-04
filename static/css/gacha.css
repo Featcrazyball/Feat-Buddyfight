@@ -1,0 +1,350 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: 0;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 10vh;
+}
+
+/* Tab Container */
+.tab-container {
+    display: flex;
+    width: 100%;
+    height: 95%;
+    border-radius: 10px;
+    overflow-x: hidden;
+    margin-top: 20px;
+}
+
+/* Tabs Section */
+.tabs {
+    width: 20%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 20px 10px;
+    gap: 15px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 255, 0.5) rgba(0, 0, 0, 0.1);
+    direction: rtl;
+}
+
+.tabs::-webkit-scrollbar {
+    width: 8px;
+}
+
+.tabs::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 255, 0.5);
+    border-radius: 10px;
+}
+
+.tab {
+    filter: grayscale(100%);
+    max-width: 60%;
+    height: auto;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    opacity: 0.8;
+    transition: transform 0.3s ease, max-width 0.3s ease, opacity 0.3s ease, border-color 0.3s ease;
+}
+
+.tab:hover {
+    max-width: 70%;
+    transform: scale(1.1);
+    border-color: rgba(0, 255, 128, 0.8);
+    opacity: 1;
+    filter: grayscale(0%);
+}
+
+.tab.active {
+    max-width: 80%;
+    transform: scale(1.2);
+    border-color: rgba(68, 0, 255, 0.8);
+    z-index: 10;
+    filter: drop-shadow(0 0 10px rgba(68, 0, 255, 0.8));
+    filter: grayscale(0%);
+}
+
+/* Ticket Header */
+.ticket-header {
+    position: fixed;
+    top: 100px;
+    right: 10px; 
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    background: linear-gradient(45deg, rgba(0, 255, 128, 0.8), rgba(68, 0, 255, 0.8));
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    padding: 10px 15px;
+}
+
+/* Ticket Container */
+.ticket-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ticket-container:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 255, 128, 0.5);
+}
+
+/* Tickets Text */
+#header-tickets {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Ticket Icon */
+.ticket-icon {
+    width: 30px;
+    height: auto;
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.ticket-icon:hover {
+    transform: rotate(15deg) scale(1.2);
+    filter: drop-shadow(0 0 10px rgba(255, 255, 0, 0.8));
+}
+
+/* Tabs */
+.tab-content{
+    height: 100vh;
+    width: 80vw;
+}
+
+.tab-panel{
+    display: none;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 3vh;
+}
+
+.tab-panel.active{
+    display: flex;
+    justify-content: center;
+}
+
+.tab-panel h2{
+    width: 100%;
+    text-align: center;
+    font-size: 3rem;
+    margin-bottom: 3vh;
+}
+
+.gacha-banner{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: max-content;
+}
+
+.banner-content{
+    display: flex;
+    justify-content: center;
+}
+
+.banner{
+    width: 60vw;
+    border-radius: 15px;
+    pointer-events: none;
+    cursor: none;
+}
+
+.pull-buttons-container{
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-top: 2vh;
+}
+
+.cool-button {
+    display: inline-block;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: linear-gradient(45deg, #00ffae, #0066ff);
+    border: none;
+    border-radius: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.cool-button:hover {
+    background: linear-gradient(45deg, #0066ff, #00ffae);
+    box-shadow: 0 6px 20px rgba(0, 255, 174, 0.6), 0 6px 20px rgba(0, 102, 255, 0.6);
+    transform: scale(1.05);
+}
+
+.cool-button::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300%;
+    height: 300%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.25), transparent);
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    border-radius: 50%;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+    z-index: 0;
+}
+
+.cool-button:active::before {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.cool-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(0, 255, 174, 0.4);
+}
+
+/* Gacha */
+.gray-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    overflow: auto;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.cards-display {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    width: 50%;
+    margin: auto;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.card {
+    width: 150px;
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transform: scale(0);
+    transition: transform 0.5s ease;
+}
+
+.hidden {
+    display: none;
+}
+
+#gacha-video{
+    z-index: 10000;
+}
+
+/* Pulls */
+.card-item {
+    position: relative;
+    width: 100px;
+    height: 150px;
+    background-size: cover;
+    background-position: center;
+    border: 2px solid transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin: 20px;
+}
+
+.card-horizontal-vertical {
+    width: 100px; 
+    height: 150px; 
+    position: relative;
+    background-size: contain;
+    background-position: center;
+    border: 2px solid transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin: 20px;
+}
+
+.card-item,
+.card-horizontal-vertical {
+    margin: 5px;
+    object-fit: contain;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-item:hover,.card-horizontal-vertical:hover  {
+    transform: scale(1.05);
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.card-image-horizontal {
+    width: 150px;
+    height: 100%;
+    object-fit: contain;
+    transform: rotate(90deg);
+    border-radius: 5px;
+    padding: 0;
+    margin: 0;
+}
+
+.card-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* Space between cards */
+}

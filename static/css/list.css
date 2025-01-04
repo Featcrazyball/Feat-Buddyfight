@@ -1,0 +1,816 @@
+body{
+    background-color: black;
+    position: absolute;
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    font-family: 'Poppins', sans-serif;
+}
+
+.line {
+    position: absolute;
+    top: 0;
+    left: 0; 
+    z-index: -1;
+    width: 100vw; 
+    height:max-content;
+    min-height: 100%; 
+    background-image: 
+        repeating-linear-gradient(
+            0deg,
+            rgba(182, 182, 182, 0.322) 0%,
+            rgba(182, 182, 182, 0.322) 1px,
+            transparent 2px,
+            transparent 100px
+        ), 
+        repeating-linear-gradient(
+            90deg,
+            transparent 0%,
+            transparent 10px, 
+            rgba(182, 182, 182, 0.322) 1px, 
+            transparent 12px,
+            transparent 70px
+        );
+    background-size: cover; 
+    pointer-events: none; 
+}
+
+/* static/css/styles.css */
+header {
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+
+header nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+header nav ul li {
+    display: inline;
+    margin: 0 10px;
+}
+
+header nav ul li a {
+    color: white;
+    text-decoration: none;
+}
+
+.container {
+    padding: 20px;
+}
+
+img {
+    max-width: 100%;
+}
+
+.scrape-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    margin: 20px 0;
+}
+
+.scrape-btn:hover {
+    background-color: #218838;
+}
+
+.footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    margin-top: 10vh;
+}
+
+/* Filter Button */
+.filter-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.filter-btn:hover {
+    background-color: #0056b3;
+}
+
+
+/* Filter Panel */
+.filter-panel {
+    display: none; /* Hidden by default */
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    width: 70vw;
+    margin: auto;
+}
+
+.filter-panel form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.filter-panel label {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.filter-panel input, .search_input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* buttons */
+.btn-primary {
+    padding: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    background-color: #218838;
+}
+
+.btn-secondary {
+    padding: 10px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.btn-secondary:hover {
+    background-color: #c82333;
+}
+
+/* container for database */
+.card-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    padding: 20px;
+    padding-bottom: 10vh;
+}
+
+.card-item {
+    position: relative;
+    width: 150px; 
+    height: 200px; 
+    overflow: hidden; 
+    border: 1px solid black;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+}
+
+.card-image {    
+    width: 150px;
+    height: 200px;
+}
+
+.card-image-horizontal {
+    transform: rotate(90deg) scale(1.333);
+    transform-origin: center center;
+    width: auto;
+    height: 100%;
+    object-fit: cover; 
+}
+
+.card-image,
+.card-image-horizontal {
+    object-fit: contain;
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+/* Base Modal */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8); /* Semi-transparent black overlay */
+    backdrop-filter: blur(10px); /* Subtle blur effect for depth */
+    animation: fadeInModal 0.5s ease-in-out; /* Smooth fade-in animation */
+    overflow-y: auto; /* Enable scrolling if content exceeds viewport height */
+    padding: 20px;
+}
+
+/* Modal Content */
+.modal-content {
+    position: relative;
+    margin: auto;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh; /* Prevents modal from overflowing screen */
+    background: linear-gradient(145deg, #2c2c2c, #1e1e1e); /* Dark gradient background */
+    border-radius: 12px;
+    padding: 30px;
+    color: #ffffff;
+    text-align: center;
+    box-shadow: 0px 0px 30px rgba(0, 255, 255, 0.5);
+    animation: slideDownModal 0.5s cubic-bezier(0.25, 1, 0.5, 1); /* Smooth slide-down effect */
+    overflow-y: auto; /* Enable scrolling inside the modal if needed */
+}
+
+/* Close Button */
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff;
+    cursor: pointer;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.close-btn:hover {
+    transform: scale(1.2) rotate(20deg);
+    color: #ff4545;
+}
+
+/* Modal Title */
+#modal-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #00d9ff;
+    text-shadow: 0px 0px 10px rgba(0, 255, 255, 0.5);
+}
+
+/* Modal Image */
+#modal-image {
+    width: 100%;
+    max-height: 300px; /* Restrict image height to fit content */
+    object-fit: contain;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 20px;
+}
+
+#modal-image:hover {
+    transform: scale(1.05);
+}
+
+/* Modal Paragraphs */
+.modal-content p {
+    font-size: 16px;
+    line-height: 1.8;
+    margin: 10px 0;
+    color: #f5f5f5;
+    text-align: left; 
+}
+
+/* Highlighted Info */
+.modal-content strong {
+    color: #00d9ff;
+}
+
+/* Admin Buttons */
+.modal-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.modal-actions .update-btn,
+.modal-actions .confirm-btn-danger {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.update-btn {
+    background: linear-gradient(145deg, #007bff, #0056b3);
+    color: #ffffff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 255, 0.3);
+}
+
+.update-btn:hover {
+    background: linear-gradient(145deg, #0056b3, #007bff);
+    box-shadow: 0px 4px 20px rgba(0, 0, 255, 0.7);
+}
+
+.confirm-btn-danger {
+    background: linear-gradient(145deg, #ff4545, #b30000);
+    color: #ffffff;
+    box-shadow: 0px 4px 10px rgba(255, 0, 0, 0.3);
+}
+
+.confirm-btn-danger:hover {
+    background: linear-gradient(145deg, #b30000, #ff4545);
+    box-shadow: 0px 4px 20px rgba(255, 0, 0, 0.7);
+}
+
+
+@keyframes slideDownModal {
+    0% {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    .modal-content {
+        padding: 20px;
+    }
+
+    #modal-title {
+        font-size: 20px;
+    }
+
+    .modal-content p {
+        font-size: 14px;
+    }
+}
+
+.update-btn {
+    background: linear-gradient(145deg, #007bff, #0056b3);
+    color: #ffffff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 255, 0.3);
+}
+
+.update-btn:hover {
+    background: linear-gradient(145deg, #0056b3, #007bff);
+    box-shadow: 0px 4px 20px rgba(0, 0, 255, 0.7);
+}
+
+.confirm-btn-danger {
+    background: linear-gradient(145deg, #ff4545, #b30000);
+    color: #ffffff;
+    box-shadow: 0px 4px 10px rgba(255, 0, 0, 0.3);
+}
+
+.confirm-btn-danger:hover {
+    background: linear-gradient(145deg, #b30000, #ff4545);
+    box-shadow: 0px 4px 20px rgba(255, 0, 0, 0.7);
+}
+
+/* Keyframe Animations */
+@keyframes fadeInModal {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideDownModal {
+    0% {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    .modal-content {
+        padding: 20px;
+    }
+
+    #modal-title {
+        font-size: 20px;
+    }
+
+    .modal-content p {
+        font-size: 14px;
+    }
+}
+
+/* Button */
+.filter-btn,
+.btn-danger {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.filter-btn {
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+}
+
+.filter-btn:hover {
+    background-color: #0056b3;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+/* text */
+h1{
+    color: white;
+    text-align: center;
+    margin: auto;
+}
+
+/* lazy loading */
+.loading {
+    filter: blur(40px) grayscale(100%);
+}
+
+.loaded{
+    filter: blur(0) grayscale(0);
+    transition: 0.7s ease-in-out;
+}
+
+/* No Existing card */
+.no-cards-message {
+    font-size: 8rem;
+    color: #ff0000;
+    text-align: center;
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+p{
+    color: black;
+    margin: 5px;
+}
+
+h2{
+    color: black;
+}
+
+/* Delete Modal */
+/* Confirmation Modal Styles */
+.update-btn{
+    background: #1100ff;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    font-size: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.update-btn:hover {
+    background: #0030cc;
+    box-shadow: 0px 0px 10px rgba(0, 60, 255, 0.8);
+}
+
+/* Confirmation Modal Styles */
+.confirm-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.confirm-modal.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.confirm-modal-content {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 30px 40px;
+    border-radius: 10px;
+    text-align: center;
+    animation: scaleUp 0.4s ease forwards;
+    box-shadow: 0px 4px 15px rgba(255, 0, 0, 0.5);
+    position: relative;
+}
+
+.confirm-modal-content::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    border-radius: 15px;
+    background: linear-gradient(45deg, rgba(255, 0, 0, 0.5), transparent);
+    z-index: -1;
+}
+
+@keyframes scaleUp {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.confirm-modal-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.confirm-btn-danger {
+    background: #ff0000;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.confirm-btn-danger:hover {
+    background: #cc0000;
+    box-shadow: 0px 0px 10px rgba(255, 0, 0, 0.8);
+}
+
+.confirm-btn-secondary {
+    background: #444;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.confirm-btn-secondary:hover {
+    background: #666;
+    box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Modal Background Click */
+.confirm-modal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm-modal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    z-index: 2000;
+}
+
+.confirm-modal.visible::before {
+    pointer-events: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .confirm-modal-content {
+        width: 90%;
+        padding: 20px;
+    }
+
+    .confirm-btn-danger, .confirm-btn-secondary {
+        font-size: 0.9rem;
+        padding: 8px 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .confirm-modal-content {
+        width: 100%;
+        padding: 15px;
+    }
+
+    .confirm-btn-danger, .confirm-btn-secondary {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+    }
+}
+
+
+/* Oracle for admin */
+/* Oracle Modal */
+.oracle-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.oracle-modal.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.oracle-modal.hidden {
+    display: none;
+}
+
+.oracle-modal-content {
+    background: #2b1f30;
+    color: #f1e4f3;
+    padding: 30px 40px;
+    border-radius: 12px;
+    text-align: center;
+    animation: oracleScaleUp 0.4s ease forwards;
+    box-shadow: 0px 4px 20px rgba(128, 0, 128, 0.7);
+    position: relative;
+}
+
+.oracle-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: transparent;
+    color: #f1e4f3;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.oracle-close-btn:hover {
+    color: #d6a5d6;
+}
+
+@keyframes oracleScaleUp {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Checkbox for unlocked Cards */
+.unlocked-checkbox{
+    width: 100%;
+    height:fit-content;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 1vh;
+}
+
+.checkbox{
+    margin-right: 10px;
+}
+
+/* Infinite scroll */
+.scroll-container {
+    margin-top: 2rem;
+    width: 100%;
+    max-width: 1536px;
+    margin-inline: auto;
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+    mask-image: linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0),
+      rgba(0, 0, 0, 1) 20%,
+      rgba(0, 0, 0, 1) 80%,
+      rgba(0, 0, 0, 0)
+    );
+}
+  
+@keyframes scrollLeft {
+    to {
+        left: -200px;
+    }
+}
+
+@keyframes scrollRight {
+    to {
+        right: -200px;
+    }
+}
+
+.itemLeft, .itemRight {
+    width: 133px;
+    height: 200px;
+    border-radius: 12px;
+    position: absolute;
+    animation-timing-function: linear;
+    animation-duration: 30s;
+    animation-iteration-count: infinite;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.itemLeft {
+    left: max(calc(200px * 8), 100%);
+    animation-name: scrollLeft;
+}
+
+.itemRight {
+    right: max(calc(200px * 8), calc(100% + 200px));
+    animation-name: scrollRight;
+}
+
+.item1 { --i: 1; }
+.item2 { --i: 2; }
+.item3 { --i: 3; }
+.item4 { --i: 4; }
+.item5 { --i: 5; }
+.item6 { --i: 6; }
+.item7 { --i: 7; }
+.item8 { --i: 8; }
+.item9 { --i: 9; }
+.item10 { --i: 10; }
+.item11 { --i: 11; }
+.item12 { --i: 12; }
+.item13 { --i: 13; }
+.item14 { --i: 14; }
+.item15 { --i: 15; }
+.item16 { --i: 16; }
+.item17 { --i: 17; }
+.item18 { --i: 18; }
+
+.item-scroll {
+    animation-delay: calc(30s / 8 * (8 - var(--i)) * -1);
+}
+
+.scroll-bottom{
+    margin-bottom: 10vh;
+}

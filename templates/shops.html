@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shops</title>
+    <link rel="website icon" href="{{ url_for('static', filename='img/shopping-cart.png')}}">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/shop.css">
+    <link rel="stylesheet" href="css/modal.css">
+</head>
+<body>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div id="modal-message"></div>
+        </div>
+    </div>
+
+    {% block navbar %}
+    {% include 'includes/_navbar.html' %}
+    {% endblock %}
+
+    {% block music %}
+    {% include 'includes/_sound-effects.html' %}
+    {% endblock %}
+
+    <div class="lines"></div>
+
+    <div class="container">
+        <div class="shop-item-top-row">
+            {% for item in items[:3] %}
+            <div class="shop-item" data-item-id="{{ item.id }}" data-item-count="{{ item.count }}" data-item-price="{{ item.price }}">
+                <div class="ticket-icon">
+                    <img src="img/ticket-icon.png">
+                    <h6>x{{ item.count }}</h6>
+                </div>
+                <div class="price-holder">${{ "%.2f" | format(item.price) }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="shop-item-bottom-row">
+            {% for item in items[3:] %}
+            <div class="shop-item" data-item-id="{{ item.id }}" data-item-count="{{ item.count }}" data-item-price="{{ item.price }}">
+                <div class="ticket-icon">
+                    <img src="img/ticket-icon.png">
+                    <h6>x{{ item.count }}</h6>
+                </div>
+                <div class="price-holder">${{ "%.2f" | format(item.price) }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="paymentModal" class="payment-modal">
+        <div class="payment-modal-content">
+            <span class="close">&times;</span>
+            <h2>Complete Payment</h2>
+            <form id="paymentForm" method="POST" action="/shops/make_payment">
+                <input type="hidden" name="item_id" id="modal-item-id">
+                <input type="hidden" name="item_price" id="modal-item-price">
+                <div>
+                    <label for="card_number">Credit Card Number</label>
+                    <input id="ccn" type="tel" inputmode="numeric" pattern="[0-9\s]{13,19}" 
+                           autocomplete="cc-number" maxlength="19" 
+                           placeholder="XXXX XXXX XXXX XXXX" name="card_number" required>
+                </div>
+                <div class="row">
+                    <div class="half-width">
+                        <label for="expiration_date">Expiration Date</label>
+                        <input type="text" id="expiration_date" name="expiration_date" placeholder="MM/YY" required>
+                    </div>
+                    <div class="half-width">
+                        <label for="cvv">CVV</label>
+                        <input type="text" id="cvv" name="cvv" placeholder="XXX" required>
+                    </div>
+                </div>
+                <button type="submit">Pay $<span id="modal-item-price-display"></span></button>
+            </form>
+        </div>
+    </div>    
+
+<script src="js/shop.js"></script>
+<script src="js/modal.js"></script>
+</body>
+</html>

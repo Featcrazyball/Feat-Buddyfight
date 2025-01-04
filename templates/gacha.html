@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gacha</title>
+    <link rel="website icon" href="img/gacha-icon.png">
+    <link rel="stylesheet" href="css/gacha.css">
+    <link rel="stylesheet" href="css/modal.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: 
+                linear-gradient(45deg, rgba(0, 255, 128, 0.8), rgba(68, 0, 255, 0.8)), 
+                url("{{ url_for('static', filename='img/halftone.png') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            padding-top: 7vh;
+        }
+    </style>
+</head>
+<body>
+
+    {% block music %}
+    {% include 'includes/_sound-effects.html' %}
+    {% endblock %}
+
+    {% block navbar %}
+    {% include 'includes/_navbar.html' %}
+    {% endblock %}
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div id="modal-message"></div>
+        </div>
+    </div>
+
+    <div id="gray-overlay" class="gray-overlay hidden">
+        <div id="cards-display" class="cards-display">
+            <!-- Pulled cards will dynamically appear here -->
+        </div>
+    </div>
+    
+    <video id="gacha-video" class="hidden">
+        <source src="{{ url_for('static', filename='videos/PULL.mp4')}}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <div class="ticket-header">
+        <div class="ticket-container">
+            <span id="header-tickets"></span>
+            <img src="{{ url_for('static', filename='img/ticket-icon.png')}}" class="ticket-icon">
+        </div>
+    </div>
+
+    <div class="tab-container">
+        <div class="tabs">
+            <img src="{{ url_for('static', filename='img/gacha-banners/AllBanner.jpg') }}" class="tab active" data-tab="tab1" alt="All">
+            <img src="{{ url_for('static', filename='img/gacha-banners/DragonWorldBanner.jpg') }}" class="tab" data-tab="tab2" alt="Dragon World">
+            <img src="{{ url_for('static', filename='img/gacha-banners/AncientWorldBanner.png') }}" class="tab" data-tab="tab3" alt="Ancient World">
+            <img src="{{ url_for('static', filename='img/gacha-banners/HeroWorldBanner.jpg') }}" class="tab" data-tab="tab4" alt="Hero World">
+            <img src="{{ url_for('static', filename='img/gacha-banners/DangerWorldBanner.jpg') }}" class="tab" data-tab="tab5" alt="Danger World">
+            <img src="{{ url_for('static', filename='img/gacha-banners/LegendWOrldBanner.jpg') }}" class="tab" data-tab="tab6" alt="Legend World">
+            <img src="{{ url_for('static', filename='img/gacha-banners/StarDragonWorldBanner.jpg') }}" class="tab" data-tab="tab7" alt="Star Dragon World">
+            <img src="{{ url_for('static', filename='img/gacha-banners/DungeonWorldBanner.jpg') }}" class="tab" data-tab="tab8" alt="Dungeon World">
+            <img src="{{ url_for('static', filename='img/gacha-banners/DarknessDragonWorldBanner.jpg') }}" class="tab" data-tab="tab9" alt="Darkness Dragon World">
+            <img src="{{ url_for('static', filename='img/gacha-banners/KatanaWorldBanner.jpg') }}" class="tab" data-tab="tab11" alt="Katana World">
+            <img src="{{ url_for('static', filename='img/gacha-banners/MagicWorldBanner.png') }}" class="tab" data-tab="tab11" alt="Magic World">
+        </div>
+        <div class="tab-content">
+            <div id="tab1" class="tab-panel active">
+                <div class="tab-panel-content">
+                    <h2>Default Pulls</h2>
+                    <div class="gacha-banner dragon-world-pull">
+                        <div class=".banner-content">
+                            <img src="{{ url_for('static', filename='img/gacha-banners/AllBanner.jpg') }}" class="banner">
+                        </div>
+                    </div>
+                    <div class="pull-buttons-container">
+                        <button id="1xPull" class="cool-button pull-1x">Pull 1x</button>
+                        <button id="10xPull" class="cool-button pull-10x">Pull 10x</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab2" class="tab-panel">
+                <div class="tab-panel-content">
+                    <h2>Dragon World</h2>
+                    <div class="gacha-banner dragon-world-pull">
+                        <div class=".banner-content">
+                            <img src="{{ url_for('static', filename='img/gacha-banners/DragonWorldBanner.jpg') }}" class="banner">
+                        </div>
+                    </div>
+                    <div class="pull-buttons-container">
+                        <button id="1xPull" class="cool-button pull-1x">Pull 1x</button>
+                        <button id="10xPull" class="cool-button pull-10x">Pull 10x</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab3" class="tab-panel">
+                <div class="tab-panel-content">
+                    <h2>Ancient World</h2>
+                    <div class="gacha-banner dragon-world-pull">
+                        <div class=".banner-content">
+                            <img src="{{ url_for('static', filename='img/gacha-banners/AncientWorldBanner.png') }}" class="banner">
+                        </div>
+                    </div>
+                    <div class="pull-buttons-container">
+                        <button id="1xPull" class="cool-button pull-1x">Pull 1x</button>
+                        <button id="10xPull" class="cool-button pull-10x">Pull 10x</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab4" class="tab-panel">
+                <div class="tab-panel-content">
+                    <h2>Hero World</h2>
+                    <div class="gacha-banner dragon-world-pull">
+                        <div class=".banner-content">
+                            <img src="{{ url_for('static', filename='img/gacha-banners/HeroWorldBanner.jpg') }}" class="banner">
+                        </div>
+                    </div>
+                    <div class="pull-buttons-container">
+                        <button id="1xPull" class="cool-button pull-1x">Pull 1x</button>
+                        <button id="10xPull" class="cool-button pull-10x">Pull 10x</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab5" class="tab-panel">
+                <div class="tab-panel-content">
+                    <h2>Danger</h2>
+                    <div class="gacha-banner dragon-world-pull">
+                        <div class=".banner-content">
+                            <img src="{{ url_for('static', filename='img/gacha-banners/DangerWorldBanner.jpg') }}" class="banner">
+                        </div>
+                    </div>
+                    <div class="pull-buttons-container">
+                        <button id="1xPull" class="cool-button pull-1x">Pull 1x</button>
+                        <button id="10xPull" class="cool-button pull-10x">Pull 10x</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab6" class="tab-panel">
+                <div class="tab-panel-content">
+                    <h2>Legend World</h2>
+                    <div class="gacha-banner dragon-world-pull">
+                        <div class=".banner-content">
+                            <img src="{{ url_for('static', filename='img/gacha-banners/LegendWorldBanner.jpg') }}" class="banner">
+                        </div>
+                    </div>
+                    <div class="pull-buttons-container">
+                        <button id="1xPull" class="cool-button pull-1x">Pull 1x</button>
+                        <button id="10xPull" class="cool-button pull-10x">Pull 10x</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab7" class="tab-panel">
+                <div class="tab-panel-content">
+                    <h2>Star Dragon World</h2>
+                    <div class="gacha-banner dragon-world-pull">
+                        <div class=".banner-content">
+                            <img src="{{ url_for('static', filename='img/gacha-banners/StardragonWorldBanner.jpg') }}" class="banner">
+                        </div>
+                    </div>
+                    <div class="pull-buttons-container">
+                        <button id="1xPull" class="cool-button pull-1x">Pull 1x</button>
+                        <button id="10xPull" class="cool-button pull-10x">Pull 10x</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab8" class="tab-panel">
+                <div class="tab-panel-content">
+                    <h2>Dungeon World</h2>
+                    <div class="gacha-banner dragon-world-pull">
+                        <div class=".banner-content">
+                            <img src="{{ url_for('static', filename='img/gacha-banners/DungeonWorldBanner.jpg') }}" class="banner">
+                        </div>
+                    </div>
+                    <div class="pull-buttons-container">
+                        <button id="1xPull" class="cool-button pull-1x">Pull 1x</button>
+                        <button id="10xPull" class="cool-button pull-10x">Pull 10x</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab9" class="tab-panel">
+                <div class="tab-panel-content">
+                    <h2>Darkness Dragon World</h2>
+                    <div class="gacha-banner dragon-world-pull">
+                        <div class=".banner-content">
+                            <img src="{{ url_for('static', filename='img/gacha-banners/DarknessDragonWorldBanner.jpg') }}" class="banner">
+                        </div>
+                    </div>
+                    <div class="pull-buttons-container">
+                        <button id="1xPull" class="cool-button pull-1x">Pull 1x</button>
+                        <button id="10xPull" class="cool-button pull-10x">Pull 10x</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab10" class="tab-panel">
+                <div class="tab-panel-content">
+                    <h2>Katana World</h2>
+                    <div class="gacha-banner dragon-world-pull">
+                        <div class=".banner-content">
+                            <img src="{{ url_for('static', filename='img/gacha-banners/KatanaWorldBanner.jpg') }}" class="banner">
+                        </div>
+                    </div>
+                    <div class="pull-buttons-container">
+                        <button id="1xPull" class="cool-button pull-1x">Pull 1x</button>
+                        <button id="10xPull" class="cool-button pull-10x">Pull 10x</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab11" class="tab-panel">
+                <div class="tab-panel-content">
+                    <h2>Magic World</h2>
+                    <div class="gacha-banner dragon-world-pull">
+                        <div class=".banner-content">
+                            <img src="{{ url_for('static', filename='img/gacha-banners/MagicWorldBanner.png') }}" class="banner">
+                        </div>
+                    </div>
+                    <div class="pull-buttons-container">
+                        <button id="1xPull" class="cool-button pull-1x">Pull 1x</button>
+                        <button id="10xPull" class="cool-button pull-10x">Pull 10x</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="js/gacha.js"></script>
+    <script src="js/modal.js"></script>
+</body>
+</html>

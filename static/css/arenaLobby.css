@@ -1,0 +1,185 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Scroll Bar */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+    background-color: black;
+}
+
+::-webkit-scrollbar-track {
+    background-color: black;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 139, 0.7);
+    border-radius: 10px;
+    border: 2px solid rgba(0, 255, 255, 0.4);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 255, 0.8);
+    border: 2px solid rgba(0, 0, 139, 0.6);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background-color: rgba(0, 0, 255, 0.9);
+    border: 2px solid rgba(0, 0, 139, 0.8);
+}
+
+/* Lobby */
+.lobby-container{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 15vh;
+}
+
+.lobby{
+    border: blue solid 4px;
+    box-shadow: 0 4px 15px white;
+    width: 60vw;
+    height: fit-content;
+    background-color: rgba(41, 170, 227, 1);
+    border-radius: 3px;
+}
+
+.lobby-header{
+    background-color: #0071BD;
+    height: 150px;
+    text-align: center;
+    font-size: 4rem;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    border-bottom: 3px solid blue;
+}
+
+.rooms-container{
+    height: fit-content;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.lobby-rooms {
+    background-color: rgba(41, 170, 227, 1);
+    width: 100%;
+    height: 100px;
+    border-bottom: 3px blue solid;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lobby-rooms:last-child {
+    border-bottom: none;
+}
+
+.user-information {
+    display: flex;
+    align-items: center;
+    gap: 15px; 
+}
+
+.profile-picture {
+    background-color: grey;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+}
+
+.username {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.join {
+    height: 100px;
+    width: 50px;
+    background-color: rgba(122, 201, 67, 1);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-right: 30px;
+    rotate: 90deg;
+}
+
+.join p {
+    font-weight: bolder;
+    font-size: 12px;
+    rotate: -90deg;
+    margin: 0;
+}
+
+@media screen and (max-width: 1000px) {
+    .profile-picture {
+        display: none;
+    }
+
+    .user-information {
+        gap: 5px;
+    }
+}
+
+.button-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.custom-button {
+    text-decoration: none;
+    background: linear-gradient(45deg, #6a5acd, #00bfff);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    position: relative;
+    height: fit-content;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.custom-button:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.custom-button:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.selected-deck {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.selected-deck-name {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: inline-block;
+    text-align: center;
+    width: auto;
+    min-width: 100px;
+}

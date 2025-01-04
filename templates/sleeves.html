@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Sleeves</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/modal.css">
+    <link rel="website icon" href="img/Logo.webp">
+    <link rel="stylesheet" href="css/sleeve.css">
+</head>
+<body>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div id="modal-message"></div>
+        </div>
+    </div>
+
+    {% block navbar %}
+    {% include 'includes/_navbar.html' %}
+    {% endblock %}
+
+    {% block music %}
+    {% include 'includes/_sound-effects.html' %}
+    {% endblock %}
+
+    <div class="lines"></div>
+
+    <div class="container">
+        <div class="sleeve-selection">
+            <h1>Select Your Sleeve</h1>
+            <div class="sleeve-grid">
+                {% for sleeve_type, sleeve_group in sleeves|groupby('sleeve_type') %}
+                <div class="sleeve-section">
+                    <h2>Type: {{ sleeve_type }}</h2>
+                    <div class="sleeve-grid">
+                        {% for sleeve in sleeve_group %}
+                            <div class="sleeve-item">
+                                <img src="{{ url_for('static', filename=sleeve.sleeve) }}" alt="Sleeve {{ sleeve.id }}" data-id="{{ sleeve.id }}">
+                                <p>Sleeve ID: {{ sleeve.id }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}            
+            </div>
+        </div>
+
+        <!-- Selected Sleeve -->
+        <div class="selected-sleeve-container">
+            <h1>Your Selected Sleeve</h1>
+            <div class="selected-sleeve-box">
+                <div class="selected-sleeve-image">
+                    <img
+                        id="selected-sleeve-img"
+                        src="{{ selected_sleeve['sleeve'] if selected_sleeve else 'img/default-sleeve.png' }}"
+                        alt="Selected Sleeve"
+                    >
+                </div>
+                <div class="selected-sleeve-details">
+                    <p id="selected-sleeve-name">
+                        {{ "Sleeve Type: " + selected_sleeve['sleeve_type'] if selected_sleeve else "No sleeve selected" }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/modal.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const sleeveItems = document.querySelectorAll(".sleeve-item");
+            const selectedSleeveContainer = document.querySelector(".selected-sleeve-container .selected.sleeve");
+        
+            function updateSelectedSleeveDisplay(sleeve) {
+                const selectedImg = document.getElementById("selected-sleeve-img");
+                const selectedName = document.getElementById("selected-sleeve-name");
+            
+                selectedImg.src = `${sleeve.sleeve}`;
+                selectedImg.alt = `Sleeve ${sleeve.id}`;
+                selectedName.textContent = `Sleeve Type: ${sleeve.sleeve_type}`;
+            }
+
+            sleeveItems.forEach((item) => {
+                item.addEventListener("click", function () {
+                    const sleeveId = this.querySelector("img").getAttribute("data-id");
+        
+                    fetch(`/select_sleeve/${sleeveId}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            if (data.message) {
+                                updateSelectedSleeveDisplay(data.selected_sleeve);
+                                showModal(data.message, "success");
+                            } else if (data.error) {
+                                showModal(data.error, "error");
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error selecting sleeve:", error);
+                            showModal("An error occurred while selecting the sleeve.", "error");
+                        });
+                });
+            });
+        });          
+    </script>
+</body>
+</html>

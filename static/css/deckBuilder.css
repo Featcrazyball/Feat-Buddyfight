@@ -1,0 +1,446 @@
+body {
+    height: 100vh;
+    margin: 0;
+    background: linear-gradient(to bottom, rgb(0, 119, 255),rgb(0, 8, 255), #290099);
+    position: relative;
+    overflow: hidden;
+    padding: 15vh 0 0 0;
+}
+
+.lines {
+    position: absolute;
+    top: 0;
+    left: 0; 
+    z-index: -2;
+    width: 100%;
+    height: 100%; 
+    background-image: 
+    repeating-linear-gradient(
+        0deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0.2) 1px,
+        transparent 2px, 
+        transparent 30px 
+    ), 
+    repeating-linear-gradient(
+        90deg, 
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0.2) 1px, 
+        transparent 2px, 
+        transparent 70px 
+    );
+    pointer-events: none; 
+}
+
+.deck-logo{
+    position: absolute;
+    width: 10vw;
+    top: 80px;
+    right: 30px;
+    z-index: -1;
+}
+
+/* For Forms */
+#deck-container{
+    display: none;
+}
+
+.deck-modal{ 
+    display: flex;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    overflow-y: auto;
+    animation: fadeInModal 0.5s ease-in-out;
+    justify-content: center;
+    align-items: center;
+}
+
+@keyframes fadeInModal {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.add-deck-heading{
+    text-align: center;
+    padding-bottom: 10px;
+    font-size: 1.8rem;
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    font-weight: 1;
+    text-shadow: 0 2px 10px rgba(255, 69, 69, 0.7);
+}
+
+.deck-modal-content{
+    background: linear-gradient(145deg, #2e2e2e, #1e1e1e);
+    padding: 30px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 4px 6px 15px rgb(255, 0, 0);
+    position: relative;
+    animation: slideIn 0.4s ease-in;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+label {
+    font-weight: bold;
+    color: #ff5555;
+    margin-bottom: 5px;
+}
+
+input, select, option {
+    color: #fff;
+    background: #111;
+    border: 1px solid #ff4444;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+input:focus {
+    outline: none;
+    border-color: #ff0000;
+    box-shadow: 0px 0px 10px rgba(255, 0, 0, 0.8);
+}
+
+.deck-add-btn{
+    background: linear-gradient(to right, #ff0000, #f7de00);
+    color: white;
+    border: none;
+    padding: 15px;
+    font-size: 1.2rem;
+    border-radius: 15px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.4s ease;
+    box-shadow: 0px 4px 10px rgba(255, 0, 0, 0.7);
+}
+
+.btn-submit:hover {
+    background: linear-gradient(to right, #ff4444, #ff0000);
+    box-shadow: 0px 8px 20px rgb(255, 0, 0);
+    transform: scale(1.1);
+}
+
+.deck-cancel-btn{
+    background: linear-gradient(to right, #444, #666);
+    color: #fff;
+    border: none;
+    padding: 15px;
+    font-size: 1.2rem;
+    border-radius: 15px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.4s ease;
+    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.3);
+    text-align: center;
+}
+
+.deck-add-btn:hover, .deck-cancel-btn:hover{
+    transform: scale(1.1);
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(to right, #666, #888);
+    box-shadow: 0px 8px 20px rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+} 
+
+.buttons{
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .update-card-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .btn-submit {
+        font-size: 1rem;
+        padding: 12px;
+    }
+
+    .btn-secondary {
+        font-size: 1rem;
+        padding: 12px;
+    }
+}
+
+/* Deck Choices */
+.container{
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: -10vh;
+}
+
+.no-deck-message-container{
+    /* display: none; */
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.no-deck-message{
+    position: absolute;
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    text-align: center;
+    font-size: 5rem;
+}
+
+.deck-item {
+    display: flex;
+    height: 70vh;
+    width: 20vw;
+    background-color: rgba(28, 35, 54, 1);
+    border: 4px solid rgba(128, 128, 128, 1);
+    border-radius: 12px;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+    margin-bottom: -10vh;
+}
+
+.deck-item:hover{
+    box-shadow: 4px 6px 15px rgb(0, 0, 0);
+    transform: translateY(-20px);
+}
+
+.inside{
+    width: 18vw;
+    height: 66vh;
+    border: 1px solid rgba(128, 128, 128, 1);
+    border-radius: 12px;
+    display: grid;
+    padding: 5px;
+    grid-template-columns: 96% 3%;
+    grid-template-rows: 98% 1%;
+}
+
+.dots{
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: rgba(128, 128, 128, 1);
+}
+
+.banner{
+    margin-top: 20vh;
+    background-color: rgba(73, 80, 81, 1);
+    position: absolute;
+    clip-path: polygon(50% 86%, 100% 81%, 100% 0, 0 0, 0 81%);
+    height: 90vh;
+    width: 15vw;
+    display: flex;
+    justify-content: center;
+}
+
+.inner-banner{
+    background-color: rgba(128, 128, 128, 1);
+    clip-path: polygon(50% 86%, 100% 81%, 100% 0, 0 0, 0 81%);
+    width: 14vw;
+    height: 86vh;
+    display: flex;
+    justify-content: center;
+}
+
+.inner-banner-border{
+    background-color: rgba(73, 80, 81, 1);
+    width: 13vw;
+    height: 84vh;
+    clip-path: polygon(50% 86%, 100% 81%, 100% 0, 0 0, 0 81%);
+    display: flex;
+    justify-content: center;
+}
+
+.inner-banner-border-fill{
+    background-color: rgba(128, 128, 128, 1);
+    width: 12.9vw;
+    height: 83.7vh;
+    clip-path: polygon(50% 86%, 100% 81%, 100% 0, 0 0, 0 81%);
+}
+
+.deck-flag{
+    position: absolute;
+    width: 17vw;
+    margin-bottom: 10vh;
+    border-radius: 12px;
+    z-index: 2;
+}
+
+.deck-name{
+    font-size: 1em;
+    width: 10vw;
+    margin-top: 5px;
+}
+
+:root{
+    --StarDW: rgba(26, 245, 249, 1);
+    --StarDWfill: rgba(41, 170, 227, 1);
+    --DragonWorld: rgba(151, 39, 37, 1);
+    --DarknessDW:rgb(177, 0, 147);
+    --HeroWorld:rgb(76, 0, 255);
+    --AncientWorld:rgba(155, 139, 71, 1);
+    --DangerWorld: rgba(139, 38, 57, 1);
+    --DungeonWorld: rgba(195, 144, 124, 1);
+    --KatanaWorld: rgba(91, 122, 81, 1);
+    --MagicWorld: rgba(94, 218, 226, 1);
+    --DragonEin: rgba(223, 53, 10, 1);
+    --DragonZwei:rgb(119, 0, 99);
+    --ParadeOfHundredDemons: rgb(0, 0, 0);
+    --LegendWorld: rgba(198, 187, 192, 1);
+    --SearingExecutioners: rgba(189, 56, 73, 1);
+    --DivineGuardians: rgba(251, 243, 226, 1);
+    --primary-color: rgba(26, 115, 232, 1);
+    --secondary-color: rgba(255, 255, 255, 1);
+    --background-color: rgba(20, 20, 20, 1);
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --highlight-color: rgba(26, 232, 153, 1);
+    --button-background: linear-gradient(145deg, rgba(26, 115, 232, 1), rgba(41, 170, 227, 1));
+    --button-border: rgba(26, 115, 232, 0.8);
+    --button-hover: linear-gradient(145deg, rgba(41, 170, 227, 1), rgba(26, 115, 232, 1));
+    --button-glow: rgba(26, 115, 232, 0.8);
+    --disabled-color: rgba(128, 128, 128, 0.5);
+    --text-color: rgba(255, 255, 255, 1);
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --highlight-color: rgba(26, 232, 153, 1);
+}
+
+.deck-actions-container {
+    position: fixed;
+    bottom: 2%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    background: rgba(20, 20, 20, 0.8);
+    padding: 0.8rem 1.5rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 15px var(--shadow-color);
+    animation: fadeIn 0.6s ease-in-out;
+}
+
+.deck-action-btn {
+    position: relative;
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--text-color);
+    background: var(--button-background);
+    border: 2px solid var(--button-border);
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+    z-index: 1;
+    width: 180px; /* Ensures all buttons are the same width */
+    height: 40px; /* Ensures all buttons are the same height */
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.deck-action-btn::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: var(--button-hover);
+    transition: all 0.4s ease-in-out;
+    z-index: -1;
+    filter: blur(5px);
+}
+
+#delete-deck-btn::before {
+    top: 0;
+    left: 100%;
+}
+
+#edit-deck-btn::before {
+    top: 0;
+    left: -100%;
+}
+
+#add-deck-btn::before {
+    top: 100%;
+    left: 0;
+}
+
+#delete-deck-btn:hover::before {
+    left: 0;
+}
+
+#edit-deck-btn:hover::before {
+    left: 0;
+}
+
+#add-deck-btn:hover::before {
+    top: 0;
+}
+
+.deck-action-btn:hover {
+    background: var(--button-hover);
+    border-color: var(--button-hover);
+    box-shadow: 0 0 10px var(--button-glow), 0 0 20px var(--button-glow);
+}
+
+.deck-action-btn:disabled {
+    cursor: not-allowed;
+    background: var(--disabled-color);
+    border-color: var(--disabled-color);
+    color: rgba(255, 255, 255, 0.5);
+    box-shadow: none;
+}
+
+.deck-action-btn:active {
+    transform: scale(0.96);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 10%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}

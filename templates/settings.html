@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link rel="website icon" type="png" href="img/Settings.png">
+    <link rel="stylesheet" href="css/settings.css">
+    <link rel="stylesheet" href="css/modal.css">
+</head>
+<body>
+
+    {% block music %}
+    {% include 'includes/_sound-effects.html' %}
+    {% endblock %}
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div id="modal-message"></div>
+        </div>
+    </div>
+
+    <nav>
+        <a href="javascript:void(0);" onclick="updateSessionAndGoBack()" class="return-button">Return</a>
+        {% if session.get('user_role', '') == 'admin' %}
+            <a href="{{ url_for('admin') }}" class="admin-button">Admin</a>
+        {% endif %}
+        <div class="tabs">
+            <button class="tablinks active first" onclick="openTab(event, 'User')">User Profile</button>
+            <button class="tablinks" onclick="openTab(event, 'General')">General Settings</button>
+            <button class="tablinks" onclick="openTab(event, 'Payment')">Payment History</button>
+            <button class="tablinks" onclick="openTab(event, 'Match')">Match History</button>
+            <button class="tablinks" onclick="openTab(event, 'Report')">User Reports</button>
+        </div>
+        <a href="{{ url_for('logout') }}" class="logout-button"><h1>Logout</h1></a>
+    </nav>
+    
+    <div class="container">
+            <div id="User" class="tabcontent" style="display: block;">
+                <h3>User Profile</h3>
+
+                <div class="profile-picture-container">
+                    <!-- Display Current Profile Picture -->
+                    <form id="profilePictureForm" enctype="multipart/form-data">
+                        <label for="profile-picture-upload" class="profile-picture-label">
+                            <img 
+                                id="profile-picture" 
+                                src="{{ url_for('serve_uploaded_file', filename=username.profile_image.split('/')[-1]) if username.profile_image != 'uploads/default_profile.jpg' else url_for('static', filename=username.profile_image) }}" 
+                                alt="Profile Picture"
+                                class="profile-img"
+                            >
+                            <div class="profile-picture-overlay">
+                                <span>Change Profile Picture</span>
+                            </div>
+                        </label>
+                        <input type="file" id="profile-picture-upload" name="profile_picture" accept="image/*" onchange="submitProfilePicture()">
+                    </form>
+                </div>
+            
+                <!-- Update Username Form -->
+                <form id="updateUsernameForm" method="POST" action="{{ url_for('update_username', usr=session['user']) }}" class="dynamic-form">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" placeholder="Enter new username" value="{{ username.username }}" maxlength="20">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn">Save Username</button>
+                    </div>
+                </form>
+
+                <!-- Update Email Form -->
+                <form id="updateEmailForm" method="POST" action="{{ url_for('update_email', usr=session['user']) }}" class="dynamic-form">
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" placeholder="Enter new email" value="{{ email }}">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn">Save Email</button>
+                    </div>
+                </form>
+
+                <!-- Update Password Form -->
+                <form id="updatePasswordForm" method="POST" action="{{ url_for('update_password', usr=session['user']) }}" class="dynamic-form">
+                    <div class="form-group">
+                        <label for="password">Change Password:</label>
+                        <input type="password" id="password" name="password" placeholder="Enter new password" class="password-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmation">Confirm Password:</label>
+                        <input type="password" id="confirmation" name="confirmation" placeholder="Confirm new password" class="password-input" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn">Save Password</button>
+                    </div>
+                </form>
+                <br>
+                <!-- Delete Account Small Button -->
+                <div class="delete-account-container" >
+                    <button type="button" class="delete-account-btn" onclick="showDeleteAccountModal()">Delete Account</button>
+                </div>
+
+
+            </div>
+
+            <div id="General" class="tabcontent">
+                <h3>General Settings</h3>
+                <div class="volume-control-container">
+                    <label for="volume-control">Volume: </label>
+                    <input
+                        id="volume-control"
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value="1"
+                        style="width: 200px;"
+                    >
+                    <span id="volume-display">100%</span>
+                </div>
+            </div>
+
+            <div id="Payment" class="tabcontent">
+                <h3>Payment History</h3>
+            </div>
+
+            <div id="Match" class="tabcontent">
+                <h3>Match History</h3>
+            </div>
+
+            <div id="Report" class="tabcontent">
+                <h3>User Report</h3>
+                <div class="form-group">
+                    <form id="submitUserReport" method="POST" action="{{ url_for('user_report', usr=session['user']) }}" class="dynamic-form">
+                        <label for="report-type">Report Type:</label>
+                        <select name="report-type" id="report-type" class="type-selection" required style="width: 30vw; margin-top: -20px;">
+                            <option value="User Report">User Report</option>
+                            <option value="Bugs">Bugs</option>
+                            <option value="Feedback">Feedback</option>
+                            <option value="Complaint">Complaint</option>
+                        </select>
+
+                        <div id="user-report-section">
+                            <label for="user_being_reported">User Being Reported: </label>
+                            <input type="text" id="user_being_reported" name="user_being_reported" placeholder="User being Reported" class="text-input">
+                        </div>
+
+                        <label for="detail">Details:</label>
+                        <textarea name="detail" id="detail" required></textarea>
+                        <button type="submit" class="btn">Submit</button>
+                    </form>
+                </div>
+            </div>
+    </div>
+
+<div id="delete-account-modal" class="delete-account-modal hidden">
+    <div class="delete-account-modal-content">
+        <p>Are you sure you want to delete your account? This action cannot be undone.</p>
+        <div class="delete-account-modal-actions">
+            <form id="deleteAccountForm" method="POST" action="{{ url_for('delete_user') }}">
+                <button type="submit" class="btn-delete-account-confirm">Yes, Delete</button>
+            </form>
+            <button type="button" class="btn-delete-account-cancel" onclick="hideDeleteAccountModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/dynamic-form.js"></script>
+<script src="js/tabs.js"></script>
+<script src="js/modal.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/session_updater.js"></script>
+    <script>
+        function showDeleteAccountModal() {
+            const modal = document.getElementById('delete-account-modal');
+            modal.classList.add('visible');
+            modal.classList.remove('hidden');
+        }
+        
+        function hideDeleteAccountModal() {
+            const modal = document.getElementById('delete-account-modal');
+            modal.classList.remove('visible');
+            modal.classList.add('hidden');
+        }
+        window.onclick = function(event) {
+            const modal = document.getElementById('delete-account-modal');
+            if (event.target === modal) {
+                hideDeleteAccountModal();
+            }
+        };
+    </script>
+</body>
+</html>

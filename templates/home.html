@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ username }}</title>
+    <link rel="website icon" type="png" href="img/Logo.webp">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+</head>
+<body>
+    {% block navbar %}
+    {% include 'includes/_navbar.html' %}
+    {% endblock %}
+
+    {% block music %}
+    {% include 'includes/_sound-effects.html' %}
+    {% endblock %}
+
+    <div class="back">
+        <div class="logo"></div>
+    </div>
+
+    <h2>Welcome, {{ username }}!</h2>
+    <p>You are now logged in.</p>
+    <a href="{{ url_for('logout') }}">Logout</a>
+    
+</body>
+</html>

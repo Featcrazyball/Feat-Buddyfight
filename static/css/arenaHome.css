@@ -1,0 +1,139 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    background-color: rgba(113, 1, 98, 1);
+}
+
+.container {
+    display: flex;
+    width: 100%;
+}
+
+.main-content {
+    width: 70%;
+    position: relative;
+    border: 4px solid rgba(113, 1, 98, 1) inset;
+}
+
+.main-content .main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 4px solid rgba(113, 1, 98, 1) inset;
+}
+
+.sidebar {
+    width: 30%;
+    background-color: rgba(113, 1, 98, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    color: white;
+    position: relative;
+    height: 100vh;
+    box-shadow: 0 0 15px rgba(113, 1, 98, 1);
+    background-image: 
+    repeating-linear-gradient(
+        0deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.1) 1px,
+        transparent 2px,
+        transparent 50px
+    ),
+    repeating-linear-gradient(
+        90deg,
+        transparent 0%,
+        transparent 10px,
+        rgba(255, 255, 255, 0.1) 1px,
+        transparent 12px,
+        transparent 50px
+    );
+}
+
+.home-icon img {
+    position: absolute;
+    top: 3vh;
+    left: 1vw;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+.logo-container {
+    margin-bottom: 30px;
+}
+
+.logo {
+    width: 100%;
+    max-width: 400px;
+}
+
+.menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.menu li {
+    position: relative;
+    margin: 15px 0;
+    display: flex;
+    align-items: center;
+    width: 300px; 
+    opacity: 0;
+    transform: translateX(-100px); 
+    animation: slide-in 0.5s ease forwards;
+    animation-delay: var(--delay);
+}
+
+@keyframes slide-in {
+    to {
+        opacity: 1;
+        transform: translateX(0); /* Slide to its original position */
+    }
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: white; 
+    margin-right: 10px;
+    transition: all 0.2s ease;
+}
+
+.menu-link {
+    font-size: 20px;
+    font-weight: normal;
+    color: white;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: transparent; 
+}
+
+.menu-link.active {
+    font-size: 28px;
+    font-weight: bold;
+    color: #FF00FF; 
+    background-color: white;
+}
+
+.menu-link:hover {
+    background-color: white; 
+    color: #FF00FF; 
+}

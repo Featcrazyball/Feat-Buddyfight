@@ -1,0 +1,6 @@
+.back{
+    background-image: url(/img/homeWallpaper.jpg);
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+}

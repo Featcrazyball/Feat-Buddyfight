@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title >Buddyfight Card Database</title>
+    <link rel="website icon" type="png" href="img/Logo.webp">
+    <link rel="stylesheet" type="text/css" href="css/list.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+<body>
+
+    {% block music %}
+    {% include 'includes/_sound-effects.html' %}
+    {% endblock %}
+
+    {% block navbar %}
+    {% include 'includes/_navbar.html' %}
+    {% endblock %}
+    <br><br><br><br><br>
+    <div class="container">
+        <h1>Buddyfight Card Database</h1>
+
+    <!-- Confirmation Modal -->
+        <div id="confirmation-modal" class="confirm-modal">
+            <div class="confirm-modal-content">
+                <p style="color: white;">Are you sure you want to delete this card?</p>
+                <div class="confirm-modal-actions">
+                    <button id="confirm-yes" class="confirm-btn-danger">Yes</button>
+                    <button id="confirm-no" class="confirm-btn-secondary">No</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="line"></div>
+    
+        {% if session.get('user_role', '') == 'admin' %}
+        <a href="{{ url_for('scrape_cards') }}" class="scrape-btn">Scrape Data</a>
+        {% endif %}
+    
+        <!-- Search -->
+        <form method="GET" action="#">
+            <input type="text" id="search" class="search_input" name="search" placeholder="Search cards..." value="{{ search_query }}">
+            <button type="submit" class="filter-btn">Search</button>
+        </form>
+
+        <a href="#" class="filter-btn" onclick="toggleFilter()">Advanced Filter</a>
+        <div id="filter-panel" class="filter-panel" style="display: none;">
+            <form method="GET" action="#">
+                <label for="type">Type:</label>
+                <input type="text" id="type" name="type" placeholder="Enter Card Type" list="type-options">
+                <datalist id="type-options">
+                    <option value="Monster">Monster</option>
+                    <option value="Spell">Spell</option>
+                    <option value="Item">Item</option>
+                    <option value="Impact">Impact</option>
+                    <option value="Impact Monster">Impact Monster</option>
+                </datalist>
+                <label for="rarity">Rarity:</label>
+                <input type="text" id="rarity" name="rarity" placeholder="Enter Rarity" list="rarity-options">
+                <datalist id="rarity-options">
+                    <option value="TD">Trial Deck</option>
+                    <option value="SD">SD</option>
+                    <option value="C">Common</option>
+                    <option value="U">Uncommon</option>
+                    <option value="R">Rare</option>
+                    <option value="RR">Double Rare</option>
+                    <option value="RRR">Triple Rare</option>
+                    <option value="BR">Buddy Rare</option>
+                    <option value="SEC">Secret Rare</option>
+                    <option value="SP">Special Rare</option>
+                </datalist>
+                <label for="world">World:</label>
+                <input type="text" id="world" name="world" placeholder="Enter World" list="world-options">
+                <datalist id="world-options">
+                    <option value="Ancient World"></option>
+                    <option value="Danger World"></option>
+                    <option value="Darkness Dragon World"></option>
+                    <option value="Dragon World"></option>
+                    <option value="Dungeon World"></option>
+                    <option value="Hero World"></option>
+                    <option value="Katana World"></option>
+                    <option value="Legend World"></option>
+                    <option value="Magic World"></option>
+                    <option value="Star Dragon World"></option>
+                </datalist>
+        
+                <label for="size">Size:</label>
+                <input type="number" id="size" name="size" placeholder="Enter size">
+                
+                <div class="unlocked-checkbox">
+                    <input type="checkbox" id="unlocked" name="unlocked" class="checkbox" value="true">
+                    <label for="unlocked">Unlocked Cards Only</label>
+                </div>
+
+                <button type="submit" class="btn-primary">Apply Filter</button>
+                <button type="button" class="btn-secondary" onclick="resetFilter()">Reset</button>
+            </form>
+        </div>
+    
+        <script>
+            const cardsData = {{ cards|tojson }};
+        </script>
+
+        <div class="scroll-container">
+            <div class="itemLeft item-scroll item1" style="background-image: url('{{ url_for('static', filename='img/sleeves/1Cardback.webp') }}');"></div>
+            <div class="itemLeft item-scroll item2" style="background-image: url('{{ url_for('static', filename='img/sleeves/2Cardback.webp') }}');"></div>
+            <div class="itemLeft item-scroll item3" style="background-image: url('{{ url_for('static', filename='img/sleeves/3Cardback.webp') }}');"></div>
+            <div class="itemLeft item-scroll item4" style="background-image: url('{{ url_for('static', filename='img/sleeves/4Cardback.webp') }}');"></div>
+            <div class="itemLeft item-scroll item5" style="background-image: url('{{ url_for('static', filename='img/sleeves/5Cardback.jpg') }}');"></div>
+            <div class="itemLeft item-scroll item6" style="background-image: url('{{ url_for('static', filename='img/sleeves/6Cardback.webp') }}');"></div>
+            <div class="itemLeft item-scroll item7" style="background-image: url('{{ url_for('static', filename='img/sleeves/7Cardback.webp') }}');"></div>
+            <div class="itemLeft item-scroll item8" style="background-image: url('{{ url_for('static', filename='img/sleeves/8Cardback.webp') }}');"></div>
+        </div>
+
+        <div class="card-grid">
+            {% if cards|length == 0 %}
+                <p class="no-cards-message" style="margin-top: 100px;">No Existing Card</p>
+            {% endif %}
+            {% for card in cards %}
+                <div class="card-item">
+                    <img 
+                        src="https://fakeimg.pl/150x200" 
+                        data-src="{{ card.image_url }}"
+                        alt="{{ card.name }}" 
+                        class="lazy loading {% if card.is_horizontal %}card-image-horizontal{% endif %}{% if card.is_horizontal == false %}card-image{% endif %}" 
+                        onclick="openModal({{ card.id }})">
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="scroll-container scroll-bottom">
+            <div class="itemRight item-scroll item1" style="background-image: url('{{ url_for('static', filename='img/sleeves/Ancientback.webp') }}');"></div>
+            <div class="itemRight item-scroll item2" style="background-image: url('{{ url_for('static', filename='img/sleeves/Dangerback.webp') }}');"></div>
+            <div class="itemRight item-scroll item3" style="background-image: url('{{ url_for('static', filename='img/sleeves/Darknessback.webp') }}');"></div>
+            <div class="itemRight item-scroll item4" style="background-image: url('{{ url_for('static', filename='img/sleeves/Dragonback.webp') }}');"></div>
+            <div class="itemRight item-scroll item5" style="background-image: url('{{ url_for('static', filename='img/sleeves/Dungeonback.webp') }}');"></div>
+            <div class="itemRight item-scroll item6" style="background-image: url('{{ url_for('static', filename='img/sleeves/Heroback.webp') }}');"></div>
+            <div class="itemRight item-scroll item7" style="background-image: url('{{ url_for('static', filename='img/sleeves/Katanaback.webp') }}');"></div>
+            <div class="itemRight item-scroll item8" style="background-image: url('{{ url_for('static', filename='img/sleeves/Legendback.webp') }}');"></div>
+            <div class="itemRight item-scroll item9" style="background-image: url('{{ url_for('static', filename='img/sleeves/Magicback.webp') }}');"></div>
+            <div class="itemRight item-scroll item10" style="background-image: url('{{ url_for('static', filename='img/sleeves/Starback.webp') }}');"></div>
+            <div class="itemRight item-scroll item11" style="background-image: url('{{ url_for('static', filename='img/sleeves/ThunderEmpireback.webp') }}');"></div>
+            <div class="itemRight item-scroll item12" style="background-image: url('{{ url_for('static', filename='img/sleeves/Lostback.webp') }}');"></div>
+            <div class="itemRight item-scroll item13" style="background-image: url('{{ url_for('static', filename='img/sleeves/DragonEinback.webp') }}');"></div>
+            <div class="itemRight item-scroll item14" style="background-image: url('{{ url_for('static', filename='img/sleeves/DragonZweiback.webp') }}');"></div>
+            <div class="itemRight item-scroll item15" style="background-image: url('{{ url_for('static', filename='img/sleeves/DivineGuardiansback.webp') }}');"></div>
+            <div class="itemRight item-scroll item16" style="background-image: url('{{ url_for('static', filename='img/sleeves/SearingExecutionersback.webp') }}');"></div>
+            <div class="itemRight item-scroll item17" style="background-image: url('{{ url_for('static', filename='img/sleeves/TheChaosback.webp') }}');"></div>
+            <div class="itemRight item-scroll item18" style="background-image: url('{{ url_for('static', filename='img/sleeves/ParadeofHundredDemonsback.webp') }}');"></div>
+        </div>
+
+        <div class="footer">
+            <p style="color:white">&copy; 2024 Buddyfight Cards Database</p>
+        </div>
+
+        <!-- Modal Template -->
+        <div id="card-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal()" style="color: black;">&times;</span>
+                <h2 id="modal-title"></h2>
+                <img id="modal-image" src="" alt="Card Image" style="width: 100%; border-radius: 8px; margin-bottom: 20px;">
+                <p><strong>Type:</strong> <span id="modal-type"></span></p>
+                <p><strong>Card No:</strong> <span id="modal-card-no"></span></p>
+                <p><strong>Rarity:</strong> <span id="modal-rarity"></span></p>
+                <p><strong>World:</strong> <span id="modal-world"></span></p>
+                <p><strong>Size:</strong> <span id="modal-size"></span></p>
+                <p><strong>Power:</strong> <span id="modal-power"></span></p>
+                <p><strong>Defense:</strong> <span id="modal-defense"></span></p>
+                <p><strong>Ability:</strong></p>
+                <p id="modal-ability" style="margin-top: -20px;"></p>
+                {% if session.get('user_role', '') == 'admin' %}
+                <!-- Modal Actions -->
+                <div class="modal-actions">
+                    <a id="modal-update-btn" href="" class="update-btn">Update</a>
+                    <form id="delete-card-form" action="" method="POST" style="display:inline;">
+                        <button type="button" class="confirm-btn-danger" onclick="showConfirmationModal()">Delete</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    <!-- Oracle Modal -->
+    <div id="oracle-modal" class="oracle-modal hidden">
+        <div class="oracle-modal-content">
+            <span class="oracle-close-btn" onclick="hideOracleModal()">&times;</span>
+            <p id="oracle-message" style="color:white"></p>
+        </div>
+    </div>
+
+    <!-- Flash Messages Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const messages = {{ get_flashed_messages(with_categories=true) | tojson }};
+            if (messages.length > 0) {
+                const modal = document.getElementById('oracle-modal');
+                const messageElement = document.getElementById('oracle-message');
+                messages.forEach(([category, message]) => {
+                    messageElement.innerHTML = message;
+                });
+                modal.classList.remove('hidden');
+                modal.classList.add('visible');
+            }
+        });
+
+        function hideOracleModal() {
+            const modal = document.getElementById('oracle-modal');
+            modal.classList.remove('visible');
+            modal.classList.add('hidden');
+        }
+
+        document.getElementById('confirm-yes').addEventListener('click', function () {
+            document.getElementById('delete-card-form').submit();
+        });
+    </script>
+
+    </div>
+
+    <script src="js/confirmation-modal.js"></script>
+    <script src="js/list.js"></script>
+    <script src="js/lazy-loading.js"></script>
+    <script src="js/modal.js"></script>
+</body>
+</html>

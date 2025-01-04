@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit {{ deck.name }}</title>
+    <link rel="website icon" href="{{ url_for('static', filename='img/CardBack.webp') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/edit_deck.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+</head>
+<body>
+
+    {% block music %}
+    {% include 'includes/_sound-effects.html' %}
+    {% endblock %}
+
+    <!-- If there is any1 looking at this page please know that most of the stuff is loading using js. look at js/edit_deck.js -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div id="modal-message"></div>
+        </div>
+    </div>
+
+    
+    <div class="deck-builder-container">
+        <div class="unlocked-cards-container">
+            <a href="{{ url_for('deck_builder' )}}" class="return-button">Return</a>
+            <div class="unlocked-cards-header-container">
+                <h2>Unlocked Cards</h2>
+            </div>
+            <div id="unlocked-cards-list" class="unlocked-cards-list">
+                <!-- Cards will be dynamically inserted here -->
+            </div>
+            <form action="/edit_deck">
+                <input type="text" name="name" id="name" placeholder="Search Card">
+                <button type="submit" class="search-btn">Search</button>
+            </form>
+        </div>
+    
+    
+        <!-- Deck Section -->
+        <div id="deck-section" class="deck-section">
+            <h2>Deck</h2>
+            <!-- Buddy Card -->
+            <div id="buddy-card-container" class="buddy-card-container">
+                <h3>Buddy</h3>
+                <div id="buddy-card" class="buddy-card-placeholder">
+                    <p>No Buddy Selected</p>
+                </div>
+            </div>
+    
+            <!-- Deck Cards -->
+            <h3>Your Deck</h3>
+            <div id="deck-cards-list" class="deck-cards-list">
+                <!-- Deck cards will be dynamically inserted here -->
+            </div>
+    
+            <!-- Total Card Count -->
+            <div id="deck-total-count" class="deck-total-count">Total Cards: 0</div>
+    
+            <!-- Save Button -->
+            <button id="save-deck-btn" class="save-deck-btn">Save Deck</button>
+        </div>
+    </div>
+
+    <!-- Card Modal -->
+        <div id="card-modal" class="card-modal">
+            <div class="card-modal-content">
+                <span id="close-button">&times;</span>
+                <div id="card-info">
+                    <!-- Card details will be displayed here -->
+                </div>
+                <div class="card-modal-actions">
+                    <button id="add-card-btn" class="modal-action-btn">Add Card</button>
+                    <button id="remove-card-btn" class="modal-action-btn">Remove Card</button>
+                    <button id="set-buddy-btn" class="modal-action-btn">Set as Buddy</button>
+                </div>
+            </div>
+        </div>
+
+    <script src="js/edit_deck.js"></script>
+    <script src="js/modal.js"></script>
+</body>
+</html>

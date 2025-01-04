@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="website icon" href="img/admin.png">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/modal.css">
+</head>
+<body>
+
+    {% block music %}
+    {% include 'includes/_sound-effects.html' %}
+    {% endblock %}
+    
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div id="modal-message"></div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal for Deletion -->
+    <div id="confirm-delete-modal" class="esoteric-modal">
+        <div class="esoteric-modal-content">
+            <span class="esoteric-close-btn" onclick="closeModal('confirm-delete-modal')">&times;</span>
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete this user?</p>
+            <div class="modal-actions">
+                <form class="modal-actions dynamic-form" method="POST" onsubmit="event.preventDefault(); deleteUser();">
+                    <button type="submit" class="btn-danger modal-confirm">Yes, Delete</button>
+                    <button type="button" class="btn-secondary modal-cancel" onclick="closeModal()">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal for Deletion -->
+    <div id="confirm-delete-report-modal" class="esoteric-modal">
+        <div class="esoteric-modal-content">
+            <span class="esoteric-close-btn" onclick="closeModal('confirm-delete-report-modal')">&times;</span>
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete this report?</p>
+            <div class="modal-actions">
+                <form class="modal-actions dynamic-form" method="POST" onsubmit="event.preventDefault(); deleteReport();">
+                    <button type="submit" class="btn-danger modal-confirm">Yes, Delete</button>
+                    <button type="button" class="btn-secondary modal-cancel" onclick="closeModal()">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirm-delete-sleeve-modal" class="esoteric-modal">
+        <div class="esoteric-modal-content">
+            <span class="esoteric-close-btn" onclick="closeModal('confirm-delete-sleeve-modal')">&times;</span>
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete this Sleeve?</p>
+            <div class="modal-actions">
+                <form class="modal-actions dynamic-form" method="POST" onsubmit="event.preventDefault(); deleteSleeve();">
+                    <button type="submit" class="btn-danger modal-confirm">Yes, Delete</button>
+                    <button type="button" class="btn-secondary modal-cancel" onclick="closeModal()">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="edit-user-modal" class="esoteric-modal">
+        <div class="esoteric-modal-content">
+            <span class="esoteric-close-btn" onclick="closeModal()">&times;</span>
+            <h2>Edit User</h2>
+            <form id="editUserForm" method="POST" class="dynamic-form">
+                <div class="form-group">
+                    <label for="edit-username">Username:</label>
+                    <input type="text" id="edit-username" name="username" style="pointer-events:none" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-email">Email:</label>
+                    <input type="email" id="edit-email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-role">Role:</label>
+                    <select id="edit-role" name="role">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-wins">Wins:</label>
+                    <input type="number" id="edit-wins" name="wins">
+                </div>
+                <div class="form-group">
+                    <label for="edit-losses">Losses:</label>
+                    <input type="number" id="edit-losses" name="losses">
+                </div>
+                <div class="form-group">
+                    <label for="edit-tickets">Tickets:</label>
+                    <input type="number" id="edit-tickets" name="tickets">
+                </div>
+                <button type="submit" class="btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Sleeve Modal -->
+    <div id="add-sleeve-modal" class="esoteric-modal">
+        <div class="esoteric-modal-content">
+            <span class="close-button" onclick="closeAddSleeveModal()">&times;</span>
+            <h3>Add New Sleeve</h3>
+            <form id="add-sleeve-form" class="dynamic-form">
+                <div class="form-group">
+                    <label for="sleeve-type">Type:</label>
+                    <input type="text" id="sleeve-type" name="sleeve_type" placeholder="Enter Sleeve Type" required>
+                </div>
+                <div class="form-group">
+                    <label for="sleeve-image">Select Image:</label>
+                    <div class="file-upload">
+                        <input type="file" id="sleeve-image" name="sleeve_image" accept="image/*" required onchange="updateFileName()" style="display: none;">
+                        <button type="button" class="custom-file-upload" onclick="document.getElementById('sleeve-image').click();">
+                            Choose File
+                        </button>
+                        <span id="file-name">No file chosen</span>
+                    </div>
+                </div>
+                <button type="button" onclick="submitAddSleeveForm()" class="btn-primary" style="margin-top: 20px;">Add Sleeve</button>
+            </form>
+        </div>
+    </div>
+
+    <nav>
+        <a href="{{ url_for('home') }}" class="return-button">Home</a>
+        <div class="tabs">
+            <button class="tablinks active first" onclick="openTab(event, 'Dashboard')">Dashboard</button>
+            <button class="tablinks" onclick="openTab(event, 'Users')">Users</button>
+            <button class="tablinks" onclick="openTab(event, 'List')">Sleeves</button>
+            <button class="tablinks" onclick="openTab(event, 'Shop')">Shop</button>
+            <button class="tablinks" onclick="openTab(event, 'Anime')">Anime</button>
+            <button class="tablinks" onclick="openTab(event, 'Reports')">Reports</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="Dashboard" class="tabcontent" style="display: block;">
+            <h3>Dashboard</h3>
+        </div>
+
+        <div id="Users" class="tabcontent">
+            <h3>User List</h3>
+
+            <form method="GET" action="{{ url_for('admin', usr=session['user']) }}">
+                <input type="text" id="search" class="search_input" name="search" placeholder="Search users..." value="{{ search_query }}">
+                <button type="submit" class="filter-btn">Search</button>
+            </form>
+            {% if users %}
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th class="user">Username</th>
+                        <th class="user">Email</th>
+                        <th class="user">Role</th>
+                        <th class="user">Wins</th>
+                        <th class="user">Losses</th>
+                        <th class="user">Tickets</th>
+                        <th class="user">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>   
+                    {% for user in users %}
+                        <tr>
+                            <td class="user">{{ user.username }}</td>
+                            <td class="user">{{ user.email }}</td>
+                            <td class="user" >{{ user.role }}</td>
+                            <td class="user">{{ user.wins }}</td>
+                            <td class="user">{{ user.losses }}</td>
+                            <td class="user">{{ user.tickets }}</td>
+                            <td class="user"> 
+                                <button class="btn-primary user" onclick="openEditModal('{{ user.username }}', '{{ user.email }}', '{{ user.role }}', {{ user.wins }}, {{ user.losses }}, {{ user.tickets }})">Edit</button>
+                                <button class="btn-danger user" onclick="confirmDeleteUser('{{ user.username }}')">Delete</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                        <h1>No Such User</h1>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="List" class="tabcontent">
+            <h3>Sleeves</h3>
+            <form method="GET" action="{{ url_for('admin', usr=session['user']) }}">
+                <input type="text" id="search" class="search_input" name="search_sleeve" placeholder="Search Sleeve Type...">
+                <button type="submit" class="filter-btn">Search</button>
+            </form>
+            <div class="add-sleeve-button" onclick="openAddSleeveModal()">Add Sleeve</div>
+            <div class="sleeve-grid">
+                {% for sleeve_type, sleeve_group in sleeves|groupby('sleeve_type') %}
+                <div class="sleeve-section">
+                    <h2>Type: {{ sleeve_type }}</h2>
+                    <div class="sleeve-grid">
+                        {% for sleeve in sleeve_group %}
+                            <div class="sleeve-item">
+                                <img src="{{ url_for('static', filename=sleeve.sleeve) }}" alt="Sleeve {{ sleeve.id }}">
+                                <p>Sleeve ID: {{ sleeve.id }}</p>
+                                <button class="btn-danger" onclick="confirmDeleteSleeve('{{ sleeve.id }}')">Delete</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}            
+            </div>
+        </div>
+
+        <div id="Shop" class="tabcontent">
+            <h3>Shop</h3>
+        </div>
+
+        <div id="Anime" class="tabcontent">
+            <h3>Anime List</h3>
+        </div>
+
+        <div id="Reports" class="tabcontent">
+            <h3>Reports</h3>
+
+            <a href="#" class="filter-btn" onclick="toggleFilter()" style="text-decoration: none;">Filter</a>
+            <div id="report-filter-panel" class="filter-panel" style="display: none;">
+                <form method="GET" action="{{ url_for('admin', usr=session['user']) }}">
+                    <label for="user-reporting">User Reporting</label>
+                    <input type="text" id="user-reporting" name="user-reporting" placeholder="Enter User Reporting" list="user-reporting-options" value="{{ user_reporting_filter }}">
+                    <datalist id="type-options">
+                        {% for user in users %}
+                            <option value="{{ user.username }}">{{ user.username }}</option>
+                        {% endfor %}
+                    </datalist>
+                    <label for="reported-user">Reported User</label>
+                    <input type="text" id="reported-user" name="reported-user" placeholder="Enter User being reported" list="reported-user-list" value="{{ reported_user_filter }}">
+                    <datalist id="reported-user-list">
+                        {% for user in users %} 
+                            <option value="{{ user.username }}">{{ user.username }}</option>
+                        {% endfor %}
+                    </datalist>
+                    <label for="report-type">Report Type</label>
+                    <input type="text" id="report-type" name="report-type" placeholder="Enter Report Type" list="report-type-list" value="{{ report_type_filter }}">
+                    <datalist id="report-type-list">
+                        <option value="User Report">User Report</option>
+                        <option value="Bug Report">Bug Report</option>
+                        <option value="Feedback">Feedback</option>
+                        <option value="Complaints">Complaints</option>
+                    </datalist>
+                    <button type="submit" class="btn-primary">Apply Filter</button>
+                    <button type="button" class="btn-secondary" onclick="resetFilter()">Reset</button>
+                </form>
+            </div>
+
+                {% if reports %}
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th class="report">Report ID</th>
+                                <th class="report">User Reporting</th>
+                                <th class="report">Reported User</th>
+                                <th class="report">Report Type</th>
+                                <th class="report">Details</th>
+                                <th class="report">Delete</th>
+                            </tr>
+                        </thead>
+                    {% for report in reports %}
+                    <tr>
+                        <td class="user">{{ report.id }}</td>
+                        <td class="user">{{ report.user_reporting }}</td>
+                        <td class="user">{{ report.user_being_reported }}</td>
+                        <td class="user" >{{ report.report_type }}</td>
+                        <td class="user">{{ report.detail }}</td>
+                        <td class="user"> 
+                            <button class="btn-danger user" onclick="confirmDeleteReport('{{ report.id }}')">Delete</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                        <h1>No Such Report</h1>
+                {% endif %}
+        </div>
+    </div>
+
+    <script src="js/tabs.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

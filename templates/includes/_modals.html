@@ -1,0 +1,18 @@
+<!-- This is for reference only DO NOT LINK IT -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <div id="modal-message"></div>
+    </div>
+</div>
+
+<div id="confirmation-modal" class="confirm-modal">
+    <div class="confirm-modal-content">
+        <p style="color: white;">Are you sure you want to {{ action }} this {{ object }}?</p>
+        <div class="confirm-modal-actions">
+            <button id="confirm-yes" class="confirm-btn-danger">Yes</button>
+            <button id="confirm-no" class="confirm-btn-secondary">No</button>
+        </div>
+    </div>
+</div>

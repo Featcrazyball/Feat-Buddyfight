@@ -1,0 +1,20 @@
+<!-- Do not touch
+<audio id="click-sound" src="{{ url_for('static', filename='audio/click-effect.mp3') }}" preload="auto" style="display: none;"></audio>
+
+<script>
+    const clickSound = document.getElementById("click-sound");
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const savedVolume = localStorage.getItem("volume");
+        clickSound.volume = savedVolume ? parseFloat(savedVolume) : 1.0; 
+    });
+
+    document.addEventListener("click", async function () {
+        try {
+            clickSound.currentTime = 0; 
+            await clickSound.play();
+        } catch (error) {
+            console.error("Audio playback failed:", error);
+        }
+    });
+</script> -->

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Card</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/update_card.css') }}">
+    <link rel="website icon" href="{{ url_for('static', filename='img/Very-Basic-Update-Icon.png') }}">
+</head>
+<body>
+
+    {% block music %}
+    {% include 'includes/_sound-effects.html' %}
+    {% endblock %}
+
+    <div id="confirmation-modal" class="confirm-modal">
+        <div class="confirm-modal-content">
+            <p style="color: white;">Are you sure you want to {{ action }} this {{ object }}?</p>
+            <div class="confirm-modal-actions">
+                <button id="confirm-yes" class="confirm-btn-danger">Yes</button>
+                <button id="confirm-no" class="confirm-btn-secondary">No</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="update-card-container">
+        <h1>Update Card</h1>
+        <!-- Form Section -->
+        <form class="update-card-form" method="POST" id="confirm-update-card">
+            <div class="form-group">
+                <label for="card_no">Card No.</label>
+                <input type="text" id="card_no" name="card_no" value="{{ card.card_no if card else '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="type">Card Type</label>
+                <input type="text" id="type" name="type" value="{{ card.type if card else '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" value="{{ card.name if card else '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="rarity">Rarity</label>
+                <input type="text" id="rarity" name="rarity" value="{{ card.rarity if card else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="world">World</label>
+                <input type="text" id="world" name="world" value="{{ card.world if card else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="attribute">Attribute</label>
+                <input type="text" id="attribute" name="attribute" value="{{ card.attribute if card else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="size">Size</label>
+                <input type="number" id="size" name="size" value="{{ card.size if card else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="defense">Defense</label>
+                <input type="number" id="defense" name="defense" value="{{ card.defense if card else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="critical">Critical</label>
+                <input type="number" id="critical" name="critical" value="{{ card.critical if card else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="power">Power</label>
+                <input type="number" id="power" name="power" value="{{ card.power if card else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="ability_effect">Ability/Effect</label>
+                <textarea id="ability_effect" name="ability_effect">{{ card.ability_effect if card else '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="flavor_text">Flavor Text</label>
+                <textarea id="flavor_text" name="flavor_text">{{ card.flavor_text if card else '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="illustrator">Illustrator</label>
+                <input type="text" id="illustrator" name="illustrator" value="{{ card.illustrator if card else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="image_url">Image URL</label>
+                <input type="text" id="image_url" name="image_url" value="{{ card.image_url if card else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="detail_url">Detail URL</label>
+                <input type="text" id="detail_url" name="detail_url" value="{{ card.detail_url if card else '' }}">
+            </div>
+            <button type="button" onclick="showConfirmationModal()" class="btn btn-submit">Update Card</button>
+            <a href="{{ url_for('list') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+
+        <!-- Image Section -->
+        <div class="card-image-preview">
+            <img src="{{ card.image_url if card else '/static/images/default_card.png' }}" alt="Card Image">
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/confirmation-modal.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+    <script>
+        document.getElementById('confirm-yes').addEventListener('click', function () {
+            document.getElementById('confirm-update-card').submit();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{% extends "base_entry.html" %}
+{% block title %}Register{% endblock %}
+
+{% block entry %}
+<h1>REGISTER</h1>
+
+<form method="POST" action="{{ url_for('register') }}">
+    <div class="input-container">
+        <input type="text" id="username" name="username" class="form" placeholder="Username" maxlength="20" pattern="[a-zA-Z0-9]+" required>
+    </div>
+    <div class="input-container">
+        <input type="email" id="email" name="email" class="form" placeholder="Email" required>
+    </div>
+    <div class="input-container">
+        <input type="password" id="password" name="password" class="form" placeholder="Password" required>
+    </div>
+    <div class="input-container">
+        <input type="password" id="confirmation" name="confirmation" class="form" placeholder="Confirm Password" required>
+    </div>
+    <button type="submit" class="register">REGISTER</button>
+    <a href="/">
+        <button type="button" class="return">RETURN</button>
+    </a>
+</form>
+{% endblock %} 
