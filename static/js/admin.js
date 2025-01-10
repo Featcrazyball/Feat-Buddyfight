@@ -9,6 +9,140 @@ function openEditModal(username, email, role, wins, losses, tickets) {
     openModal('edit-user-modal');
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    // Replace or complement the server-side data
+    fetchAndRenderUsers();
+    fetchAndRenderReports();
+    fetchAndRenderSleeves();
+});
+
+function fetchAndRenderUsers() {
+    fetch('/admin/get_users')
+        .then(response => response.json())
+        .then(data => {
+            const usersTableBody = document.getElementById('users-table-body');
+            if (!usersTableBody) return;
+
+            usersTableBody.innerHTML = '';
+
+            data.users.forEach(user => {
+                const tr = document.createElement('tr');
+
+                tr.innerHTML = `
+                    <td class="user">${user.username}</td>
+                    <td class="user">${user.email}</td>
+                    <td class="user">${user.role}</td>
+                    <td class="user">${user.wins}</td>
+                    <td class="user">${user.losses}</td>
+                    <td class="user">${user.tickets}</td>
+                    <td class="user">
+                        <button class="btn-primary user" 
+                            onclick="openEditModal('${user.username}', '${user.email}', '${user.role}', ${user.wins}, ${user.losses}, ${user.tickets})">
+                            Edit
+                        </button>
+                        <button class="btn-danger user" 
+                            onclick="confirmDeleteUser('${user.username}')">
+                            Delete
+                        </button>
+                    </td>
+                `;
+                usersTableBody.appendChild(tr);
+            });
+        })
+        .catch(err => {
+            console.error('Error fetching users:', err);
+            showModal('Failed to fetch users', 'error');
+        });
+}
+
+function fetchAndRenderReports() {
+    fetch('/admin/get_reports')
+        .then(response => response.json())
+        .then(data => {
+            const reportsTableBody = document.getElementById('reports-table-body');
+            if (!reportsTableBody) return;
+
+            // Clear existing rows
+            reportsTableBody.innerHTML = '';
+
+            data.reports.forEach(report => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="user">${report.id}</td>
+                    <td class="user">${report.user_reporting}</td>
+                    <td class="user">${report.user_being_reported}</td>
+                    <td class="user">${report.report_type}</td>
+                    <td class="user">${report.detail}</td>
+                    <td class="user">
+                        <button class="btn-danger user" 
+                            onclick="confirmDeleteReport('${report.id}')">
+                            Delete
+                        </button>
+                    </td>
+                `;
+                reportsTableBody.appendChild(tr);
+            });
+        })
+        .catch(err => {
+            console.error('Error fetching reports:', err);
+            showModal('Failed to fetch reports', 'error');
+        });
+}
+
+function fetchAndRenderSleeves() {
+    fetch('/admin/get_sleeves')
+        .then(response => response.json())
+        .then(data => {
+            const sleevesContainer = document.getElementById('sleeves-container');
+            if (!sleevesContainer) return;
+
+            // We'll group sleeves by sleeve_type in JS now
+            // (You can also do it directly in the template, but we’ll do it here for dynamic updates)
+            const sleevesByType = {};
+            data.sleeves.forEach(sleeve => {
+                if (!sleevesByType[sleeve.sleeve_type]) {
+                    sleevesByType[sleeve.sleeve_type] = [];
+                }
+                sleevesByType[sleeve.sleeve_type].push(sleeve);
+            });
+
+            // Clear the container
+            sleevesContainer.innerHTML = '';
+
+            // Build new sections for each sleeve_type
+            for (const [type, sleeves] of Object.entries(sleevesByType)) {
+                const section = document.createElement('div');
+                section.className = 'sleeve-section';
+
+                const heading = document.createElement('h2');
+                heading.textContent = `Type: ${type}`;
+                section.appendChild(heading);
+
+                const sleeveGrid = document.createElement('div');
+                sleeveGrid.className = 'sleeve-grid';
+
+                sleeves.forEach(sleeve => {
+                    const item = document.createElement('div');
+                    item.className = 'sleeve-item';
+                    item.innerHTML = `
+                        <img src="${sleeve.sleeve}" alt="Sleeve ${sleeve.id}">
+                        <p>Sleeve ID: ${sleeve.id}</p>
+                        <button class="btn-danger" onclick="confirmDeleteSleeve('${sleeve.id}')">Delete</button>
+                    `;
+                    sleeveGrid.appendChild(item);
+                });
+
+                section.appendChild(sleeveGrid);
+                sleevesContainer.appendChild(section);
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching sleeves:', err);
+            showModal('Failed to fetch sleeves', 'error');
+        });
+}
+
+
 function confirmDeleteUser(username) {
     const deleteModal = document.getElementById('confirm-delete-modal');
     deleteModal.dataset.username = username; 
@@ -55,7 +189,7 @@ function deleteUser() {
         .then(data => {
             if (data.status === 'success') {
                 showModal(data.message, 'success');
-
+                fetchAndRenderUsers();
             } else {
                 showModal(data.message, 'error');
             }
@@ -73,21 +207,23 @@ function deleteReport() {
             'Content-Type': 'application/json',
         },
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showModal(data.message, 'success');
-            } else {
-                showModal(data.message, 'error');
-            }
-        })
-        .catch(() => showModal('An unexpected error occurred. Please try again later.', 'error'))
-        .finally(() => closeModal('confirm-delete-report-modal'));
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showModal(data.message, 'success');
+            fetchAndRenderReports();
+        } else {
+            showModal(data.message, 'error');
+        }
+    })
+    .catch(() => showModal('An unexpected error occurred. Please try again later.', 'error'))
+    .finally(() => closeModal('confirm-delete-report-modal'));
 }
+
 
 const editUserForm = document.getElementById('editUserForm');
 editUserForm.addEventListener('submit', function (event) {
-    event.preventDefault(); 
+    event.preventDefault();
 
     const formData = new FormData(editUserForm);
 
@@ -95,22 +231,22 @@ editUserForm.addEventListener('submit', function (event) {
         method: 'POST',
         body: formData,
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showModal(data.message, 'success');
-            } else {
-                showModal(data.message, 'error');
-            }
-        })
-        .catch(() => showModal('An unexpected error occurred. Please try again later.', 'error'))
-        .finally(() => closeModal());
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showModal(data.message, 'success');
+            fetchAndRenderUsers();
+        } else {
+            showModal(data.message, 'error');
+        }
+    })
+    .catch(() => showModal('An unexpected error occurred. Please try again later.', 'error'))
+    .finally(() => closeModal('edit-user-modal'));
 });
 
 const displayModal = document.getElementById('modal');
 function closeDisplayModal() {
     displayModal.style.display = 'none'; 
-    window.location.reload();
 }
 
 displayModal.addEventListener('click', function(event) {
@@ -151,14 +287,22 @@ function submitAddSleeveForm() {
         method: "POST",
         body: formData,
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.message) {
-                showModal(data.message, "success");
-                location.reload();
-            }
-        })
-        .catch(error => console.error("Error adding sleeve:", error));
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            showModal(data.message, "success");
+            fetchAndRenderSleeves();
+            closeAddSleeveModal();
+        } else if (data.error) {
+            showModal(data.error, "error");
+        } else {
+            showModal("An unknown error occurred.", "error");
+        }
+    })
+    .catch(error => {
+        console.error("Error adding sleeve:", error);
+        showModal("Error adding sleeve", "error");
+    });
 }
 
 function deleteSleeve() {
@@ -170,19 +314,19 @@ function deleteSleeve() {
             'Content-Type': 'application/json',
         },
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showModal(data.message, 'success');
-            } else {
-                showModal(data.message, 'error');
-            }
-        })
-        .catch(() => showModal('An unexpected error occurred. Please try again later.', 'error'))
-        .finally(() => closeModal('confirm-delete-sleeve-modal'));
+    .then(response => response.json())
+    .then(data => {
+        if (data.message && !data.error) {
+            showModal(data.message, 'success');
+            fetchAndRenderSleeves();
+        } else {
+            const msg = data.message || data.error || "An error occurred deleting sleeve.";
+            showModal(msg, 'error');
+        }
+    })
+    .catch(() => showModal('An unexpected error occurred. Please try again later.', 'error'))
+    .finally(() => closeModal('confirm-delete-sleeve-modal'));
 }
-
-
 function updateFileName() {
     const input = document.getElementById('sleeve-image');
     const fileName = input.files.length > 0 ? input.files[0].name : 'No file chosen';

@@ -69,6 +69,9 @@ class Deck(db.Model):
     selected = db.Column(db.Boolean, nullable=True)
     flagLink = db.Column(db.String, nullable=True, default='img/Cardback.webp')
     buddy_card_id = db.Column(db.Integer, nullable=True)  
+    initial_life = db.Column(db.Integer, nullable=False, default=10)
+    initial_hand_size = db.Column(db.Integer, nullable=False, default=6)
+    initial_gauge = db.Column(db.Integer, nullable=False, default=2)
 
     def to_dict(self):
         return {
@@ -128,7 +131,7 @@ class User(db.Model):
     profile_image = db.Column(db.String(500), nullable=True, default='uploads/default_profile.jpg')
     unlocked_cards = db.Column(db.JSON, default=[])
     selected_deck_id = db.Column(db.Integer, db.ForeignKey('decks.id'), nullable=True)
-    selected_sleeve_id = db.Column(db.Integer, db.ForeignKey('sleeves.id'), nullable=True, default=9)
+    selected_sleeve_id = db.Column(db.Integer, db.ForeignKey('sleeves.id'), nullable=True, default=1)
 
     decks = db.relationship('Deck', backref='user', foreign_keys=[Deck.username], lazy=True)
     selected_deck = db.relationship('Deck', foreign_keys=[selected_deck_id], backref='selected_by', lazy=True)

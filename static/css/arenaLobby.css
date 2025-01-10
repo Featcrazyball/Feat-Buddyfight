@@ -48,13 +48,14 @@
     height: fit-content;
     background-color: rgba(41, 170, 227, 1);
     border-radius: 3px;
+    max-height: 70vh;
 }
 
 .lobby-header{
     background-color: #0071BD;
-    height: 150px;
+    height: 15vh;
     text-align: center;
-    font-size: 4rem;
+    font-size: 3rem;
     padding: 10px;
     display: flex;
     flex-direction: column;
@@ -65,8 +66,25 @@
 
 .rooms-container{
     height: fit-content;
-    max-height: 60vh;
+    max-height: 50vh;
     overflow-y: auto;
+    min-height: 50vh;
+}
+
+.no-rooms{
+    height: 50vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+}
+
+.no-rooms h1{
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    color: white;
+    text-align: center;
+    width: 100%;
+    font-weight: lighter;
 }
 
 .lobby-rooms {
@@ -80,6 +98,11 @@
     align-items: center;
 }
 
+.lobby-rooms h1{
+    width: 100%;
+    text-align: center;
+}
+
 .lobby-rooms:last-child {
     border-bottom: none;
 }
@@ -91,10 +114,12 @@
 }
 
 .profile-picture {
-    background-color: grey;
     border-radius: 50%;
     width: 50px;
     height: 50px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .username {
@@ -120,6 +145,7 @@
     font-size: 12px;
     rotate: -90deg;
     margin: 0;
+    border-collapse: collapse;
 }
 
 @media screen and (max-width: 1000px) {
@@ -137,6 +163,7 @@
     gap: 20px;
     justify-content: center;
     margin: 20px 0;
+    margin-top: -22vh;
 }
 
 .custom-button {
@@ -182,4 +209,44 @@
     text-align: center;
     width: auto;
     min-width: 100px;
+}
+
+/* Waiting Modals */
+.waiting-modal {
+    display: none;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 24px;
+    top: 0;
+    left: 0;
+}
+
+.waiting-modal-content{
+    height: 50vh;
+    width: 50vh;
+}
+
+.leave-button{
+    width: 100%;
+    text-align: center;
+    font-size: 2rem;
+    padding: 10px;
+    border: 4px solid black;
+    background-color: red;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 15px black;
+    border-radius: 15px;
+    font-weight: bolder;
+    transition: all 0.3s ease;
+}
+
+.leave-button:hover{
+    box-shadow: inset 0 0 10px black;
 }

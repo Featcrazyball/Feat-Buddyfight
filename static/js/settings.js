@@ -54,24 +54,3 @@ function submitProfilePicture() {
         });
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    const volumeControl = document.getElementById("volume-control");
-    const volumeDisplay = document.getElementById("volume-display");
-
-    // Load saved volume from local storage
-    const savedVolume = localStorage.getItem("volume");
-    console.log("Saved Volume:", savedVolume); // Debug log
-    if (savedVolume !== null) {
-        const volume = parseFloat(savedVolume);
-        volumeControl.value = volume;
-        volumeDisplay.textContent = `${Math.round(volume * 100)}%`;
-    }
-
-    // Update volume and display when the slider is moved
-    volumeControl.addEventListener("input", function () {
-        const volume = parseFloat(this.value);
-        localStorage.setItem("volume", volume); // Save volume to local storage
-        console.log("Volume Set:", volume); // Debug log
-        volumeDisplay.textContent = `${Math.round(volume * 100)}%`;
-    });
-});

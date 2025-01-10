@@ -1,22 +1,23 @@
+# Importing necessary libraries
 from flask import Flask, render_template, request, redirect, url_for, flash, session, get_flashed_messages, send_from_directory, jsonify, abort
-from flask_socketio import SocketIO, join_room, leave_room, emit, send
+from flask_socketio import SocketIO, join_room, leave_room, emit, send, rooms, close_room
 from werkzeug.security import generate_password_hash, check_password_hash
-from functools import wraps
-from models import db, Card, User, Report, Deck, Sleeve, PaymentHistory, Item # Import models and db instance
 from flask_sqlalchemy import SQLAlchemy
+from functools import wraps
 from sqlalchemy.exc import SQLAlchemyError
-from cardExtractor import *
-from werkzeug.utils import secure_filename
+from werkzeug.utils import secure_filename, redirect
 from sqlalchemy import or_
 from sqlalchemy.orm.attributes import flag_modified
+from threading import Timer
+# Personal Libraries
+from models import db, Card, User, Report, Deck, Sleeve, PaymentHistory, Item
 from error import handle_error
-import os, random, json, string, eventlet
-
-# Testing GitHub
+from cardExtractor import *
+import os, random, json, string, time, eventlet, uuid
 
 # Initialize Flask app and database
 app = Flask(__name__, template_folder='templates', static_folder="static", static_url_path='/')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///default.db'  # Default database URI
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///default.db'  
 app.config['SQLALCHEMY_BINDS'] = {
     'users': 'sqlite:///users.db',
     'cards': 'sqlite:///buddyfight_cards.db',
@@ -42,15 +43,19 @@ UPLOAD_SLEEVE = os.path.join('static', 'img', 'sleeves')
 app.config['UPLOAD_SLEEVE'] = UPLOAD_SLEEVE
 
 # For chat Rooms and Arena
-socketio = SocketIO(app)
-rooms = {
+socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*", logger=True, engineio_logger=True)
+
+chat_rooms = {
     "General": {"messages": []},
     "Deck": {"messages": []},
     "Events": {"messages": []}
 }  
 
 # Error handling
-app.register_error_handler(Exception, handle_error)
+# app.register_error_handler(Exception, handle_error)
+
+game_rooms = {}
+user_rooms = {} 
 
 # Role-based access control decorators for Admin required
 def admin_required(f):
@@ -75,9 +80,8 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def select_deck(self, deck_id):
-    """Method to select a deck for the user."""
     deck = Deck.query.get(deck_id)
-    if deck and deck.username == self.username:  # Ensure the deck belongs to the user
+    if deck and deck.username == self.username: 
         self.selected_deck_id = deck.id
         db.session.commit()
         return True
@@ -89,15 +93,75 @@ def deselect_deck(self):
     db.session.commit()
 
 def generate_room_code():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
 
-# Index [Completed] [Could do better for styling]
-@app.route('/')
-def index():
-    return render_template('index.html')
+def get_active_game_rooms_list():
+    return [
+        {
+            "room_code": room_code,
+            "creator_username": room_data["creator_username"],
+            "creator_profile_picture": room_data["creator_profile_picture"],
+        }
+        for room_code, room_data in game_rooms.items()
+        if len(room_data["players"]) < 2  # Exclude full rooms
+    ]
+
+def delayed_room_cleanup(room_code):
+    try:
+        game_room = game_rooms.get(room_code)
+        if game_room and not game_room["players"]: 
+            del game_rooms[room_code]
+            print(f"Room {room_code} deleted due to inactivity.")
+    except KeyError:
+        print(f"Room {room_code} already handled.")
+
+def add_message_to_room(room, username, message):
+    chat_rooms[room]["messages"].append({
+        "username": username,
+        "message": message
+    })
+    if len(chat_rooms[room]["messages"]) > 500:
+        chat_rooms[room]["messages"].pop(0)
+
+def opponent_checker(room_code, username):
+    room_data = game_rooms[room_code]
+    if not room_data or username not in room_data["players"]:
+        emit('error', {"message": "Unexpected error joining room."}, room=request.sid)
+        return
+
+    opponent = None
+    for player in room_data["players"]:
+        if player != username:
+            opponent = player
+            return opponent
+
+def is_valid_email(email):
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    return re.match(email_regex, email)
+
+# Area Methods
+def shuffle_deck(deck):
+    random.shuffle(deck)
+    return deck
+
+def draw_cards(deck, count):
+    drawn_cards = deck[:count]
+    remaining_deck = deck[count:]
+    return drawn_cards, remaining_deck
+
+def get_card_data(card_ids):
+    unique_ids = set(card_ids)
+    cards = Card.query.filter(Card.id.in_(unique_ids)).all()
+    card_map = {c.id: c.to_dict() for c in cards}
+
+    result = []
+    for cid in card_ids:
+        if cid in card_map:
+            result.append(card_map[cid])
+    return result
 
 # Register [Completed]
-@app.route('/register', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
@@ -139,7 +203,7 @@ def register():
 
         # Create new user
         hashed_password = generate_password_hash(password)
-        new_user = User(username=username, email=email, password=hashed_password, role='admin', wins=0, losses = 0, tickets=100, unlocked_cards=unlocked_cards)
+        new_user = User(username=username, email=email, password=hashed_password, role='admin', unlocked_cards=unlocked_cards)
         db.session.add(new_user)
         db.session.commit()
 
@@ -155,12 +219,11 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        # Check if user exists
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             session['user'] = user.username
             session['user_role'] = user.role
-            return redirect(url_for('home', usr=user.username))  # Pass 'usr' to the URL
+            return redirect(url_for('home', usr=user.username))
 
         flash("Invalid username or password.", "error")
         return redirect(url_for('login'))
@@ -178,7 +241,6 @@ def home():
 @login_required
 def anime():
     return render_template('anime.html', username=session['user'])
-
 
 # Card List [Complete]
 @app.route('/list', methods=['GET'])
@@ -210,7 +272,6 @@ def list():
         if user:
             unlocked_card_ids = user.unlocked_cards
             query = query.filter(Card.id.in_(unlocked_card_ids))
-
 
     cards = query.all()
     card_dicts = [card.to_dict() for card in cards]  # Ensure this is serialized as a list of dictionaries
@@ -306,7 +367,7 @@ def make_payment():
         return jsonify({"status": "error", "message": 'Failed to process payment'}), 500
 
 @app.route('/shops/manual', methods=['GET','POST'])
-def shops_manual():
+def add_shops():
     items_to_add = [
         {"count": 1, "price": 2.50},
         {"count": 3, "price": 6.00},
@@ -335,68 +396,89 @@ def shops_manual():
 def chat():
     return render_template('chatrooms.html', username=session.get('user', 'Anonymous'))
 
-@app.route("/create_room", methods=["POST"])
+@app.route('/create_room', methods=['POST'])
+@login_required
 def create_room():
-    room_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-    rooms[room_code] = {"messages": []}
-    print(f"Room created: {room_code}")  # Debugging output
-    return jsonify({"status": "success", "room_code": room_code})
+    raw_code = str(uuid.uuid4()).replace('-', '').upper()
+    first_letter = random.choice(string.ascii_uppercase)
+    room_code = first_letter + raw_code[:7]
+    chat_rooms[room_code] = {"messages": []}
+    return jsonify({"room_code": room_code})
 
-@app.route("/join_room", methods=["POST"])
-def join_room_endpoint():
+@app.route('/join_room', methods=['POST'])
+@login_required
+def join_room_http():
     data = request.json
-    room_code = data.get("room_code")
+    room_code = data.get('room_code')
+    if not room_code or room_code not in chat_rooms:
+        return jsonify({"error": "Room not found"}), 404
+    return jsonify({"status": "success"})
 
-    if room_code in rooms:
-        print(f"User joined room: {room_code}") 
-        return jsonify({"status": "success", "room_code": room_code})
-    print(f"Room not found: {room_code}")
-    return jsonify({"status": "error", "message": "Room not found."}), 404
+@socketio.on('connect')
+@login_required
+def handle_connect():
+    print("Socket connected, SID:", request.sid)
 
-@socketio.on("join_room")
-def handle_join_room(data):
-    room_code = data.get("room")
-    username = session.get("user")
+@socketio.on('join_room')
+@login_required
+def on_join_room(data):
+    room = data.get('room')
+    username = session.get('user')
 
-    if room_code not in rooms:
-        print(f"Attempt to join non-existent room: {room_code}")  # Debugging output
-        return
+    join_room(room)
+    print(f"{username} is joining {room}")
 
-    join_room(room_code)
-    emit("receive_message", {
-        "room": room_code,
-        "message": f"{username} has joined the room.",
-        "username": "System"
-    }, room=room_code)
-
-@socketio.on("send_message")
-def handle_send_message(data):
-    room_code = data.get("room")
-    message = data.get("message")
-    username = session.get("user")
-
-    if room_code not in rooms:
-        print(f"Attempt to send message to non-existent room: {room_code}")  # Debugging output
-        return
-
-    content = {"username": username, "message": message}
-    rooms[room_code]["messages"].append(content)
-    emit("receive_message", {"room": room_code, "message": message, "username": username}, room=room_code)
-    print(f"Message sent to {room_code}: {message} by {username}")  # Debugging output
-
-@socketio.on("leave_room")
-def handle_leave_room(data):
-    room_code = data.get("room")
-    username = session.get("user")
-
-    if room_code in rooms:
-        leave_room(room_code)
-        emit("receive_message", {
-            "room": room_code,
-            "message": f"{username} has left the room.",
+    if room not in ['Events', 'Deck', 'General']:
+        msg = f"{username} joined the room."
+        add_message_to_room(room, "System", msg)
+        emit('receive_message', {
+            "room": room, 
+            "message": msg, 
             "username": "System"
-        }, room=room_code)
-        print(f"{username} left room: {room_code}") 
+        }, room=room)
+
+    history = chat_rooms[room]["messages"][-500:]
+    emit('room_history', history, room=request.sid)
+
+@socketio.on('leave_room')
+@login_required
+def on_leave_room(data):
+    room = data.get('room')
+    username = session.get('user')
+
+    leave_room(room)
+    print(f"{username} left {room}")
+
+    msg = f"{username} left the room."
+    add_message_to_room(room, "System", msg)
+    emit('receive_message', {
+        "room": room,
+        "message": msg,
+        "username": "System"
+    }, room=room)
+
+@socketio.on('send_message')
+@login_required
+def on_send_message(data):
+    room = data.get('room')
+    message = data.get('message')
+    username = session.get('user')
+
+    if room == "Events":
+        user = User.query.filter_by(username=username).first()
+        if user.role != 'admin':
+            emit('chat_error', {
+                "message": "Only admins can chat in Events."
+            }, room=request.sid)
+            return
+
+    add_message_to_room(room, username, message)
+
+    emit('receive_message', {
+        "room": room,
+        "message": message,
+        "username": username
+    }, room=room)
 
 # Arena HOME PAGE [COMPLETED]
 @app.route('/arenaHome', methods=['GET', 'POST'])
@@ -416,6 +498,550 @@ def arenaLobby():
             selected_deck = deck.name
 
     return render_template('arenaLobby.html', username=session['user'], selected_deck=selected_deck)
+
+@app.route('/active_game_rooms', methods=['GET'])
+def get_active_game_rooms():
+    active_rooms = get_active_game_rooms_list()
+    return jsonify(active_rooms)
+
+@socketio.on("get_active_game_rooms")
+def socket_active_game_rooms():
+    active_rooms = [
+        {
+            "room_code": room,
+            "creator_username": game_rooms[room]["creator_username"],
+            "creator_profile_picture": game_rooms[room]["creator_profile_picture"],
+        }
+        for room in game_rooms
+    ]
+    emit("active_game_rooms", active_rooms)
+
+@socketio.on("create_game_room")
+@login_required
+def create_game_room():
+    user = User.query.filter_by(username=session['user']).first()
+    user_deck = Deck.query.get(user.selected_deck_id)
+    profile_picture = user.profile_image
+    username = user.username
+
+    if username in user_rooms:
+        emit('error', {"message": "You are already in a room.", "status": "error"}, room=request.sid)
+        return
+
+    if user.selected_deck_id is None:
+        emit('error', {"message": "Please select a deck first.", "status": "error"}, room=request.sid)
+        return
+    
+    if user_deck.buddy_card_id is None:
+        emit('error', {"message": "Please select a buddy card first.", "status": "error"}, room=request.sid)
+        return
+
+    if user.profile_image == "uploads/default_profile.jpg":
+        profile_picture = "default_profile.jpg"
+
+    room_code = generate_room_code()
+    game_rooms[room_code] = {
+        "creator_username": username,
+        "creator_profile_picture": f"/uploads/{profile_picture}",
+        "players": {username: {}},
+        "game_state": {},
+    }
+
+    user_rooms[username] = room_code
+    join_room(room_code)
+
+    socketio.emit('update_active_game_rooms', get_active_game_rooms_list())
+    emit('game_room_created', {
+        "status": "success",
+        "room_code": room_code,
+    }, room=request.sid)
+
+@socketio.on('join_game_room')
+@login_required
+def join_game_room(data):
+    room_code = data.get('room')
+    username = session.get('user')
+
+    user = User.query.filter_by(username=username).first()
+    user_deck = Deck.query.filter_by(id=user.selected_deck_id).first()
+
+    if username in user_rooms:
+        emit('error', {"message": "You are already in a room.", "status": "error"}, room=request.sid)
+        return
+
+    if user.selected_deck_id is None:
+        emit('error', {"message": "Please select a deck first.", "status": "error"}, room=request.sid)
+        return
+    
+    if user_deck.buddy_card_id is None:
+        emit('error', {"message": "Please select a buddy card first.", "status": "error"}, room=request.sid)
+        return
+
+    if room_code not in game_rooms:
+        emit('error', {"message": "Room does not exist.", "status": "error"}, room=request.sid)
+        return
+
+    if len(game_rooms[room_code]["players"].keys()) >= 2:
+        emit('error', {"message": "Room is full.", "status": "error"}, room=request.sid)
+        return
+
+    join_room(room_code)
+    game_rooms[room_code]["players"][username] = {}
+    user_rooms[username] = room_code
+
+    print(f"{username} joined room {room_code}. Current players: {game_rooms[room_code]['players']}")
+    socketio.emit('update_active_game_rooms', get_active_game_rooms_list())
+
+    opponent = opponent_checker(room_code, username)
+    room_data = game_rooms[room_code]
+    # Decks
+    player_opponent = User.query.filter_by(username=opponent).first()
+    opponent_deck = Deck.query.filter_by(id=player_opponent.selected_deck_id).first()
+
+    # Link to card model
+    user_deck_card_ids = user_deck.cards     
+    opponent_deck_card_ids = opponent_deck.cards 
+
+    # Shuffling Deck
+    user_deck_card_ids = shuffle_deck(user_deck_card_ids)
+    opponent_deck_card_ids = shuffle_deck(opponent_deck_card_ids)
+
+    # Getting Hand and gauge
+    user_hand_ids, user_remaining_deck = draw_cards(user_deck_card_ids, user_deck.initial_hand_size)
+    user_gauge_ids, user_remaining_deck = draw_cards(user_remaining_deck, user_deck.initial_gauge)
+
+    opponent_hand_ids, opponent_remaining_deck = draw_cards(opponent_deck_card_ids, opponent_deck.initial_hand_size)
+    opponent_gauge_ids, opponent_remaining_deck = draw_cards(opponent_remaining_deck, opponent_deck.initial_gauge)
+
+    # Get card data
+    user_hand = get_card_data(user_hand_ids)
+    user_gauge = get_card_data(user_gauge_ids)
+
+    opponent_hand = get_card_data(opponent_hand_ids)
+    opponent_gauge = get_card_data(opponent_gauge_ids)
+
+    user_deck_list = get_card_data(user_remaining_deck)
+    opponent_deck_list = get_card_data(opponent_remaining_deck)
+
+    # Deck Count
+    user_deck_count = len(user_remaining_deck)
+    opponent_deck_count = len(opponent_remaining_deck)
+
+    game_rooms[room_code]['players'][username] = {
+            'current_life': user_deck.initial_life,
+            'current_gauge_size': user_deck.initial_gauge,
+            'current_gauge': user_gauge,
+            'current_hand_size': user_deck.initial_hand_size,
+            'current_hand': user_hand,
+            'deck_list': user_deck_list,
+            'current_deck_count': user_deck_count,
+            'left': None,
+            'center': None,
+            'right': None,
+            'item': None,
+            'left_soul': [],
+            'center_soul': [],
+            'right_soul': [],
+            'item_soul': [],
+            'spells': [],
+            'dropzone': [],
+            'left-rest': False,
+            'center-rest': False,
+            'right-rest': False,
+            'item-rest': False,
+            'buddy-rest': False,
+            'selector': None,
+            'current_phase': 'Draw Phase'
+        }
+
+    game_rooms[room_code]['players'][opponent] = {
+        'current_life': opponent_deck.initial_life,
+        'current_gauge_size': opponent_deck.initial_gauge,
+        'current_gauge': opponent_gauge,
+        'current_hand_size': opponent_deck.initial_hand_size,
+        'current_hand': opponent_hand,
+        'deck_list': opponent_deck_list,
+        'current_deck_count': opponent_deck_count,
+        'left': None,
+        'center': None,
+        'right': None,
+        'item': None,
+        'left_soul': [],
+        'center_soul': [],
+        'right_soul': [],
+        'item_soul': [],
+        'spells': [],
+        'dropzone': [],
+        'left-rest': False,
+        'center-rest': False,
+        'right-rest': False,
+        'item-rest': False,
+        'buddy-rest': False,
+        'selector': None,
+        'current_phase': 'End Turn'
+    }
+
+    if len(room_data["players"]) == 2:
+        eventlet.sleep(0.5)
+        emit('joining_game_player', {
+            'opponent': opponent
+        }, room=request.sid)
+
+        emit('room_creator_player', {
+            'opponent': username
+        }, room=room_code, include_self=False)
+
+        emit('room_ready', {
+            "message": f"Room {room_code} is ready!",
+            "room_code": room_code,
+            "redirect_url": url_for('gameplay', room_code=room_code),
+        }, room=room_code)
+
+@socketio.on('leave_created_game_room')
+def leave_created_game_room(data):
+    room_code = data.get('room')
+    username = session['user']
+
+    if room_code not in game_rooms:
+        emit('error', {"message": "Invalid or non-existent room.", "status": "error"}, room=request.sid)
+        return
+
+    players = game_rooms[room_code]["players"]
+    if username in players:
+        del players[username]
+        leave_room(room_code)
+
+        if username in user_rooms:
+            del user_rooms[username]
+
+        if len(players) == 1:
+            remaining_user = next(iter(players.keys()), None)
+            socketio.emit('game_end', {
+                "message": f"Game End. Winner: {remaining_user}",
+                "room_code": room_code,
+                "redirect_url": url_for('arenaLobby'),
+            }, room=room_code)
+            if remaining_user in user_rooms:
+                del user_rooms[remaining_user]
+            del game_rooms[room_code]
+
+        elif len(players) == 0:
+            del game_rooms[room_code]
+
+        socketio.emit('update_active_game_rooms', get_active_game_rooms_list())
+
+        emit('room_closed', {
+            "message": "You have left the room.",
+            "redirect_url": url_for('arenaLobby'),
+        }, room=request.sid)
+
+    else:
+        emit('error', {"message": "You are not in that room.", "status": "error"}, room=request.sid)
+
+@app.route('/gameplay/<room_code>')
+@login_required
+def gameplay(room_code):
+    current_user = User.query.filter_by(username=session['user']).first()
+    if not current_user:
+        flash("User not found", "error")
+        return redirect(url_for("arenaLobby"))
+
+    game_room = game_rooms.get(room_code)
+    if not game_room or current_user.username not in game_room["players"]:
+        flash("Invalid game room or you are not in this room", "error")
+        return redirect(url_for("arenaLobby"))
+
+    opponent_name = None
+    for p in game_room["players"]:
+        if p != current_user.username:
+            opponent_name = p
+            break
+
+    opponent = User.query.filter_by(username=opponent_name).first() if opponent_name else None
+
+    user_sleeve = Sleeve.query.get(current_user.selected_sleeve_id)
+    user_sleeve_img = user_sleeve.sleeve 
+
+    opp_sleeve_img = None
+    if opponent:
+        opp_sleeve = Sleeve.query.get(opponent.selected_sleeve_id)
+        if opp_sleeve:
+            opp_sleeve_img = opp_sleeve.sleeve
+
+    if current_user.profile_image == "uploads/default_profile.jpg":
+        user_profile_picture = "default_profile.jpg"
+    
+    if opponent.profile_image == "uploads/default_profile.jpg":
+        opponent_profile_picture = "default_profile.jpg"
+
+    user_deck = Deck.query.get(current_user.selected_deck_id)
+    opponent_deck = Deck.query.get(opponent.selected_deck_id)
+
+    # Flags
+    user_flag_img = user_deck.flagLink
+    opponent_flag_img = opponent_deck.flagLink
+
+    # Buddy
+    user_buddy = Card.query.get(user_deck.buddy_card_id)
+    opponent_buddy = Card.query.get(opponent_deck.buddy_card_id)
+
+    # Used for testing
+    room = game_rooms[room_code]['players']
+
+    return render_template(
+        'gameplay.html',
+        room_code=room_code,
+        username=current_user.username,
+        user_profile=f"/uploads/{user_profile_picture}",  # or /uploads/ if needed
+        user_sleeve=user_sleeve_img,
+        opponent_name=opponent.username,
+        opponent_profile=f'/uploads/{opponent_profile_picture}',
+        opponent_sleeve=opp_sleeve_img,
+        user_flag=user_flag_img,
+        opponent_flag=opponent_flag_img,
+        user_buddy=user_buddy.image_url,
+        opponent_buddy=opponent_buddy.image_url,
+        room = room
+    )
+
+@app.route('/gameplay/gameInitialisation/<room_code>', methods=['POST'])
+def gameInitialisation(room_code):
+    room_data = game_rooms[room_code]
+    if not room_data:
+        emit('error', {"message": "Room not found."}, room=request.sid)
+        return
+    
+    username = session['user']
+    opponent = opponent_checker(room_code, username)
+
+    user = room_data['players'][username]
+    opponent = room_data['players'][opponent]
+
+    return jsonify({
+        "user": user,
+        "opponent": opponent
+    })
+
+@app.route("/gameplay/gameInformation/<room_code>", methods=['POST'])
+@login_required
+def game_init(room_code):
+    room_data = game_rooms[room_code]
+    if not room_data:
+        emit('error', {"message": "Room not found."}, room=request.sid)
+        return
+    
+    username = session['user']
+    opponent = opponent_checker(room_code, username)
+
+    user = room_data['players'][username]
+    opponent = room_data['players'][opponent]
+
+    return jsonify({
+        "user": user,
+        "opponent": opponent
+    })
+
+@socketio.on('game_room_joined')
+def game_room_joined(data):
+    room_code = data.get('room')
+    join_room(room_code)
+    return
+
+@socketio.on('phase_update')
+def phase_update(data):
+    room_code = data.get('room')
+    phase = data.get('phase')
+    username = session['user']
+
+    game_rooms[room_code]['players'][username]['current_phase'] = data.get('phase')
+
+    emit('phase_updated', {
+        'phase': phase
+    }, room=room_code, include_self=False)
+
+@socketio.on('update_game_information')
+def load_game_information(data):
+    room_code = data.get('room')
+    username = session['user']
+
+    if not room_code or room_code not in game_rooms:
+        emit('error', {"message": "Room not found."}, room=request.sid)
+        return
+
+    opponent = opponent_checker(room_code, username)
+
+    # Get user game info
+    user_current_life = data.get('user-current_life')
+    user_current_gauge_size = data.get('user-current_gauge_size')
+    user_current_gauge = data.get('user-current_gauge')
+    user_current_hand_size = data.get('user-current_hand_size')
+    user_current_hand = data.get('user-current_hand')
+    user_deck_list = data.get('user-deck_list')
+    user_deck_count = data.get('user-deck_count')
+    user_left = data.get('user-left') if data.get('user-left') else None
+    user_center = data.get('user-center') if data.get('user-center') else None
+    user_right = data.get('user-right') if data.get('user-right') else None
+    user_item = data.get('user-item') if data.get('user-item') else None
+
+    user_left_soul = data.get('user-left_soul') if data.get('user-left_soul') else []
+    user_center_soul = data.get('user-center_soul') if data.get('user-center_soul') else []
+    user_right_soul = data.get('user-right_soul') if data.get('user-right_soul') else []
+    user_item_soul = data.get('user-item_soul') if data.get('user-item_soul') else []
+    user_spells = data.get('user-spells') if data.get('user-spells') else []
+    user_dropzone = data.get('user-dropzone') if data.get('user-dropzone') else []
+
+    user_left_rest = data.get('user-left-rest') if data.get('user-left-rest') else False
+    user_center_rest = data.get('user-center-rest') if data.get('user-center-rest') else False
+    user_right_rest = data.get('user-right-rest') if data.get('user-right-rest') else False
+    user_item_rest = data.get('user-item-rest') if data.get('user-item-rest') else False
+
+    user_buddy_rest = data.get('user-buddy-rest') if data.get('user-buddy-rest') else False
+    user_selector = data.get('user-selector') if data.get('user-selector') else None
+
+    game_rooms[room_code]['players'][username] = {
+        'current_life': user_current_life,
+        'current_gauge_size': user_current_gauge_size,
+        'current_gauge': user_current_gauge,
+        'current_hand_size': user_current_hand_size,
+        'current_hand': user_current_hand,
+        'deck_list': user_deck_list,
+        'current_deck_count': user_deck_count,
+        'left': user_left,
+        'center': user_center,
+        'right': user_right,
+        'item': user_item,
+        'left_soul': user_left_soul,
+        'center_soul': user_center_soul,
+        'right_soul': user_right_soul,
+        'item_soul': user_item_soul,
+        'spells': user_spells,
+        'dropzone': user_dropzone,
+        'left-rest': user_left_rest,
+        'center-rest': user_center_rest,
+        'right-rest': user_right_rest,
+        'item-rest': user_item_rest,
+        'buddy-rest': user_buddy_rest,
+        'selector': user_selector
+    }
+
+    # Get opponent game info
+    opponent_current_life = data.get('opponent-current_life')
+    opponent_current_gauge_size = data.get('opponent-current_gauge_size')
+    opponent_current_gauge = data.get('opponent-current_gauge')
+    opponent_current_hand_size = data.get('opponent-current_hand_size')
+    opponent_current_hand = data.get('opponent-current_hand')
+    opponent_deck_list = data.get('opponent-deck_list')
+    opponent_deck_count = data.get('opponent-deck_count')
+    opponent_left = data.get('opponent-left') if data.get('opponent-left') else None
+    opponent_center = data.get('opponent-center') if data.get('opponent-center') else None
+    opponent_right = data.get('opponent-right') if data.get('opponent-right') else None
+    opponent_item = data.get('opponent-item') if data.get('opponent-item') else None
+
+    opponent_left_soul = data.get('opponent-left_soul') if data.get('opponent-left_soul') else []
+    opponent_center_soul = data.get('opponent-center_soul') if data.get('opponent-center_soul') else []
+    opponent_right_soul = data.get('opponent-right_soul') if data.get('opponent-right_soul') else []
+    opponent_item_soul = data.get('opponent-item_soul') if data.get('opponent-item_soul') else []
+    opponent_spells = data.get('opponent-spells') if data.get('opponent-spells') else []
+    opponent_dropzone = data.get('opponent-dropzone') if data.get('opponent-dropzone') else []
+
+    opponent_left_rest = data.get('opponent-left-rest') if data.get('opponent-left-rest') else False
+    opponent_center_rest = data.get('opponent-center-rest') if data.get('opponent-center-rest') else False
+    opponent_right_rest = data.get('opponent-right-rest') if data.get('opponent-right-rest') else False
+    opponent_item_rest = data.get('opponent-item-rest') if data.get('opponent-item-rest') else False
+
+    opponent_buddy_rest = data.get('opponent-buddy-rest') if data.get('opponent-buddy-rest') else False
+    opponent_selector = data.get('opponent-selector') if data.get('opponent-selector') else None
+
+    game_rooms[room_code]['players'][opponent] = {
+        'current_life': opponent_current_life,
+        'current_gauge_size': opponent_current_gauge_size,
+        'current_gauge': opponent_current_gauge,
+        'current_hand_size': opponent_current_hand_size,
+        'current_hand': opponent_current_hand,
+        'deck_list': opponent_deck_list,
+        'current_deck_count': opponent_deck_count,
+        'left': opponent_left,
+        'center': opponent_center,
+        'right': opponent_right,
+        'item': opponent_item,
+        'left_soul': opponent_left_soul,
+        'center_soul': opponent_center_soul,
+        'right_soul': opponent_right_soul,
+        'item_soul': opponent_item_soul,
+        'spells': opponent_spells,
+        'dropzone': opponent_dropzone,
+        'left-rest': opponent_left_rest,
+        'center-rest': opponent_center_rest,
+        'right-rest': opponent_right_rest,
+        'item-rest': opponent_item_rest,
+        'buddy-rest': opponent_buddy_rest,
+        'selector': opponent_selector
+    }
+
+    emit('game_information', game_rooms[room_code]['players'], room=request.sid)
+
+# Life Counter
+@socketio.on('life_increase')
+def life_increase(data):
+    room_code = data.get('room')
+    username = session['user']
+    game_rooms[room_code]['players'][username]['current_life'] += 1
+    current_life = game_rooms[room_code]['players'][username]['current_life']
+    emit('life_update', {'current_life': current_life}, room=room_code, include_self=False)
+
+@socketio.on('life_decrease')
+def life_decrease(data):
+    room_code = data.get('room')
+    username = session['user']
+    game_rooms[room_code]['players'][username]['current_life'] -= 1
+    current_life = game_rooms[room_code]['players'][username]['current_life']
+    emit('life_update', {'current_life': current_life}, room=room_code, include_self=False)
+
+@socketio.on("card_moved")
+@login_required
+def card_moved(data):
+    room_code = data.get("room")
+    card = data.get("card")
+    zone_id = data.get("zoneId")
+    emit("opponent_card_moved", {
+        "card": card,
+        "zoneId": zone_id
+    }, room=room_code, include_self=False)
+
+@socketio.on("player_life_update")
+@login_required
+def player_life_update(data):
+    room_code = data.get("room")
+    new_life = data.get("newLife")
+    emit("opponent_life_update", new_life, room=room_code, include_self=False)
+
+@socketio.on("player_gauge_update")
+@login_required
+def player_gauge_update(data):
+    room_code = data.get("room")
+    new_gauge = data.get("newGauge")
+    emit("opponent_gauge_update", new_gauge, room=room_code, include_self=False)
+
+@socketio.on("mini_chat_send")
+@login_required
+def mini_chat_send(data):
+    room_code = data.get("room")
+    message = data.get("message")
+    sender = session['user']
+    emit("mini_chat_message", {
+        "sender": sender,
+        "message": message
+    }, room=room_code)
+
+@socketio.on("game_end")
+@login_required
+def handle_game_end(data):
+    room_code = data.get("room")
+    winner = data.get("winner")
+    emit("game_end", {
+        'message': f"Game End. Winner: {winner}",
+        "winner": winner
+    }, room=room_code)
 
 # Sleeves [Completed]
 @app.route('/sleeves', methods=['GET', 'POST'])
@@ -513,10 +1139,43 @@ def create_deck():
         case _:
             flagImg = 'img/CardBack.webp'  # Default image
 
+    initial_life = 10
+    initial_gauge = 2
+    initial_hand_size = 6
+
+    if flag == 'Dragon Ein':
+        initial_life = 12
+        initial_gauge = 2
+        initial_hand_size = 4
+    elif flag == 'Dragon Zwei':
+        initial_life = 20
+        initial_gauge = 2
+        initial_hand_size = 4
+    elif flag == 'Divine Guardians':
+        initial_life = 11
+        initial_gauge = 1
+        initial_hand_size = 6
+    elif flag == 'Searing Executioners':
+        initial_life = 8
+        initial_gauge = 4
+        initial_hand_size = 6
+
     # Create the new deck
-    new_deck = Deck(username=username, name=deckName, flag=flag, flagLink=flagImg)
-    db.session.add(new_deck)
-    db.session.commit()
+    try:
+        new_deck = Deck(
+            username=username, 
+            name=deckName, 
+            flag=flag, 
+            flagLink=flagImg, 
+            initial_life=initial_life, 
+            initial_gauge=initial_gauge, 
+            initial_hand_size=initial_hand_size
+        )
+        db.session.add(new_deck)
+        db.session.commit()
+    except Exception as e:
+        app.logger.error(f"Create deck error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
     return jsonify({"status": "success", "message": f"Deck '{deckName}' created successfully!"})
 
@@ -730,6 +1389,10 @@ def gacha_pull():
     pull_type = data.get('type')
     selected_world = data.get('world') 
 
+    excluded_urls = [
+        'https://s3-ap-northeast-1.amazonaws.com/en.fc-buddyfight.com/wordpress/wp-content/images/cardlist/s/bf_h00.png',
+    ]
+
     user = User.query.filter_by(username=session['user']).first()
     if not user:
         return jsonify({"status": "error", "message": "User not found"}), 404
@@ -741,12 +1404,14 @@ def gacha_pull():
 
     if selected_world is None or selected_world == "All":
         available_cards = Card.query.filter(
-            ~Card.attribute.in_(["SEC", "SECRET", "BR", "SP"])
+            ~Card.attribute.in_(["SEC", "SECRET", "BR", "SP"]),
+            ~Card.image_url.in_(excluded_urls)
         ).all()
     else:
         available_cards = Card.query.filter(
             Card.world.ilike(selected_world),
-            ~Card.attribute.in_(["SEC", "SECRET", "BR", "SP"])
+            ~Card.attribute.in_(["SEC", "SECRET", "BR", "SP"]),
+            ~Card.image_url.in_(excluded_urls)
         ).all()
 
     if not available_cards:
@@ -793,10 +1458,25 @@ def settings():
     username = User.query.filter_by(username=session['user']).first()
     email = username.email
 
+    payments = PaymentHistory.query.filter_by(username=session['user']).all()
+    payment_data = []
+
+    for payment in payments:
+        item = Item.query.filter_by(id=payment.item_id).first() 
+        if item:
+            payment_detail = {
+                "id": payment.id,
+                "tickets": item.count,
+                "price": payment.item_price,
+                "date": payment.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        payment_data.append(payment_detail)
+
     return render_template(
         'settings.html',
         username=username,
-        email=email
+        email=email,
+        payments=payment_data
     )
 
 @app.route('/update_username', methods=['POST'])
@@ -822,10 +1502,6 @@ def update_username():
     db.session.commit()
 
     return jsonify({"status": "success", "message": "Username updated successfully!"})
-
-def is_valid_email(email):
-    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
-    return re.match(email_regex, email)
 
 @app.route('/update_email', methods=['POST'])
 @login_required
@@ -1100,7 +1776,7 @@ def update_user():
         user = User.query.filter_by(username=username).first()
 
         if user.role == 'admin':
-            return jsonify({'status':'error', 'message':'Unaurhorised action.'})
+            return jsonify({'status':'error', 'message':'Unaurthorised action.'})
 
         email = data.get('email', user.email)
         if email and '@' not in email:  
@@ -1178,11 +1854,13 @@ def manage_sleeves():
                 return jsonify({"status": "error", "message": f"File type not allowed"}), 200
 
             sleeve_count = Sleeve.query.count() + 1
-            filename = f"_Sleeve{sleeve_count}"
-            filepath = os.path.join(app.config['UPLOAD_SLEEVE'], filename)
+            original_filename = file.filename
+            extension = original_filename.rsplit('.', 1)[1].lower()
+            new_filename = f"_Sleeve{sleeve_count}.{extension}"
+            filepath = os.path.join(app.config['UPLOAD_SLEEVE'], new_filename)
             file.save(filepath)
 
-            new_sleeve = Sleeve(sleeve=f"img/sleeves/{filename}", sleeve_type=sleeve_type)
+            new_sleeve = Sleeve(sleeve=f"img/sleeves/{new_filename}", sleeve_type=sleeve_type)
             db.session.add(new_sleeve)
             db.session.commit()
 
@@ -1190,8 +1868,49 @@ def manage_sleeves():
 
         return jsonify({"error": "Invalid data"}), 400
 
-    sleeves = Sleeve.query.all()
-    return render_template('admin_sleeves.html', sleeves=sleeves)
+@app.route('/testingsleeve')
+@admin_required
+def delete_all_sleeves():
+    try:
+        for sleeve in Sleeve.query.all():
+            db.session.delete(sleeve)
+        db.session.commit()
+        return jsonify({"status": "success", "message": "All sleeves deleted successfully."}), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Failed to delete all sleeves: {e}")
+        return jsonify({"status": "error", "message": "An error occurred while deleting all sleeves."}), 500
+
+@app.route('/admin/sleeves/manualCardback')
+@admin_required
+def add_cardback():
+    def seed_sleeves():
+        default_sleeves = [
+            'img/sleeves/1CardBack.webp',
+            'img/sleeves/2CardBack.webp',
+            'img/sleeves/3CardBack.webp',
+            'img/sleeves/4CardBack.webp',
+            'img/sleeves/5CardBack.jpg',
+            'img/sleeves/6CardBack.webp',
+            'img/sleeves/7CardBack.webp',
+            'img/sleeves/8CardBack.webp',
+            'img/sleeves/9CardBack.webp',
+        ]
+
+        for sleeve_path in default_sleeves:
+            if not Sleeve.query.filter_by(sleeve=sleeve_path).first():
+                db.session.add(Sleeve(sleeve=sleeve_path, sleeve_type='Buddyfight'))
+
+        db.session.commit()
+        print("Default sleeves added to the database.")
+
+    try:
+        with app.app_context(): 
+            seed_sleeves()
+        return jsonify({"message": "Sleeves added successfully!"}), 200
+    except Exception as e:
+        app.logger.error(f"Error seeding sleeves: {e}")
+        return jsonify({"error": "Failed to add sleeves", "message": str(e)}), 500
 
 @app.route('/admin/sleeves/manualVanguard')
 @admin_required
@@ -1226,61 +1945,74 @@ def add_sleeves():
         app.logger.error(f"Error seeding sleeves: {e}")
         return jsonify({"error": "Failed to add sleeves", "message": str(e)}), 500
 
-@app.route('/admin/sleeves/manual')
+@app.route('/admin/sleeves/manualSleeves')
 @admin_required
 def add_sleevesBuddy():
     def seed_sleeves():
         default_sleeves = [
-            'img/sleeves/_Sleeve1.webp',
-            'img/sleeves/_Sleeve2.webp',
-            'img/sleeves/_Sleeve3.webp',
-            'img/sleeves/_Sleeve4.webp',
-            'img/sleeves/_Sleeve5.webp',
-            'img/sleeves/_Sleeve6.webp',
-            'img/sleeves/_Sleeve7.webp',
-            'img/sleeves/_Sleeve8.webp',
-            'img/sleeves/_Sleeve9.webp',
-            'img/sleeves/_Sleeve11.webp',
-            'img/sleeves/_Sleeve12.webp',
-            'img/sleeves/_Sleeve13.webp',
-            'img/sleeves/_Sleeve14.webp',
-            'img/sleeves/_Sleeve15.webp',
-            'img/sleeves/_Sleeve16.webp',
-            'img/sleeves/_Sleeve17.webp',
-            'img/sleeves/_Sleeve18.webp',
-            'img/sleeves/_Sleeve19.webp',
-            'img/sleeves/_Sleeve20.webp',
-            'img/sleeves/_Sleeve21.webp',
-            'img/sleeves/_Sleeve22.webp',
-            'img/sleeves/_Sleeve23.webp',
-            'img/sleeves/_Sleeve24.webp',
-            'img/sleeves/_Sleeve24.webp',
-            'img/sleeves/_Sleeve25.webp',
-            'img/sleeves/_Sleeve26.webp',
-            'img/sleeves/_Sleeve27.webp',
-            'img/sleeves/_Sleeve28.webp',
-            'img/sleeves/_Sleeve29.webp',
-            'img/sleeves/_Sleeve30.webp',
-            'img/sleeves/_Sleeve31.webp',
-            'img/sleeves/_Sleeve32.webp',
-            'img/sleeves/_Sleeve33.webp',
-            'img/sleeves/_Sleeve34.webp',
-            'img/sleeves/_Sleeve35.webp',
-            'img/sleeves/_Sleeve36.webp',
-            'img/sleeves/_Sleeve37.webp',
-            'img/sleeves/_Sleeve38.webp',
-            'img/sleeves/_Sleeve39.webp',
-            'img/sleeves/_Sleeve40.webp',
-            'img/sleeves/_Sleeve41.webp',
-            'img/sleeves/_Sleeve42.webp',
-            'img/sleeves/_Sleeve43.webp',
-            'img/sleeves/_Sleeve44.webp',
-            'img/sleeves/_Sleeve45.webp',
-            'img/sleeves/_Sleeve46.webp',
-            'img/sleeves/_Sleeve47.webp',
-            'img/sleeves/_Sleeve48.webp',
-            'img/sleeves/_Sleeve49.webp',
-            'img/sleeves/_Sleeve50.webp',
+            'img/sleeves/_Sleeve (1).webp',
+            'img/sleeves/_Sleeve (2).webp',
+            'img/sleeves/_Sleeve (3).webp',
+            'img/sleeves/_Sleeve (4).webp',
+            'img/sleeves/_Sleeve (5).webp',
+            'img/sleeves/_Sleeve (6).webp',
+            'img/sleeves/_Sleeve (7).webp',
+            'img/sleeves/_Sleeve (8).webp',
+            'img/sleeves/_Sleeve (9).webp',
+            'img/sleeves/_Sleeve (10).webp',
+            'img/sleeves/_Sleeve (11).webp',
+            'img/sleeves/_Sleeve (12).webp',
+            'img/sleeves/_Sleeve (13).webp',
+            'img/sleeves/_Sleeve (14).webp',
+            'img/sleeves/_Sleeve (15).webp',
+            'img/sleeves/_Sleeve (16).webp',
+            'img/sleeves/_Sleeve (17).webp',
+            'img/sleeves/_Sleeve (18).webp',
+            'img/sleeves/_Sleeve (19).webp',
+            'img/sleeves/_Sleeve (20).webp',
+            'img/sleeves/_Sleeve (21).webp',
+            'img/sleeves/_Sleeve (22).webp',
+            'img/sleeves/_Sleeve (23).webp',
+            'img/sleeves/_Sleeve (24).webp',
+            'img/sleeves/_Sleeve (24).webp',
+            'img/sleeves/_Sleeve (25).webp',
+            'img/sleeves/_Sleeve (26).webp',
+            'img/sleeves/_Sleeve (27).webp',
+            'img/sleeves/_Sleeve (28).webp',
+            'img/sleeves/_Sleeve (29).webp',
+            'img/sleeves/_Sleeve (30).webp',
+            'img/sleeves/_Sleeve (31).webp',
+            'img/sleeves/_Sleeve (32).webp',
+            'img/sleeves/_Sleeve (33).webp',
+            'img/sleeves/_Sleeve (34).webp',
+            'img/sleeves/_Sleeve (35).webp',
+            'img/sleeves/_Sleeve (36).webp',
+            'img/sleeves/_Sleeve (37).webp',
+            'img/sleeves/_Sleeve (38).webp',
+            'img/sleeves/_Sleeve (39).webp',
+            'img/sleeves/_Sleeve (40).webp',
+            'img/sleeves/_Sleeve (41).webp',
+            'img/sleeves/_Sleeve (42).webp',
+            'img/sleeves/_Sleeve (43).webp',
+            'img/sleeves/_Sleeve (44).webp',
+            'img/sleeves/_Sleeve (45).webp',
+            'img/sleeves/_Sleeve (46).webp',
+            'img/sleeves/_Sleeve (47).webp',
+            'img/sleeves/_Sleeve (48).webp',
+            'img/sleeves/_Sleeve (49).webp',
+            'img/sleeves/_Sleeve (50).webp',
+            'img/sleeves/_Sleeve (51).webp',
+            'img/sleeves/_Sleeve (52).webp',
+            'img/sleeves/_Sleeve (53).webp',
+            'img/sleeves/_Sleeve (54).webp',
+            'img/sleeves/_Sleeve (55).webp',
+            'img/sleeves/_Sleeve (56).webp',
+            'img/sleeves/_Sleeve (57).webp',
+            'img/sleeves/_Sleeve (58).webp',
+            'img/sleeves/_Sleeve (59).webp',
+            'img/sleeves/_Sleeve (60).webp',
+            'img/sleeves/_Sleeve (61).webp',
+            'img/sleeves/_Sleeve (62).webp',
         ]
 
         for sleeve_path in default_sleeves:
@@ -1298,7 +2030,6 @@ def add_sleevesBuddy():
     except Exception as e:
         app.logger.error(f"Error seeding sleeves: {e}")
         return jsonify({"error": "Failed to add sleeves", "message": str(e)}), 500
-
 
 @app.route('/admin/sleeves/delete/<int:sleeve_id>', methods=['POST'])
 @login_required

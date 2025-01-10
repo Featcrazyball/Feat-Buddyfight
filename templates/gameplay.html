@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gameplay</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/gameplay.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+    <link rel="website icon" href="{{ url_for('static', filename='img/gameplay-logo.png') }}">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background-color: aliceblue;
+            background: 
+                url("{{ url_for('static', filename='img/starry sky.jpeg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            box-sizing: border-box;
+            overflow: hidden;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+  <div class="main-container">
+    <div class="player-info-container">
+        <div class="opponent-hand-cards" id="opponent-hand-cards">
+            <!-- For Cards -->
+        </div>
+        <div class="player-information-area">
+            <button class="button-leave" id="leave-room-btn">Leave Room</button>
+            <div class="profile-card" id="opponent-profile">
+                <div class="profile-picture" id="opponent-profile-picture">
+                    <img src="{{ opponent_profile }}" alt="">
+                </div>
+                <div class="profile-username" id="opponent-username">
+                    <p class="name-for-profile">{{ opponent_name }}</p>
+                </div>
+            </div>
+
+            <div class="game-state-container">
+                <div class="game-state-wrapper" id="game-state">
+                    <div id="opponent-game-phase" class="game-phase">
+                        <h2 id="opponent-game-phase-content"></h2>
+                    </div>
+                    <hr>
+                    <div id="user-game-phase" class="game-phase">
+                        <h2 id="user-game-phase-content"></h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-card" id="player-profile">
+                <div class="profile-picture" id="player-profile-picture">
+                    <img src="{{ user_profile }}" alt="">
+                </div>
+                <div class="profile-username" id="player-username">
+                    <p class="name-for-profile">{{ username }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="user-hand-cards" id="user-hand-cards">
+            <!-- For Cards -->
+        </div>
+    </div>
+
+    <div class="arena">
+        <div class="opponent-field" id="opponent-field">
+            <div class="gauge-container">
+                <div class="gauge-label" style="rotate: 180deg;">Gauge</div>
+                <div class="gauge-value" id="opponent-gauge-value" style="rotate: 180deg;">0</div>
+                <div class="gauge-space" id="opponent-gauge-space">
+                    <!-- For Cards -->
+                </div>
+            </div>
+            <div class="player-zones">
+                <div class="zone" id="opponent-drop-zone" style="rotate: 180deg">Drop Zone</div>
+                <div class="zone" id="opponent-deck-zone"
+                    style="background-image: url('/{{ opponent_sleeve }}'); 
+                            background-size: cover; background-position: center;
+                            rotate: 180deg;">
+                </div>
+            </div>
+
+            <div class="monster-areas">
+                <div class="monster-slot" id="opponent-left">
+                    <div class="soul-holder"><p id="opponent-left-soul"></p></div>
+                </div>
+                <div class="monster-slot" id="opponent-center">
+                    <div class="soul-holder"><p id="opponent-center-soul"></p></div>
+                </div>
+                <div class="monster-slot" id="opponent-right">
+                    <div class="soul-holder"><p id="opponent-right-soul"></p></div>
+                </div>
+            </div>
+
+            <div class="user-cards-space-wrapper">
+                <div class="user-cards-space">
+                    <div class="user-cards-space-content">
+                        <div class="spells-zone mini-zone-circle opponent-cards" id="opponent-spell-zone" style="margin-top: -5vh;">
+                            Spells Zone
+                        </div>
+                        <div class="mini-zone-circle" id="opponent-flag-zone" style="margin-top: -12vh;">
+                            <img src="{{ url_for('static', filename=opponent_flag) }}" style="user-select: none;" draggable="false" class="card actual-flag opponent-cards" id="opponent-flag">
+                        </div>
+                        <div class="mini-zone-circle" id="opponent-buddy-zone" style="margin-top: -5vh;">
+                            <img src="{{ opponent_buddy }}" alt="Opponent's Buddy" class="card actual-buddy opponent-cards" style="user-select: none;" draggable="false">
+                        </div>
+                    </div>
+                </div>
+            </div>
+      </div>
+
+        <div class="middle-zone">
+            <div class="center-display" id="center-display">Center Display</div>
+        </div>
+
+        <div class="player-field">
+            <div class="gauge-container">
+                <div class="gauge-label">Gauge</div>
+                <div class="gauge-value" id="player-gauge-value">0</div>
+                <div class="gauge-space" id="user-gauge-space">
+                    <!-- For Cards -->
+                </div>
+            </div>
+            <div class="player-zones">
+                <div class="zone" id="player-drop-zone">Drop Zone</div>
+                
+                <div class="zone" id="player-deck-zone"
+                    style="background-image: url('/{{ user_sleeve }}'); 
+                            background-size: cover; background-position: center;">
+                        <div class="filling-space"></div>
+                </div>
+            </div>
+            <div class="monster-areas">
+                <div class="monster-slot" id="player-left">
+                    <div class="soul-holder"><p id="user-left-soul"></p></div>
+                </div>
+                <div class="monster-slot" id="player-center">
+                    <div class="soul-holder"><p id="user-center-soul"></p></div>
+                </div>
+                <div class="monster-slot" id="player-right">
+                    <div class="soul-holder"><p id="user-right-soul"></p></div>
+                </div>
+            </div>
+            <div class="user-cards-space-wrapper">
+                <div class="user-cards-space">
+                    <div class="user-cards-space-content">
+                        <div class="mini-zone-circle spells-zone" id="player-spell-zone" style="margin-top: -5vh;">
+                            Spells Zone
+                        </div>
+                        <div class="mini-zone-circle" id="player-flag-zone" style="margin-top: -12vh;">
+                            <img src="{{ url_for('static', filename=user_flag) }}" alt="User's flag" class="card actual-flag" id="opponent-flag" style="user-select: none;" draggable="false">
+                            <div class="soul-holder"><p id="opponent-item-soul"></p></div>
+                        </div>
+                        <div class="mini-zone-circle" id="player-buddy-zone" style="margin-top: -5vh;" >
+                            <img src="{{ user_buddy }}" alt="User's Buddy" class="card actual-buddy" style="user-select: none;" draggable="false">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div class="information-space">
+            <div class="card-information" id="card-info-overlay">
+                <div class="card-image" id="overlay-card-image"></div>
+                <div class="card-description" id="overlay-card-description"></div>
+            </div>
+
+            <div class="mini-chat-container">
+                <div class="mini-chat-messages" id="mini-chat-messages"></div>
+                <div class="mini-chat-input">
+                <input type="text" id="mini-chat-input" placeholder="Type something..." />
+                <button id="mini-chat-send">Send</button>
+                </div>
+            </div>
+
+            <div class="actions-space">
+                <div class="life-counter">
+                    <div class="life-display">
+                        <div class="opponent-life"><h1 id="opponent-life-total"></h1></div>
+                    </div>
+                    <div class="life-display">
+                        <div class="life-controls">
+                        <button id="life-up">+</button>
+                        </div>
+                            <div class="player-life"><h1 id="player-life-total"></h1></div>
+                            <div class="life-controls">
+                            <button id="life-down">-</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions-grid">
+                    <button class="action-button" id="shuffle-deck">Shuffle Deck</button>
+                    <button class="action-button" id="search-deck">Search Deck</button>
+                    <button class="action-button" id="top-deck-to-soul">Top Deck to Soul</button>
+                    <button class="action-button" id="top-deck-drop">Drop Top Deck</button>
+                    <button class="action-button" id="top-deck-reveal">Reveal Top</button>
+                    <button class="action-button" id="top-deck-gauge">Gauge +1</button>
+                    <button class="action-button" id="draw-card">Draw Card</button>
+                    <button class="action-button" id="gauge-minus">Gauge -1</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="searchDeckModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                        <h2>Search / Reorder Deck</h2>
+                        <button class="modal-close" id="searchDeckClose">Close</button>
+                </div>
+                <div class="modal-body" id="searchDeckBody"></div>
+            </div>
+    </div>
+
+    <div class="modal-overlay" id="soulViewerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Soul Viewer</h2>
+                <button class="modal-close" id="soulViewerClose">Close</button>
+            </div>
+            <div class="modal-body" id="soulViewerBody"></div>
+        </div>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div id="modal-message" style="font-size:5vh"></div>
+        </div>
+    </div>
+
+    <div class="selector"></div>
+
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <script>
+        const ROOM_CODE = "{{ room_code }}";
+        const USERNAME = "{{ username }}";
+        const OPPONENT_NAME = "{{ opponent_name }}";
+        const USER_SLEEVE = "{{ user_sleeve }}";
+        const OPPONENT_SLEEVE = "{{ opponent_sleeve }}";
+    </script>
+    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gameplay.js') }}" defer></script>
+</body>
+</html>

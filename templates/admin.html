@@ -166,7 +166,7 @@
                         <th class="user">Actions</th>
                     </tr>
                 </thead>
-                <tbody>   
+                <tbody id="user-table-body">   
                     {% for user in users %}
                         <tr>
                             <td class="user">{{ user.username }}</td>
@@ -195,22 +195,22 @@
                 <button type="submit" class="filter-btn">Search</button>
             </form>
             <div class="add-sleeve-button" onclick="openAddSleeveModal()">Add Sleeve</div>
-            <div class="sleeve-grid">
+            <div id="sleeves-container">
                 {% for sleeve_type, sleeve_group in sleeves|groupby('sleeve_type') %}
-                <div class="sleeve-section">
-                    <h2>Type: {{ sleeve_type }}</h2>
-                    <div class="sleeve-grid">
-                        {% for sleeve in sleeve_group %}
-                            <div class="sleeve-item">
-                                <img src="{{ url_for('static', filename=sleeve.sleeve) }}" alt="Sleeve {{ sleeve.id }}">
-                                <p>Sleeve ID: {{ sleeve.id }}</p>
-                                <button class="btn-danger" onclick="confirmDeleteSleeve('{{ sleeve.id }}')">Delete</button>
-                            </div>
-                        {% endfor %}
+                    <div class="sleeve-section">
+                        <h2>Type: {{ sleeve_type }}</h2>
+                        <div class="sleeve-grid">
+                            {% for sleeve in sleeve_group %}
+                                <div class="sleeve-item">
+                                    <img src="{{ url_for('static', filename=sleeve.sleeve) }}" alt="Sleeve {{ sleeve.id }}">
+                                    <p>Sleeve ID: {{ sleeve.id }}</p>
+                                    <button class="btn-danger" onclick="confirmDeleteSleeve('{{ sleeve.id }}')">Delete</button>
+                                </div>
+                            {% endfor %}
+                        </div>
                     </div>
-                </div>
-            {% endfor %}            
-            </div>
+                {% endfor %}
+            </div>        
         </div>
 
         <div id="Shop" class="tabcontent">
@@ -266,21 +266,24 @@
                                 <th class="report">Delete</th>
                             </tr>
                         </thead>
-                    {% for report in reports %}
-                    <tr>
-                        <td class="user">{{ report.id }}</td>
-                        <td class="user">{{ report.user_reporting }}</td>
-                        <td class="user">{{ report.user_being_reported }}</td>
-                        <td class="user" >{{ report.report_type }}</td>
-                        <td class="user">{{ report.detail }}</td>
-                        <td class="user"> 
-                            <button class="btn-danger user" onclick="confirmDeleteReport('{{ report.id }}')">Delete</button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                        <h1>No Such Report</h1>
-                {% endif %}
+                        <tbody id="reports-table-body">
+                        {% for report in reports %}
+                            <tr>
+                                <td class="user">{{ report.id }}</td>
+                                <td class="user">{{ report.user_reporting }}</td>
+                                <td class="user">{{ report.user_being_reported }}</td>
+                                <td class="user" >{{ report.report_type }}</td>
+                                <td class="user">{{ report.detail }}</td>
+                                <td class="user"> 
+                                    <button class="btn-danger user" onclick="confirmDeleteReport('{{ report.id }}')">Delete</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        {% else %}
+                                <h1>No Such Report</h1>
+                        {% endif %}
+                        </tbody>
+                    </table>
         </div>
     </div>
 

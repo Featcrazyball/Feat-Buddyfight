@@ -2,6 +2,17 @@ import requests, re
 from bs4 import BeautifulSoup
 from models import db, Card  # Import models and db instance
 
+def clean_description(text):
+    cleaned_text = re.sub(r'(<br\s*/?>)+', ' ', text, flags=re.IGNORECASE)
+    parts = cleaned_text.split('■')
+    seen = set()
+    unique_parts = []
+    for part in parts:
+        if part not in seen:
+            seen.add(part)
+            unique_parts.append(part)
+    return '■'.join(unique_parts).strip()
+
 #get some details from site
 def scrape_card_details(card_url):
     response = requests.get(card_url)
@@ -63,7 +74,7 @@ def scrape_all_cards():
     base_list_url = "https://en.fc-buddyfight.com/cardlist/list/?id={}"
     base_detail_url = "https://en.fc-buddyfight.com/cardlist/cardDetail/?cardno={}"
 
-    for list_id in range(1, 44):
+    for list_id in range(37, 44):
         list_url = base_list_url.format(list_id)
         response = requests.get(list_url)
         soup = BeautifulSoup(response.content, "html.parser")
@@ -100,7 +111,7 @@ def scrape_all_cards():
                         defense=defense,
                         critical=critical,
                         power=power,
-                        ability_effect=card_data.get("ability_effect"),
+                        ability_effect = clean_description(card_data.get("ability_effect")),
                         flavor_text=card_data.get("flavor_text"),
                         illustrator=card_data.get("illustrator"),
                         image_url=card_data.get("image_url"),
@@ -114,4 +125,4 @@ def scrape_all_cards():
                     print(f"Inserted: {card_no}")
             except Exception as e:
                 print(f"Error processing card {card_no}: {e}")
-
+                

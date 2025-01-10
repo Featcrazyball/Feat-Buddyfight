@@ -90,6 +90,7 @@ nav {
     background-clip: padding-box; 
     backdrop-filter: blur(8px);
     transition: all 0.3s ease;
+    min-height: 85vh;
 }
 
 /* Glow Effect on Hover */
@@ -626,48 +627,26 @@ input[type="file"] {
     }
 }
 
-/* Volume control */
-.volume-control-container {
-    display: flex;
-    align-items: center;
-    font-family: Arial, sans-serif;
-    margin: 10px 0;
+/* Payment History Table */
+.payment_history{
+    max-height: 70vh;
+    overflow-y: auto;
+    border-collapse: collapse;
+    width: 100%;
 }
 
-.volume-control-container label {
-    margin-right: 10px;
-    font-weight: bold;
+.payment_history th{
+    text-align: center;
+    font-weight: bolder;
+    width: 25%;
 }
 
-.volume-control-container input[type="range"] {
-    -webkit-appearance: none; 
-    appearance: none; 
-    width: 200px; 
-    height: 5px; 
-    background: #ddd;
-    border-radius: 5px;
-    outline: none;
+.payment_history td{
+    text-align: center;
+    width: 25%;
 }
 
-.volume-control-container input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none; 
-    appearance: none;
-    width: 15px; 
-    height: 15px; 
-    border-radius: 50%; 
-    background: #4CAF50; 
-    cursor: pointer; 
-}
-
-.volume-control-container input[type="range"]::-moz-range-thumb {
-    width: 15px;
-    height: 15px; 
-    border-radius: 50%; 
-    background: #4CAF50; 
-    cursor: pointer;
-}
-
-.volume-control-container #volume-display {
-    margin-left: 10px; 
-    font-weight: bold; 
+.payment_history th, .payment_history td{
+    padding: 10px;
+    border-bottom: 1px solid #444;
 }

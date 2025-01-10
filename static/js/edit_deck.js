@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function () {
             cardItem.appendChild(cardCount);
         }
 
-        if (card.type === "Monster") {
+        if (card.type && card.type === "Monster") {
             const buddyBadge = document.createElement("div");
             buddyBadge.classList.add("buddy-badge");
             buddyBadge.textContent = "Buddy";
@@ -92,9 +92,11 @@ document.addEventListener("DOMContentLoaded", function () {
             cardItem.appendChild(buddyBadge);
         }
 
-        cardItem.addEventListener("click", function () {
-            showCardModal(card);
-        });
+        if (cardItem) {
+            cardItem.addEventListener("click", function () {
+                showCardModal(card);
+            });
+        }
 
         return cardItem;
     }

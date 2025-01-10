@@ -10,7 +10,11 @@
     <link rel="stylesheet" href="css/required.css">
 </head>
 <body>
-
+    <style>
+        body{
+            user-select: none;
+        }
+    </style>
     {% block music %}
     {% include 'includes/_sound-effects.html' %}
     {% endblock %}
@@ -20,11 +24,11 @@
         {% block entry %}{% endblock %}
     </div>
     <div class="containerShadow box"></div>
-    <img src="img/Logo.webp" class="logo">
-    <img src="img/Gao.png" class="gao">
-    <img src="img/Gao_black.png" class="gao" id="gaoShadow">
-    <img src="img/tasuku.png" class="tasuku">
-    <img src="img/tasuku_black.png" class="tasuku" id="tasukuShadow">
+    <img src="img/Logo.webp" class="logo" draggable="false" style="user-select: none;">
+    <img src="img/Gao.png" class="gao" draggable="false" style="user-select: none;">
+    <img src="img/Gao_black.png" class="gao" id="gaoShadow" draggable="false" style="user-select: none;">
+    <img src="img/tasuku.png" class="tasuku" draggable="false" style="user-select: none;">
+    <img src="img/tasuku_black.png" class="tasuku" id="tasukuShadow" draggable="false" style="user-select: none;">
     
     <!-- Flash Message Modal -->
     <div class="modal fade" id="flashModal" tabindex="-1" aria-labelledby="flashModalLabel" aria-hidden="true">

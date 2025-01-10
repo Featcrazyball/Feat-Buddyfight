@@ -6,6 +6,11 @@
     <title>Buddyfight</title>
     <link rel="stylesheet" href="css/arenaHome.css">
     <link rel="website icon" href="img/Logo.webp">
+    <style>
+        body{
+            user-select: none;
+        }
+    </style>
 </head>
 <body>
     {% block music %}
@@ -16,11 +21,11 @@
         <div class="sidebar">
             <div class="home-icon">
                 <a href="{{ url_for('home', usr=session['user']) }}">
-                    <img src="img/home.jpg" alt="Home Icon">
+                    <img src="img/home.jpg" alt="Home Icon" draggable="false">
                 </a>
             </div>
             <div class="logo-container">
-                <img src="img/Logo.webp" alt="Buddyfight Logo" class="logo">
+                <img src="img/Logo.webp" alt="Buddyfight Logo" class="logo" draggable="false">
             </div>
             <ul class="menu">
                 <li><span class="dot"></span><a href="{{ url_for('arenaLobby', usr=session['user']) }}" class="menu-link active">PLAY</a></li>
@@ -34,7 +39,7 @@
         
         <!-- Main Content -->
         <div class="main-content">
-            <img src="{{ url_for('static', filename='img/kyoya.jpeg') }}" alt="Background Image" class="main-image">
+            <img src="{{ url_for('static', filename='img/kyoya.jpeg') }}" alt="Background Image" class="main-image" draggable="false">
         </div>
     </div>
     <script>

@@ -4,7 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About</title>
+    <link rel="website icon" href="img/Logo.webp">
+    <link rel="stylesheet" href="css/about.css">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            margin: 0;
+            height: fit-content;
+            min-height: 100vh;
+            background: 
+                url("{{ url_for('static', filename='img/starry sky.jpeg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            padding-bottom: 10vh;
+            padding-top: 17vh;
+        }
+
+        .left-image{
+            background: url("{{ url_for('static', filename='img/Gao_about.png') }}");
+            left: 0;
+        }
+
+        .right-image{
+            background-image: url("{{ url_for('static', filename='img/kyoya_about.png') }}");
+            right: 0;
+        }
+
+        .left-image, .right-image {
+            position: fixed;
+            top: 10vh;
+            width: 19vw;
+            height: 90vh;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+    </style>
 </head>
 <body>
     {% block navbar %}
@@ -15,8 +51,30 @@
     {% include 'includes/_sound-effects.html' %}
     {% endblock %}
 
-    <h2>Welcome, {{ username }}!</h2>
-    <p>You are now logged in.</p>
-    <a href="{{ url_for('logout') }}">Logout</a>
+    <div class="left-image"></div>
+    <div class="right-image"></div>
+    
+    <div class="container">
+        <div class="about-container">
+            <h1>About</h1>
+           <img src="img/BUDDYFIGHT.jpg" alt="">
+           <h2>Information</h2>
+           <p>This website has been developed as an academic project and serves educational purposes. It is designed to showcase the application of web development skills for a school assignment and is not intended for commercial use.</p>
+           <br>
+           <p>All images featured on this site are the intellectual property of Bushiroad and originate from the trading card game "Buddyfight." These images are used solely to illustrate the functionalities of the website and to enhance the educational value of the project by providing visual context. No monetary gain is derived from the use of these images, and this website does not represent the interests of Bushiroad or its affiliates.</p>
+           <br>
+           <p>The utilization of these images falls under fair use in an educational setting, where they contribute to a better understanding of the project and its underlying technology. This website is not publicly commercialized and is meant only for the demonstration of coding and design skills as part of my coursework.</p>
+           <br>
+           <p>Should there be any concerns or requests for content modification or removal, please contact me directly through <a href="mailto:242473C@mymail.nyp.edu.sg?subject=Inquiry%20from%20My%20Website">242473C@mymail.nyp.edu.sg</a>, and I will respond promptly to address such requests in compliance with copyright laws and ethical practices in content use.</p>
+           <br>
+           <h3>Credits and references</h3>
+           <ul>
+                <li>Bushiroad - Majority of the images used</li>
+                <li>Hololive - Sleeves</li>
+                <li>ChatGPT - Used for assistance the coding</li>
+                <li>Jon Kantner - Waiting Screen Hourglass</li>
+           </ul>
+        </div>
+    </div>
 </body>
 </html>
