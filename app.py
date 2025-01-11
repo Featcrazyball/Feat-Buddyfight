@@ -486,7 +486,7 @@ def on_send_message(data):
 def arenaHome():
     return render_template('arenaHome.html', username=session['user'])
 
-# Arena LOBBY PAGE ONLY [DO NOT DO ANYTHING] [Incomplete]
+# Arena LOBBY PAGE ONLY [DO NOT DO ANYTHING] [Completed]
 @app.route('/arenaLobby', methods=['GET', 'POST'])
 @login_required
 def arenaLobby():
@@ -651,7 +651,8 @@ def join_game_room(data):
             'item-rest': False,
             'buddy-rest': False,
             'selector': None,
-            'current_phase': 'Draw Phase'
+            'current_phase': 'Draw Phase',
+            'highlighter': None
         }
 
     game_rooms[room_code]['players'][opponent] = {
@@ -678,7 +679,8 @@ def join_game_room(data):
         'item-rest': False,
         'buddy-rest': False,
         'selector': None,
-        'current_phase': 'End Turn'
+        'current_phase': 'End Turn',
+        'highlighter': None
     }
 
     if len(room_data["players"]) == 2:
@@ -997,30 +999,138 @@ def life_decrease(data):
     current_life = game_rooms[room_code]['players'][username]['current_life']
     emit('life_update', {'current_life': current_life}, room=room_code, include_self=False)
 
-@socketio.on("card_moved")
-@login_required
-def card_moved(data):
-    room_code = data.get("room")
-    card = data.get("card")
-    zone_id = data.get("zoneId")
-    emit("opponent_card_moved", {
-        "card": card,
-        "zoneId": zone_id
+@socketio.on('draw_card')
+def draw_card(data):
+    room_code = data.get('room')
+    username = session['user']
+    deck = game_rooms[room_code]['players'][username]['deck_list']
+
+    drawn_cards, remaining_deck = draw_cards(deck, 1)
+    game_rooms[room_code]['players'][username]['deck_list'] = remaining_deck
+    game_rooms[room_code]['players'][username]['current_deck_count'] = len(remaining_deck)
+    game_rooms[room_code]['players'][username]['current_hand_size'] += 1
+    game_rooms[room_code]['players'][username]['current_hand'].append(drawn_cards[0])
+
+    emit('card_drawn', {
+        'remaining_deck_count': len(remaining_deck),
+        'deck': remaining_deck,
+        'hand': game_rooms[room_code]['players'][username]['current_hand'],
     }, room=room_code, include_self=False)
 
-@socketio.on("player_life_update")
-@login_required
-def player_life_update(data):
-    room_code = data.get("room")
-    new_life = data.get("newLife")
-    emit("opponent_life_update", new_life, room=room_code, include_self=False)
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} has drawn a card."
+        }, room=room_code)
 
-@socketio.on("player_gauge_update")
-@login_required
-def player_gauge_update(data):
-    room_code = data.get("room")
-    new_gauge = data.get("newGauge")
-    emit("opponent_gauge_update", new_gauge, room=room_code, include_self=False)
+@socketio.on('gauge_increase')
+def gauge_increase(data):
+    room_code = data.get('room')
+    username = session['user']
+    deck = game_rooms[room_code]['players'][username]['deck_list']
+
+    gauge_cards, remaining_deck = draw_cards(deck, 1)
+    game_rooms[room_code]['players'][username]['deck_list'] = remaining_deck
+    game_rooms[room_code]['players'][username]['current_deck_count'] = len(remaining_deck)
+    game_rooms[room_code]['players'][username]['current_gauge_size'] += 1
+    game_rooms[room_code]['players'][username]['current_hand'].append(gauge_cards[0])
+
+    emit('gauge_update', {
+        'remaining_deck_count': len(remaining_deck),
+        'deck': remaining_deck,
+        'gauge': game_rooms[room_code]['players'][username]['current_gauge'],
+        'current_gauge_size': game_rooms[room_code]['players'][username]['current_gauge_size']
+    }, room=room_code, include_self=False)
+
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} has gained 1 gauge."
+        }, room=room_code)
+
+@socketio.on('gauge_decrease')
+def gauge_decrease(data):
+    room_code = data.get('room')
+    username = session['user']
+    game_rooms[room_code]['players'][username]['current_gauge_size'] -= 1
+
+    if game_rooms[room_code]['players'][username]['current_gauge_size'] < 0:
+        emit('mini_chat_message', {
+            'sender': 'System',
+            'message': f"{username} does not have enough gauge to pay."
+        }, room=room_code)
+        return
+
+    gauge_taken_away = game_rooms[room_code]['players'][username]['current_gauge'][-1]
+    game_rooms[room_code]['players'][username]['current_gauge'].pop()
+
+    game_rooms[room_code]['players'][username]['dropzone'].append(gauge_taken_away)
+    
+    emit('gauge_update', {
+        'current_gauge': game_rooms[room_code]['players'][username]['current_gauge'],
+        'current_gauge_size': game_rooms[room_code]['players'][username]['current_gauge_size'],
+        'dropzone': game_rooms[room_code]['players'][username]['dropzone']
+        }, room=room_code, include_self=False)
+    
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} has paid 1 gauge."
+        }, room=room_code)
+
+#highlighter
+@socketio.on('hightlight_zone')
+def highlight_card(data):
+    room_code = data.get('room')
+    username = session['user']
+    zone = data.get('zone')
+
+    game_rooms[room_code]['players'][username]['highlighter'] = zone
+
+    emit('highlight_zone', {
+        'zone': zone
+    }, room=room_code, include_self=False)
+
+# Get card from dropzone
+@socketio.on('dropzone_to_hand')
+def dropzone_to_hand(data):
+    room_code = data.get('room')
+    username = session['user']
+    card = data.get('card')
+
+    game_rooms[room_code]['players'][username]['current_hand'].append(card)
+    game_rooms[room_code]['players'][username]['current_hand_size'] += 1
+    game_rooms[room_code]['players'][username]['dropzone'].remove(card)
+
+    emit('hand_from_dropzone', {
+        'hand': game_rooms[room_code]['players'][username]['current_hand'],
+        'hand_size': game_rooms[room_code]['players'][username]['current_hand_size'],
+        'dropzone': game_rooms[room_code]['players'][username]['dropzone'],
+    }, room=room_code, include_self=False)
+
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} took {card.name} from the dropzone."
+        }, room=room_code)
+
+# Card call [not sure]
+@socketio.on('card_call')
+def card_moved(data):
+    room_code = data.get('room')
+    card = data.get('card')
+    zone = data.get('zoneId')
+    username = session['user']
+
+    game_rooms[room_code]['players'][username][zone] = card
+    game_rooms[room_code]['players'][username]['current_hand'].remove(card)
+    game_rooms[room_code]['players'][username]['current_hand_size'] -= 1
+
+    emit('opponent_card_call', {
+        'card': card,
+        'zoneId': zone
+    }, room=room_code, include_self=False)
+
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} called {card.name} to the {zone}."
+        }, room=room_code)
 
 @socketio.on("mini_chat_send")
 @login_required
