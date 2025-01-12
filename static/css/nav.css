@@ -216,3 +216,30 @@ body {
     text-align: center;
     width: 12vw;
 }
+
+/* Guest Btn */
+.guest-btn {
+    display: inline-block;
+    padding: 15px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    color: white;
+    background-color: black;
+    border: 2px solid black;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.guest-btn:hover {
+    color: black;
+    background-color: white;
+}
+
+.guest-btn span {
+    position: relative;
+    z-index: 1;
+}

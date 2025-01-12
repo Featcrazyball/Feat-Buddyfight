@@ -1,5 +1,5 @@
 # Importing necessary libraries
-from flask import Flask, render_template, request, redirect, url_for, flash, session, get_flashed_messages, send_from_directory, jsonify, abort
+from flask import Flask, render_template, request, redirect, url_for, flash, session, get_flashed_messages, send_from_directory, jsonify, abort, session
 from flask_socketio import SocketIO, join_room, leave_room, emit, send, rooms, close_room
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
@@ -147,6 +147,13 @@ def shuffle_deck(deck):
 def draw_cards(deck, count):
     drawn_cards = deck[:count]
     remaining_deck = deck[count:]
+    username = session['user']
+    if len(remaining_deck) < 1:
+        emit('mini_chat_message', {
+            'sender': 'System',
+            'message': f"{username} has run out of cards in their deck."
+        }, room=request.sid)
+        return
     return drawn_cards, remaining_deck
 
 def get_card_data(card_ids):
@@ -160,8 +167,12 @@ def get_card_data(card_ids):
             result.append(card_map[cid])
     return result
 
+@app.route('/')
+def index():
+    return redirect(url_for('home'))
+
 # Register [Completed]
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
@@ -232,9 +243,8 @@ def login():
 
 # Home Page [Incomplete]
 @app.route('/home', methods=['GET'])
-@login_required
 def home():
-    return render_template('home.html', username=session['user'])
+    return render_template('home.html')
 
 # Anime [Incomplete]
 @app.route('/anime', methods=['GET'])
@@ -639,17 +649,9 @@ def join_game_room(data):
             'center': None,
             'right': None,
             'item': None,
-            'left_soul': [],
-            'center_soul': [],
-            'right_soul': [],
-            'item_soul': [],
             'spells': [],
             'dropzone': [],
-            'left-rest': False,
-            'center-rest': False,
-            'right-rest': False,
-            'item-rest': False,
-            'buddy-rest': False,
+            'buddy_rest': False,
             'selector': None,
             'current_phase': 'Draw Phase',
             'highlighter': None
@@ -667,17 +669,9 @@ def join_game_room(data):
         'center': None,
         'right': None,
         'item': None,
-        'left_soul': [],
-        'center_soul': [],
-        'right_soul': [],
-        'item_soul': [],
         'spells': [],
         'dropzone': [],
-        'left-rest': False,
-        'center-rest': False,
-        'right-rest': False,
-        'item-rest': False,
-        'buddy-rest': False,
+        'buddy_rest': False,
         'selector': None,
         'current_phase': 'End Turn',
         'highlighter': None
@@ -772,9 +766,13 @@ def gameplay(room_code):
 
     if current_user.profile_image == "uploads/default_profile.jpg":
         user_profile_picture = "default_profile.jpg"
+    else:
+        user_profile_picture = current_user.profile_image
     
     if opponent.profile_image == "uploads/default_profile.jpg":
         opponent_profile_picture = "default_profile.jpg"
+    else:
+        opponent_profile_picture = opponent.profile_image
 
     user_deck = Deck.query.get(current_user.selected_deck_id)
     opponent_deck = Deck.query.get(opponent.selected_deck_id)
@@ -810,8 +808,7 @@ def gameplay(room_code):
 def gameInitialisation(room_code):
     room_data = game_rooms[room_code]
     if not room_data:
-        emit('error', {"message": "Room not found."}, room=request.sid)
-        return
+        return jsonify({"error": "Room not found."})
     
     username = session['user']
     opponent = opponent_checker(room_code, username)
@@ -829,8 +826,7 @@ def gameInitialisation(room_code):
 def game_init(room_code):
     room_data = game_rooms[room_code]
     if not room_data:
-        emit('error', {"message": "Room not found."}, room=request.sid)
-        return
+        return jsonify({"error": "Room not found."})
     
     username = session['user']
     opponent = opponent_checker(room_code, username)
@@ -849,6 +845,20 @@ def game_room_joined(data):
     join_room(room_code)
     return
 
+# Highlight Card [Complete] [Not sure]
+@socketio.on('hightlight_zone')
+def highlight_card(data):
+    room_code = data.get('room')
+    username = session['user']
+    zone = data.get('zone')
+
+    game_rooms[room_code]['players'][username]['highlighter'] = zone
+
+    emit('highlight_zone', {
+        'zone': zone
+    }, room=room_code, include_self=False)
+
+# Phase Updater [Complete]
 @socketio.on('phase_update')
 def phase_update(data):
     room_code = data.get('room')
@@ -861,128 +871,12 @@ def phase_update(data):
         'phase': phase
     }, room=room_code, include_self=False)
 
-@socketio.on('update_game_information')
-def load_game_information(data):
-    room_code = data.get('room')
-    username = session['user']
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} has entered the {phase} phase."
+        }, room=room_code)
 
-    if not room_code or room_code not in game_rooms:
-        emit('error', {"message": "Room not found."}, room=request.sid)
-        return
-
-    opponent = opponent_checker(room_code, username)
-
-    # Get user game info
-    user_current_life = data.get('user-current_life')
-    user_current_gauge_size = data.get('user-current_gauge_size')
-    user_current_gauge = data.get('user-current_gauge')
-    user_current_hand_size = data.get('user-current_hand_size')
-    user_current_hand = data.get('user-current_hand')
-    user_deck_list = data.get('user-deck_list')
-    user_deck_count = data.get('user-deck_count')
-    user_left = data.get('user-left') if data.get('user-left') else None
-    user_center = data.get('user-center') if data.get('user-center') else None
-    user_right = data.get('user-right') if data.get('user-right') else None
-    user_item = data.get('user-item') if data.get('user-item') else None
-
-    user_left_soul = data.get('user-left_soul') if data.get('user-left_soul') else []
-    user_center_soul = data.get('user-center_soul') if data.get('user-center_soul') else []
-    user_right_soul = data.get('user-right_soul') if data.get('user-right_soul') else []
-    user_item_soul = data.get('user-item_soul') if data.get('user-item_soul') else []
-    user_spells = data.get('user-spells') if data.get('user-spells') else []
-    user_dropzone = data.get('user-dropzone') if data.get('user-dropzone') else []
-
-    user_left_rest = data.get('user-left-rest') if data.get('user-left-rest') else False
-    user_center_rest = data.get('user-center-rest') if data.get('user-center-rest') else False
-    user_right_rest = data.get('user-right-rest') if data.get('user-right-rest') else False
-    user_item_rest = data.get('user-item-rest') if data.get('user-item-rest') else False
-
-    user_buddy_rest = data.get('user-buddy-rest') if data.get('user-buddy-rest') else False
-    user_selector = data.get('user-selector') if data.get('user-selector') else None
-
-    game_rooms[room_code]['players'][username] = {
-        'current_life': user_current_life,
-        'current_gauge_size': user_current_gauge_size,
-        'current_gauge': user_current_gauge,
-        'current_hand_size': user_current_hand_size,
-        'current_hand': user_current_hand,
-        'deck_list': user_deck_list,
-        'current_deck_count': user_deck_count,
-        'left': user_left,
-        'center': user_center,
-        'right': user_right,
-        'item': user_item,
-        'left_soul': user_left_soul,
-        'center_soul': user_center_soul,
-        'right_soul': user_right_soul,
-        'item_soul': user_item_soul,
-        'spells': user_spells,
-        'dropzone': user_dropzone,
-        'left-rest': user_left_rest,
-        'center-rest': user_center_rest,
-        'right-rest': user_right_rest,
-        'item-rest': user_item_rest,
-        'buddy-rest': user_buddy_rest,
-        'selector': user_selector
-    }
-
-    # Get opponent game info
-    opponent_current_life = data.get('opponent-current_life')
-    opponent_current_gauge_size = data.get('opponent-current_gauge_size')
-    opponent_current_gauge = data.get('opponent-current_gauge')
-    opponent_current_hand_size = data.get('opponent-current_hand_size')
-    opponent_current_hand = data.get('opponent-current_hand')
-    opponent_deck_list = data.get('opponent-deck_list')
-    opponent_deck_count = data.get('opponent-deck_count')
-    opponent_left = data.get('opponent-left') if data.get('opponent-left') else None
-    opponent_center = data.get('opponent-center') if data.get('opponent-center') else None
-    opponent_right = data.get('opponent-right') if data.get('opponent-right') else None
-    opponent_item = data.get('opponent-item') if data.get('opponent-item') else None
-
-    opponent_left_soul = data.get('opponent-left_soul') if data.get('opponent-left_soul') else []
-    opponent_center_soul = data.get('opponent-center_soul') if data.get('opponent-center_soul') else []
-    opponent_right_soul = data.get('opponent-right_soul') if data.get('opponent-right_soul') else []
-    opponent_item_soul = data.get('opponent-item_soul') if data.get('opponent-item_soul') else []
-    opponent_spells = data.get('opponent-spells') if data.get('opponent-spells') else []
-    opponent_dropzone = data.get('opponent-dropzone') if data.get('opponent-dropzone') else []
-
-    opponent_left_rest = data.get('opponent-left-rest') if data.get('opponent-left-rest') else False
-    opponent_center_rest = data.get('opponent-center-rest') if data.get('opponent-center-rest') else False
-    opponent_right_rest = data.get('opponent-right-rest') if data.get('opponent-right-rest') else False
-    opponent_item_rest = data.get('opponent-item-rest') if data.get('opponent-item-rest') else False
-
-    opponent_buddy_rest = data.get('opponent-buddy-rest') if data.get('opponent-buddy-rest') else False
-    opponent_selector = data.get('opponent-selector') if data.get('opponent-selector') else None
-
-    game_rooms[room_code]['players'][opponent] = {
-        'current_life': opponent_current_life,
-        'current_gauge_size': opponent_current_gauge_size,
-        'current_gauge': opponent_current_gauge,
-        'current_hand_size': opponent_current_hand_size,
-        'current_hand': opponent_current_hand,
-        'deck_list': opponent_deck_list,
-        'current_deck_count': opponent_deck_count,
-        'left': opponent_left,
-        'center': opponent_center,
-        'right': opponent_right,
-        'item': opponent_item,
-        'left_soul': opponent_left_soul,
-        'center_soul': opponent_center_soul,
-        'right_soul': opponent_right_soul,
-        'item_soul': opponent_item_soul,
-        'spells': opponent_spells,
-        'dropzone': opponent_dropzone,
-        'left-rest': opponent_left_rest,
-        'center-rest': opponent_center_rest,
-        'right-rest': opponent_right_rest,
-        'item-rest': opponent_item_rest,
-        'buddy-rest': opponent_buddy_rest,
-        'selector': opponent_selector
-    }
-
-    emit('game_information', game_rooms[room_code]['players'], room=request.sid)
-
-# Life Counter
+# Life Counter [Complete]
 @socketio.on('life_increase')
 def life_increase(data):
     room_code = data.get('room')
@@ -999,139 +893,496 @@ def life_decrease(data):
     current_life = game_rooms[room_code]['players'][username]['current_life']
     emit('life_update', {'current_life': current_life}, room=room_code, include_self=False)
 
+# Card Draw [Complete]
 @socketio.on('draw_card')
 def draw_card(data):
     room_code = data.get('room')
+    cards_drawn = data.get('cards_drawn')
     username = session['user']
     deck = game_rooms[room_code]['players'][username]['deck_list']
 
-    drawn_cards, remaining_deck = draw_cards(deck, 1)
-    game_rooms[room_code]['players'][username]['deck_list'] = remaining_deck
-    game_rooms[room_code]['players'][username]['current_deck_count'] = len(remaining_deck)
-    game_rooms[room_code]['players'][username]['current_hand_size'] += 1
-    game_rooms[room_code]['players'][username]['current_hand'].append(drawn_cards[0])
-
-    emit('card_drawn', {
-        'remaining_deck_count': len(remaining_deck),
-        'deck': remaining_deck,
-        'hand': game_rooms[room_code]['players'][username]['current_hand'],
-    }, room=room_code, include_self=False)
-
-    emit('mini_chat_message', {
-        'sender': 'System',
-        'message': f"{username} has drawn a card."
-        }, room=room_code)
-
-@socketio.on('gauge_increase')
-def gauge_increase(data):
-    room_code = data.get('room')
-    username = session['user']
-    deck = game_rooms[room_code]['players'][username]['deck_list']
-
-    gauge_cards, remaining_deck = draw_cards(deck, 1)
-    game_rooms[room_code]['players'][username]['deck_list'] = remaining_deck
-    game_rooms[room_code]['players'][username]['current_deck_count'] = len(remaining_deck)
-    game_rooms[room_code]['players'][username]['current_gauge_size'] += 1
-    game_rooms[room_code]['players'][username]['current_hand'].append(gauge_cards[0])
-
-    emit('gauge_update', {
-        'remaining_deck_count': len(remaining_deck),
-        'deck': remaining_deck,
-        'gauge': game_rooms[room_code]['players'][username]['current_gauge'],
-        'current_gauge_size': game_rooms[room_code]['players'][username]['current_gauge_size']
-    }, room=room_code, include_self=False)
-
-    emit('mini_chat_message', {
-        'sender': 'System',
-        'message': f"{username} has gained 1 gauge."
-        }, room=room_code)
-
-@socketio.on('gauge_decrease')
-def gauge_decrease(data):
-    room_code = data.get('room')
-    username = session['user']
-    game_rooms[room_code]['players'][username]['current_gauge_size'] -= 1
-
-    if game_rooms[room_code]['players'][username]['current_gauge_size'] < 0:
-        emit('mini_chat_message', {
+    if (game_rooms[room_code]['players'][username]['current_deck_count']) - cards_drawn < 0:
+        emit('mini_modal', {
             'sender': 'System',
-            'message': f"{username} does not have enough gauge to pay."
-        }, room=room_code)
+            'status': 'error',
+            'message': "Not Enough Cards in Deck"
+        }, room=request.sid)
         return
 
-    gauge_taken_away = game_rooms[room_code]['players'][username]['current_gauge'][-1]
-    game_rooms[room_code]['players'][username]['current_gauge'].pop()
+    drawn_cards, remaining_deck = draw_cards(deck, cards_drawn)
+    game_rooms[room_code]['players'][username]['deck_list'] = remaining_deck
+    game_rooms[room_code]['players'][username]['current_deck_count'] = len(remaining_deck)
+    game_rooms[room_code]['players'][username]['current_hand_size'] += cards_drawn
+    game_rooms[room_code]['players'][username]['current_hand'].extend(drawn_cards)
 
-    game_rooms[room_code]['players'][username]['dropzone'].append(gauge_taken_away)
-    
-    emit('gauge_update', {
-        'current_gauge': game_rooms[room_code]['players'][username]['current_gauge'],
-        'current_gauge_size': game_rooms[room_code]['players'][username]['current_gauge_size'],
-        'dropzone': game_rooms[room_code]['players'][username]['dropzone']
-        }, room=room_code, include_self=False)
-    
-    emit('mini_chat_message', {
-        'sender': 'System',
-        'message': f"{username} has paid 1 gauge."
-        }, room=room_code)
+    english_checker = 'card' if cards_drawn == 1 else 'cards'
+    english_checker_2 = 'a' if cards_drawn == 1 else cards_drawn
 
-#highlighter
-@socketio.on('hightlight_zone')
-def highlight_card(data):
-    room_code = data.get('room')
-    username = session['user']
-    zone = data.get('zone')
-
-    game_rooms[room_code]['players'][username]['highlighter'] = zone
-
-    emit('highlight_zone', {
-        'zone': zone
-    }, room=room_code, include_self=False)
-
-# Get card from dropzone
-@socketio.on('dropzone_to_hand')
-def dropzone_to_hand(data):
-    room_code = data.get('room')
-    username = session['user']
-    card = data.get('card')
-
-    game_rooms[room_code]['players'][username]['current_hand'].append(card)
-    game_rooms[room_code]['players'][username]['current_hand_size'] += 1
-    game_rooms[room_code]['players'][username]['dropzone'].remove(card)
-
-    emit('hand_from_dropzone', {
+    emit('card_drawn', {
         'hand': game_rooms[room_code]['players'][username]['current_hand'],
         'hand_size': game_rooms[room_code]['players'][username]['current_hand_size'],
+        'deck_count': len(remaining_deck),
+        'cards_drawn': cards_drawn
+    }, room=room_code, include_self=False)
+
+    emit('update_game_information', {}, room=request.sid)
+
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} has drawn {english_checker_2} {english_checker}."
+        }, room=room_code)
+
+# Gauge Update [Complete]
+@socketio.on('gauge_update')
+def gauge_update(data):
+    room_code = data.get('room')
+    gauge_change = data.get('gauge_change')
+    username = session['user']
+
+    current_gauge = game_rooms[room_code]['players'][username]['current_gauge_size']
+
+    if current_gauge + gauge_change < 0:
+        emit('mini_modal', {
+            'sender': 'System',
+            'status': 'error',
+            'message': f"{username} does not have enough gauge to pay."
+        }, room=request.sid)
+        return
+    
+    if (game_rooms[room_code]['players'][username]['current_deck_count']) - gauge_change < 0:
+        emit('mini_modal', {
+            'sender': 'System',
+            'status': 'error',
+            'message': "Not Enough Cards in Deck"
+        }, room=request.sid)
+        return
+
+    deck = game_rooms[room_code]['players'][username]['deck_list']
+
+    if gauge_change > 0:
+        gauge_cards, remaining_deck = draw_cards(deck, gauge_change)
+        game_rooms[room_code]['players'][username]['deck_list'] = remaining_deck
+        game_rooms[room_code]['players'][username]['current_deck_count'] = len(remaining_deck)
+        game_rooms[room_code]['players'][username]['current_gauge'].extend(gauge_cards)
+        game_rooms[room_code]['players'][username]['current_gauge_size'] += gauge_change
+
+        emit('update_game_information', {}, room=room_code)
+
+    if gauge_change < 0:
+        for _ in range(abs(gauge_change)):
+            gauge_taken_away = game_rooms[room_code]['players'][username]['current_gauge'][-1]
+            game_rooms[room_code]['players'][username]['current_gauge'].pop()
+            game_rooms[room_code]['players'][username]['dropzone'].append(gauge_taken_away)
+            game_rooms[room_code]['players'][username]['current_gauge_size'] -= 1
+
+            emit('update_game_information', {}, room=room_code)
+            eventlet.sleep(0.1)
+
+    english_checker = 'gained' if gauge_change > 0 else 'paid'
+
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} has {english_checker} {abs(gauge_change)} gauge."
+        }, room=room_code)
+
+# Card call [Complete]
+@socketio.on('card_move')
+def card_moved(data):
+    room_code = data.get("room")
+    username = session['user']
+    card_data = data.get("card")
+    from_zone = data.get("from_zone")
+    to_zone = data.get("to_zone")
+    spell_id = data.get("spell_id")  
+
+    remove_card_from_zone(card_data, from_zone, room_code, spell_id)
+    place_card_in_zone(card_data, to_zone, room_code, spell_id)
+    english_checker(from_zone, to_zone, card_data, username)
+
+    emit('update_game_information', {}, room=room_code)
+
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': english_checker(from_zone, to_zone, card_data, username)
+    }, room=room_code)
+
+def remove_card_from_zone(card_data, from_zone, room_code, spell_id=None):
+    username = session['user']
+
+    match from_zone:
+        case _ if from_zone in ("left", "center", "right", "item"):
+            occupant = game_rooms[room_code]['players'][username][from_zone]
+            if occupant and occupant['id'] == card_data['id']:
+                game_rooms[room_code]['players'][username][from_zone] = None
+
+        case "hand":
+            hand = game_rooms[room_code]['players'][username]['current_hand']
+            if card_data in hand:
+                hand.remove(card_data)
+                game_rooms[room_code]['players'][username]['current_hand_size'] -= 1
+
+        case "dropzone":
+            dropzone = game_rooms[room_code]['players'][username]["dropzone"]
+            if card_data in dropzone:
+                dropzone.remove(card_data)
+
+        case "spells":
+            spells = game_rooms[room_code]['players'][username]["spells"]
+            if card_data in spells:
+                spells.remove(card_data)
+
+        case 'spell-soul':
+            spells = game_rooms[room_code]['players'][username]['spells']
+            the_spell = next((s for s in spells if s['id'] == spell_id), None)
+            if the_spell and "soul" in the_spell:
+                if card_data in the_spell["soul"]:
+                    the_spell["soul"].remove(card_data)
+
+        case 'deck':
+            deck_list = game_rooms[room_code]['players'][username]['deck_list']
+            index = next((i for i, c in enumerate(deck_list) if c['id'] == card_data['id']), None)
+            if index is not None:
+                deck_list.pop(index)
+                game_rooms[room_code]['players'][username]['current_deck_count'] -= 1
+
+        case 'gauge':
+            current_gauge = game_rooms[room_code]['players'][username]['current_gauge']
+            index = next((i for i, c in enumerate(current_gauge) if c['id'] == card_data['id']), None)
+            if index is not None:
+                current_gauge.pop(index)
+                game_rooms[room_code]['players'][username]['current_gauge_size'] -= 1
+
+        case _:
+            pass
+
+def place_card_in_zone(card_data, to_zone, room_code, spell_id=None):
+    username = session['user']
+    card_data.setdefault('soul', [])
+    card_data.setdefault('rest', False)
+    if to_zone in ("deck", "hand", "dropzone"):
+        if card_data["soul"]:
+            for soul_card in card_data["soul"]:
+                game_rooms[room_code]['players'][username]["dropzone"].append(soul_card)
+            card_data["soul"].clear() 
+
+    match to_zone:
+        case _ if to_zone in ("left", "center", "right", "item"):
+            occupant = game_rooms[room_code]['players'][username][to_zone]
+            if occupant is not None:
+                occupant.setdefault('soul', [])
+                occupant.setdefault('rest', False)
+
+                card_data["soul"].append(occupant)
+
+                if occupant["soul"]:
+                    card_data["soul"].extend(occupant["soul"])
+                    occupant["soul"].clear()
+
+            game_rooms[room_code]['players'][username][to_zone] = card_data
+
+        case "hand":
+            game_rooms[room_code]['players'][username]['current_hand'].append(card_data)
+            game_rooms[room_code]['players'][username]['current_hand_size'] += 1
+
+        case "dropzone":
+            game_rooms[room_code]['players'][username]["dropzone"].append(card_data)
+
+        case "spells":
+            game_rooms[room_code]['players'][username]["spells"].append(card_data)
+
+        case 'spell-soul':
+            spells = game_rooms[room_code]['players'][username]['spells']
+            the_spell = next((s for s in spells if s['id'] == spell_id), None)
+            if the_spell:
+                the_spell.setdefault("soul", [])
+                the_spell["soul"].append(card_data)
+
+        case "deck":
+            game_rooms[room_code]['players'][username]['deck_list'].append(card_data)
+            game_rooms[room_code]['players'][username]['current_deck_count'] += 1
+
+        case "gauge":
+            game_rooms[room_code]['players'][username]['current_gauge'].append(card_data)
+            game_rooms[room_code]['players'][username]['current_gauge_size'] += 1
+
+        case _:
+            pass
+
+def english_checker(from_zone, to_zone, card, username):
+    action = 'moves'
+    place = f' from the {from_zone} to the {to_zone}'
+    if from_zone == 'hand':
+        place = f"to the {to_zone}"
+        action = 'calls'
+        if to_zone == 'dropzone':
+            action = 'drops'
+            place = ''
+        if to_zone == 'deck':
+            action = 'returns'
+            place = ' to the deck'
+        if to_zone == 'item':
+            action = 'equips'
+            place = ''
+            if card['type'] == 'Impact Monster' and to_zone not in ['left', 'center', 'right']:
+                action = 'transforms into'
+            if card['type'] == 'Monster' and to_zone not in ['left', 'center', 'right']:
+                action = 'transforms into'
+        if to_zone == 'gauge':
+            engerish = f"{username} charges."
+            return engerish
+    
+    if from_zone == 'deck':
+        if to_zone == 'hand':
+            place = ''
+            action = 'searches for'
+        if to_zone in ['left', 'center', 'right']:
+            place = f"to the {to_zone}"
+            action = 'calls'
+        if to_zone == 'dropzone':
+            action = 'drops'
+        if to_zone == 'item':
+            action = 'equips'
+            place = ''
+            if card['type'] == 'Impact Monster' and to_zone not in ['left', 'center', 'right', 'item']:
+                action = 'transforms into'
+            if card['type'] == 'Monster' and to_zone not in ['left', 'center', 'right', 'item']:
+                action = 'transforms into'
+    
+    if from_zone == 'dropzone':
+        if to_zone == 'hand':
+            place = ''
+            action = 'returns'
+        if to_zone in ['left', 'center', 'right']:
+            place = f"to the {to_zone} from the dropzone"
+            action = 'calls'
+        if to_zone == 'deck':
+            action = 'returns'
+        if to_zone == 'item':
+            action = 'equips'
+            place = ''
+            if card['type'] == 'Impact Monster' and to_zone not in ['left', 'center', 'right', 'item']:
+                action = 'transforms into'
+            if card['type'] == 'Monster' and to_zone not in ['left', 'center', 'right', 'item']:
+                action = 'transforms into'
+
+    if from_zone in ['left', 'center', 'right', 'item']:
+        if to_zone == 'hand':
+            place = 'to the hand'
+            action = 'returns'
+        if to_zone == 'deck':
+            action = 'returns'
+            place = ' to the bottom of the deck'
+        if to_zone == 'dropzone':
+            action = 'drops'
+            engerish = f"{card['name']} has been destroyed."
+            return engerish
+        if to_zone == 'item':
+            action = 'equips'
+            place = ''
+            if card['type'] == 'Impact Monster' and to_zone not in ['left', 'center', 'right', 'item']:
+                action = 'transforms into'
+            if card['type'] == 'Monster' and to_zone not in ['left', 'center', 'right', 'item']:
+                action = 'transforms into'
+        if from_zone == 'item':
+            place = ''
+    
+    if to_zone == 'spell':
+        action = 'casts'
+        place = ''
+
+    engerish = f"{username} {action} {card['name']}{place}."
+    return engerish
+
+@socketio.on("highlight_card")
+def handle_highlight_card(data):
+    room_code = data["room"]
+    username = session["user"]
+    card_data = data["card"]   
+
+    current_highlight = game_rooms[room_code]['players'][username].get('highlighted_card_id')
+    
+    if current_highlight == card_data["id"]:
+        game_rooms[room_code]['players'][username]['highlighted_card_id'] = None
+        emit("card_highlighted", {
+            "card": card_data,
+            "owner": username,
+            "unhighlight": True 
+        }, room=room_code)
+    else:
+        game_rooms[room_code]['players'][username]['highlighted_card_id'] = card_data["id"]
+        emit("card_highlighted", {
+            "card": card_data,
+            "owner": username,
+            "unhighlight": False
+        }, room=room_code)
+
+@socketio.on("card_rest_toggle")
+def handle_card_rest_toggle(data):
+    room_code = data["room"]
+    username = session["user"]
+    card_data = data["card"]
+
+    if "rest" not in card_data:
+        card_data["rest"] = False
+
+    card_data["rest"] = not card_data["rest"]
+
+    card_ref = find_card_in_game_rooms(card_data["id"], room_code, username)
+    if card_ref:
+        card_ref["rest"] = card_data["rest"]
+    
+    emit("card_rest_update", {
+        "card": card_data,
+        "isRest": card_data["rest"]
+    }, room=room_code)
+
+@socketio.on("buddy_call")
+def buddy_call(data):
+    room_code = data["room"]
+    username = session["user"]
+
+    if game_rooms[room_code]["players"][username]["buddy_rest"] == True:
+        game_rooms[room_code]['players'][username]['buddy_rest'] = False
+        emit("mini_chat_message", {
+            "sender": "System",
+            "message": f"{username} is cheating."
+        }, room=room_code)
+    elif game_rooms[room_code]["players"][username]["buddy_rest"] == False:
+        game_rooms[room_code]['players'][username]['buddy_rest'] = True
+        emit("mini_chat_message", {
+            "sender": "System",
+            "message": f"{username} Buddycalls."
+        }, room=room_code)
+
+    emit("update_game_information", {}, room=room_code)
+
+# Search Deck [Complete]
+@socketio.on('search_deck')
+def card_call_soul(data):
+    room_code = data.get('room')
+    card = data.get('card')
+    username = session['user']
+
+    game_rooms[room_code]['players'][username]['deck_list'].remove(card)
+    game_rooms[room_code]['players'][username]['current_deck_count'] -= 1
+    game_rooms[room_code]['players'][username]['current_hand'].append(card)
+    game_rooms[room_code]['players'][username]['current_hand_size'] += 1
+
+    emit('update_game_information', {}, room=room_code)
+
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} adds {card.name} from the deck to hand."
+        }, room=room_code)
+
+@socketio.on('search_deck_open')
+def search_open(data):
+    room_code = data.get('room')
+    username = session['user']
+
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} has opened the deck."
+        }, room=room_code)
+    
+    emit('update_game_information', {}, room=request.sid)
+
+@socketio.on('search_deck_close')
+def search_close(data):
+    room_code = data.get('room')
+    username = session['user']
+
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} has closed the deck."
+        }, room=room_code)
+    
+    emit('update_game_information', {}, room=request.sid)
+
+# Search Dropzone [Complete]
+@socketio.on('search_dropzone')
+def search_dropzone(data):
+    room_code = data.get('room')
+    card = data.get('card')
+    username = session['user']
+
+    game_rooms[room_code]['players'][username]['dropzone'].remove(card)
+    game_rooms[room_code]['players'][username]['current_hand'].append(card)
+    game_rooms[room_code]['players'][username]['current_hand_size'] += 1
+
+    emit('update_game_information', {}, room=room_code, include_self=False)
+
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} adds {card.name} from his dropzone to his hand."
+        }, room=room_code)
+
+@socketio.on('search_dropzone_open')
+def search_dropzone_open(data):
+    room_code = data.get('room')
+    username = session['user']
+
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} has opened the dropzone."
+        }, room=room_code)
+    
+@socketio.on('search_dropzone_close')
+def search_dropzone_close(data):
+    room_code = data.get('room')
+    username = session['user']
+
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} has closed the dropzone."
+        }, room=room_code)
+
+# Shuffle Deck [Complete]
+@socketio.on('shuffle_deck')
+def handle_shuffle_deck(data):
+    room_code = data.get('room')
+    username = session['user']
+
+    deck = game_rooms[room_code]['players'][username]['deck_list']
+    deck = shuffle_deck(deck)
+    game_rooms[room_code]['players'][username]['deck_list'] = deck
+
+    emit('update_game_information', {}, room=room_code)
+
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} has shuffled the deck."
+        }, room=room_code)
+
+# Drop Top Deck to Dropzone [Complete]
+@socketio.on('top_deck_to_dropzone')
+def top_deck_to_dropzone(data):
+    room_code = data.get('room')
+    number_of_cards = data.get('number_of_cards')
+    username = session['user']
+
+    deck = game_rooms[room_code]['players'][username]['deck_list']
+    game_rooms[room_code]['players'][username]['deck_list'] = deck[number_of_cards:]
+    for _ in range(number_of_cards):
+        card = deck.pop(0)
+        game_rooms[room_code]['players'][username]['dropzone'].append(card)
+    game_rooms[room_code]['players'][username]['deck_list'] = deck
+    game_rooms[room_code]['players'][username]['current_deck_count'] -= number_of_cards
+
+    emit('dropzone_from_deck', {
+        'deck_count': game_rooms[room_code]['players'][username]['current_deck_count'],
+        'deck': game_rooms[room_code]['players'][username]['deck_list'],
         'dropzone': game_rooms[room_code]['players'][username]['dropzone'],
     }, room=room_code, include_self=False)
 
-    emit('mini_chat_message', {
-        'sender': 'System',
-        'message': f"{username} took {card.name} from the dropzone."
-        }, room=room_code)
-
-# Card call [not sure]
-@socketio.on('card_call')
-def card_moved(data):
-    room_code = data.get('room')
-    card = data.get('card')
-    zone = data.get('zoneId')
-    username = session['user']
-
-    game_rooms[room_code]['players'][username][zone] = card
-    game_rooms[room_code]['players'][username]['current_hand'].remove(card)
-    game_rooms[room_code]['players'][username]['current_hand_size'] -= 1
-
-    emit('opponent_card_call', {
-        'card': card,
-        'zoneId': zone
-    }, room=room_code, include_self=False)
+    emit('update_game_information', {}, room=request.sid)
 
     emit('mini_chat_message', {
         'sender': 'System',
-        'message': f"{username} called {card.name} to the {zone}."
+        'message': f"{card.name} has been dropped from the top of the deck."
         }, room=room_code)
 
+# Mini Chat [Complete]
 @socketio.on("mini_chat_send")
 @login_required
 def mini_chat_send(data):
@@ -1143,6 +1394,7 @@ def mini_chat_send(data):
         "message": message
     }, room=room_code)
 
+# Game End [Complete]
 @socketio.on("game_end")
 @login_required
 def handle_game_end(data):

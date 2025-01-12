@@ -50,7 +50,12 @@
             </ul>
         </nav>
         <div class="account">
-            <span><b>{{ username }}</b></span>
+            {% if 'user' in session %}
+            <span><b>{{ session['user'] }}</b></span>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="guest-btn">Login</a>
+            <a href="{{ url_for('register') }}" class="guest-btn">Register</a>
+            {% endif %}
             <a href="{{ url_for('settings', usr=session['user']) }}"><img src="{{ url_for('static', filename='img/Settings.png') }}" alt="Settings Icon" class="settings-icon"></a>
         </div>
     </div>

@@ -25,11 +25,6 @@
 <body>
   <div class="main-container">
     <div class="player-info-container">
-        <div class="opponent-hand-cards" id="opponent-hand-cards">
-            <!-- For Cards -->
-        </div>
-        <div class="player-information-area">
-            <button class="button-leave" id="leave-room-btn">Leave Room</button>
             <div class="profile-card" id="opponent-profile">
                 <div class="profile-picture" id="opponent-profile-picture">
                     <img src="{{ opponent_profile }}" alt="">
@@ -50,19 +45,17 @@
                     </div>
                 </div>
             </div>
-
-            <div class="profile-card" id="player-profile">
-                <div class="profile-picture" id="player-profile-picture">
-                    <img src="{{ user_profile }}" alt="">
+            <div class="container-user">
+                <div class="profile-card" id="player-profile">
+                    <div class="profile-picture" id="player-profile-picture">
+                        <img src="{{ user_profile }}" alt="">
+                    </div>
+                    <div class="profile-username" id="player-username">
+                        <p class="name-for-profile">{{ username }}</p>
+                    </div>
                 </div>
-                <div class="profile-username" id="player-username">
-                    <p class="name-for-profile">{{ username }}</p>
-                </div>
+                <button class="button-leave" id="leave-room-btn">Leave Room</button>
             </div>
-        </div>
-        <div class="user-hand-cards" id="user-hand-cards">
-            <!-- For Cards -->
-        </div>
     </div>
 
     <div class="arena">
@@ -84,80 +77,71 @@
             </div>
 
             <div class="monster-areas">
-                <div class="monster-slot" id="opponent-left">
-                    <div class="soul-holder"><p id="opponent-left-soul"></p></div>
-                </div>
-                <div class="monster-slot" id="opponent-center">
-                    <div class="soul-holder"><p id="opponent-center-soul"></p></div>
-                </div>
-                <div class="monster-slot" id="opponent-right">
-                    <div class="soul-holder"><p id="opponent-right-soul"></p></div>
-                </div>
+                <div class="monster-slot" id="opponent-left"></div>
+                <div class="monster-slot" id="opponent-center"></div>
+                <div class="monster-slot" id="opponent-right"></div>
             </div>
 
             <div class="user-cards-space-wrapper">
                 <div class="user-cards-space">
                     <div class="user-cards-space-content">
-                        <div class="spells-zone mini-zone-circle opponent-cards" id="opponent-spell-zone" style="margin-top: -5vh;">
+                        <div class="spells-zone mini-zone-circle opponent-cards" id="opponent-spell-zone" style="margin-top: -12vh;">
                             Spells Zone
                         </div>
-                        <div class="mini-zone-circle" id="opponent-flag-zone" style="margin-top: -12vh;">
-                            <img src="{{ url_for('static', filename=opponent_flag) }}" style="user-select: none;" draggable="false" class="card actual-flag opponent-cards" id="opponent-flag">
+                        <div class="mini-zone-circle" style="margin-top: -15vh;">
+                            <img src="{{ url_for('static', filename=opponent_flag) }}" alt="Opponent's flag" class="card actual-flag" id="opponent-flag" style="user-select: none; position:absolute; pointer-events: none; z-index: index 1;" draggable="false" >
+                            <div class="mini-zone-circle player-mini-zone" id="opponent-flag-zone" data-zone="item" style="border: 0;"></div>
                         </div>
-                        <div class="mini-zone-circle" id="opponent-buddy-zone" style="margin-top: -5vh;">
-                            <img src="{{ opponent_buddy }}" alt="Opponent's Buddy" class="card actual-buddy opponent-cards" style="user-select: none;" draggable="false">
+                        <div class="mini-zone-circle" id="opponent-buddy-zone" style="margin-top: -12vh;">
+                            <img src="{{ opponent_buddy }}" alt="Opponent's Buddy" id="actual-buddy" class="card opponent-cards" style="user-select: none; position:absolute;pointer-events:none;" draggable="false">
                         </div>
                     </div>
                 </div>
+                <div class="opponent-hand-cards" id="opponent-hand-cards">
+                    <!-- For Cards -->
+                </div>
             </div>
       </div>
-
-        <div class="middle-zone">
-            <div class="center-display" id="center-display">Center Display</div>
-        </div>
 
         <div class="player-field">
             <div class="gauge-container">
                 <div class="gauge-label">Gauge</div>
                 <div class="gauge-value" id="player-gauge-value">0</div>
-                <div class="gauge-space" id="user-gauge-space">
+                <div class="gauge-space user-gauge-space" id="user-gauge-space" data-zone="gauge" data-allow-append="false">
                     <!-- For Cards -->
                 </div>
             </div>
             <div class="player-zones">
-                <div class="zone" id="player-drop-zone">Drop Zone</div>
+                <div class="zone player-zone" id="player-drop-zone" data-zone="dropzone" data-allow-append="false">Drop Zone</div>
                 
-                <div class="zone" id="player-deck-zone"
+                <div class="zone player-zone" id="player-deck-zone"
                     style="background-image: url('/{{ user_sleeve }}'); 
-                            background-size: cover; background-position: center;">
+                            background-size: cover; background-position: center;" data-zone="deck" data-allow-append="false">
                         <div class="filling-space"></div>
                 </div>
             </div>
             <div class="monster-areas">
-                <div class="monster-slot" id="player-left">
-                    <div class="soul-holder"><p id="user-left-soul"></p></div>
-                </div>
-                <div class="monster-slot" id="player-center">
-                    <div class="soul-holder"><p id="user-center-soul"></p></div>
-                </div>
-                <div class="monster-slot" id="player-right">
-                    <div class="soul-holder"><p id="user-right-soul"></p></div>
-                </div>
+                <div class="monster-slot player-monster-slot" id="player-left" data-zone="left" data-allow-append="true"></div>
+                <div class="monster-slot player-monster-slot" id="player-center" data-zone="center" data-allow-append="true"></div>
+                <div class="monster-slot player-monster-slot" id="player-right" data-zone="right" data-allow-append="true"></div>
             </div>
             <div class="user-cards-space-wrapper">
                 <div class="user-cards-space">
                     <div class="user-cards-space-content">
-                        <div class="mini-zone-circle spells-zone" id="player-spell-zone" style="margin-top: -5vh;">
+                        <div class="mini-zone-circle spells-zone player-mini-zone" data-zone="spell" data-allow-append="false" id="player-spell-zone" style="margin-top: -13vh;">
                             Spells Zone
                         </div>
-                        <div class="mini-zone-circle" id="player-flag-zone" style="margin-top: -12vh;">
-                            <img src="{{ url_for('static', filename=user_flag) }}" alt="User's flag" class="card actual-flag" id="opponent-flag" style="user-select: none;" draggable="false">
-                            <div class="soul-holder"><p id="opponent-item-soul"></p></div>
+                        <div class="mini-zone-circle player-mini-zone" style="margin-top: -16vh;" >
+                            <img src="{{ url_for('static', filename=user_flag) }}" alt="User's flag" class="card actual-flag" id="opponent-flag" style="user-select: none; position:absolute; pointer-events: none; z-index: index 1;" draggable="false" >
+                            <div class="mini-zone-circle player-mini-zone" id="player-flag-zone" data-zone="item" style="border: 0;" data-allow-append="true"></div>
                         </div>
-                        <div class="mini-zone-circle" id="player-buddy-zone" style="margin-top: -5vh;" >
-                            <img src="{{ user_buddy }}" alt="User's Buddy" class="card actual-buddy" style="user-select: none;" draggable="false">
+                        <div class="mini-zone-circle" id="player-buddy-zone" style="margin-top: -13vh;" >
+                            <img src="{{ user_buddy }}" alt="User's Buddy" class="card" id="actual-buddy" style="user-select: none; position:absolute;" draggable="false">
                         </div>
                     </div>
+                </div>
+                <div class="user-hand-cards" id="user-hand-cards" data-zone="hand" data-allow-append="true"> 
+                    <!-- For Cards -->
                 </div>
             </div>
         </div>
@@ -194,42 +178,63 @@
                 </div>
 
                 <div class="actions-grid">
-                    <button class="action-button" id="shuffle-deck">Shuffle Deck</button>
+                    <button class="action-button" id="draw-card">Draw</button>
+                    <button class="action-button" id="top-deck-gauge">Gauge</button>
                     <button class="action-button" id="search-deck">Search Deck</button>
+                    <button class="action-button" id="search-drop-zone">Search Drop Zone</button>
+                    <button class="action-button" id="shuffle-deck">Shuffle Deck</button>
                     <button class="action-button" id="top-deck-to-soul">Top Deck to Soul</button>
                     <button class="action-button" id="top-deck-drop">Drop Top Deck</button>
-                    <button class="action-button" id="top-deck-reveal">Reveal Top</button>
-                    <button class="action-button" id="top-deck-gauge">Gauge +1</button>
-                    <button class="action-button" id="draw-card">Draw Card</button>
-                    <button class="action-button" id="gauge-minus">Gauge -1</button>
+                    <button class="action-button" id="top-deck-look">Look at Top</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal-overlay" id="searchDeckModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                        <h2>Search / Reorder Deck</h2>
-                        <button class="modal-close" id="searchDeckClose">Close</button>
-                </div>
-                <div class="modal-body" id="searchDeckBody"></div>
-            </div>
+    <div class="deck-modal-container" id="card-draw-modal">
+        <div class="card-draw-content" id="card-draw-content">
+            <form id="card-draw-form" class="card-draw-form">
+                <h2>Draw Cards</h2>
+                <input type="number" id="card-draw-amount" placeholder="Amount" required>
+                <button type="submit" id="card-draw-submit">Draw</button>
+            </form>
+        </div>
     </div>
 
-    <div class="modal-overlay" id="soulViewerModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Soul Viewer</h2>
-                <button class="modal-close" id="soulViewerClose">Close</button>
-            </div>
-            <div class="modal-body" id="soulViewerBody"></div>
+    <div class="deck-modal-container" id="gauge-draw-modal">
+        <div class="card-draw-content" id="gauge-draw-content">
+        <form id="gauge-draw-form" class="card-draw-form">
+            <h2>Charge Gauge</h2>
+            <input type="number" id="gauge-draw-amount" placeholder="Amount" required>
+            <button type="submit" id="gauge-draw-submit">Gauge</button>
+        </form>
+        </div>
+    </div>
+
+    <div class="deck-modal-container">
+        <h1>Deck</h1>
+        <div class="deck-modal-content" id="player-deck-content">
+            <!-- Dynamically Generated -->
+        </div>
+    </div>
+
+    <div class="deck-modal-container">
+        <h1>Your Dropzone</h1>
+        <div class="deck-modal-content" id="user-dropzone-content">
+            <!-- Dynamically Generated -->
+        </div>
+    </div>
+
+    <div class="deck-modal-container">
+        <h1>Opponent's Dropzone</h1>
+        <div class="deck-modal-content" id="opponent-dropzone-content">
+            <!-- Dynamically Generated -->
         </div>
     </div>
 
     <div id="modal" class="modal">
         <div class="modal-content">
-            <div id="modal-message" style="font-size:5vh"></div>
+            <div id="modal-message" style="font-size:4vh"></div>
         </div>
     </div>
 
