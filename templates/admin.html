@@ -136,7 +136,6 @@
             <button class="tablinks" onclick="openTab(event, 'Users')">Users</button>
             <button class="tablinks" onclick="openTab(event, 'List')">Sleeves</button>
             <button class="tablinks" onclick="openTab(event, 'Shop')">Shop</button>
-            <button class="tablinks" onclick="openTab(event, 'Anime')">Anime</button>
             <button class="tablinks" onclick="openTab(event, 'Reports')">Reports</button>
         </div>
     </nav>
@@ -190,35 +189,16 @@
 
         <div id="List" class="tabcontent">
             <h3>Sleeves</h3>
-            <form method="GET" action="{{ url_for('admin', usr=session['user']) }}">
-                <input type="text" id="search" class="search_input" name="search_sleeve" placeholder="Search Sleeve Type...">
-                <button type="submit" class="filter-btn">Search</button>
-            </form>
             <div class="add-sleeve-button" onclick="openAddSleeveModal()">Add Sleeve</div>
             <div id="sleeves-container">
-                {% for sleeve_type, sleeve_group in sleeves|groupby('sleeve_type') %}
-                    <div class="sleeve-section">
-                        <h2>Type: {{ sleeve_type }}</h2>
-                        <div class="sleeve-grid">
-                            {% for sleeve in sleeve_group %}
-                                <div class="sleeve-item">
-                                    <img src="{{ url_for('static', filename=sleeve.sleeve) }}" alt="Sleeve {{ sleeve.id }}">
-                                    <p>Sleeve ID: {{ sleeve.id }}</p>
-                                    <button class="btn-danger" onclick="confirmDeleteSleeve('{{ sleeve.id }}')">Delete</button>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endfor %}
             </div>        
         </div>
 
         <div id="Shop" class="tabcontent">
-            <h3>Shop</h3>
-        </div>
+            <h3>Payments</h3>
+            <table class="user-table">
 
-        <div id="Anime" class="tabcontent">
-            <h3>Anime List</h3>
+            </table>
         </div>
 
         <div id="Reports" class="tabcontent">

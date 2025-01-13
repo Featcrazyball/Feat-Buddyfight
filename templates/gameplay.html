@@ -77,9 +77,9 @@
             </div>
 
             <div class="monster-areas">
-                <div class="monster-slot" id="opponent-left"></div>
-                <div class="monster-slot" id="opponent-center"></div>
-                <div class="monster-slot" id="opponent-right"></div>
+                <div class="monster-slot" id="opponent-left" style="rotate: 180deg;"></div>
+                <div class="monster-slot" id="opponent-center" style="rotate: 180deg;"></div>
+                <div class="monster-slot" id="opponent-right" style="rotate: 180deg;"></div>
             </div>
 
             <div class="user-cards-space-wrapper">
@@ -89,7 +89,7 @@
                             Spells Zone
                         </div>
                         <div class="mini-zone-circle" style="margin-top: -15vh;">
-                            <img src="{{ url_for('static', filename=opponent_flag) }}" alt="Opponent's flag" class="card actual-flag" id="opponent-flag" style="user-select: none; position:absolute; pointer-events: none; z-index: index 1;" draggable="false" >
+                            <img src="{{ url_for('static', filename=opponent_flag) }}" alt="Opponent's flag" class="card actual-flag" id="opponent-flag" style="user-select: none; position:absolute; pointer-events: none; z-index: index 1; rotate: 180deg;" draggable="false" >
                             <div class="mini-zone-circle player-mini-zone" id="opponent-flag-zone" data-zone="item" style="border: 0;"></div>
                         </div>
                         <div class="mini-zone-circle" id="opponent-buddy-zone" style="margin-top: -12vh;">
@@ -211,22 +211,24 @@
         </div>
     </div>
 
-    <div class="deck-modal-container">
-        <h1>Deck</h1>
-        <div class="deck-modal-content" id="player-deck-content">
+    <div id="user-search-deck-modal" class="deck-modal-container">
+        <h1 class="deck-modal-title" id="player-deck-exit">Your Deck</h1>
+        <div class="deck-modal-content" id="player-deck-content" data-zone="deck">
             <!-- Dynamically Generated -->
         </div>
     </div>
 
-    <div class="deck-modal-container">
-        <h1>Your Dropzone</h1>
-        <div class="deck-modal-content" id="user-dropzone-content">
+    <div class="deck-modal-container" id="user-search-drop-modal">
+        <h1 class="deck-modal-title">Your Dropzone</h1>
+        <button class="exit-button" id="player-dropzone-exit">Exit</button>
+        <div class="deck-modal-content" id="user-dropzone-content" data-zone="dropzone">
             <!-- Dynamically Generated -->
         </div>
     </div>
 
-    <div class="deck-modal-container">
-        <h1>Opponent's Dropzone</h1>
+    <div class="deck-modal-container" id="opponent-search-drop-modal">
+        <h1 class="deck-modal-title">Opponent's Dropzone</h1>
+        <button class="exit-button" id="opponent-dropzone-exit">id="player-dropzone-exit">Exit</button>
         <div class="deck-modal-content" id="opponent-dropzone-content">
             <!-- Dynamically Generated -->
         </div>

@@ -47,13 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
             newElem.addEventListener("click", (e) => {
                 console.log('clicked card');
                 e.stopPropagation(); 
-                highlightCard(JSON.parse(newElem.dataset.cardObj));
+                socket.emit('highlight_card', { room: ROOM_CODE, card: JSON.parse(newElem.dataset.cardObj) });
             });
 
             newElem.addEventListener("contextmenu", (e) => {
                 console.log('right clicked card');
                 e.preventDefault();
-                toggleRest(JSON.parse(newElem.dataset.cardObj));
+                socket.emit('card_rest_toggle', { room: ROOM_CODE, card: JSON.parse(newElem.dataset.cardObj), zone: newElem.dataset.fromZone });
             });
     
             oldElem.parentNode.replaceChild(newElem, oldElem);
@@ -107,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Variables to store game state
     let userLife, opponentLife,
         userGuageSize, opponentGuageSize,
         userGuage, opponentGuage,
@@ -187,6 +186,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const lifeUpBtn = document.getElementById("life-up");
     const lifeDownBtn = document.getElementById("life-down");
+
+    searchDropBtn.addEventListener("click", () => {
+        console.log('Search Drop Zone');
+        document.getElementById("user-search-drop-modal").classList.add("active");
+        socket.emit("search_dropzone_open", { room: ROOM_CODE });
+        document.getElementById('player-deck-exit').addEventListener('click', () => {
+            document.getElementById("user-search-drop-modal").classList.remove("active");
+        });
+    });
+
+    searchDeckBtn.addEventListener("click", () => {
+        console.log('Search Deck');
+        document.getElementById("user-search-deck-modal").classList.add("active");
+        socket.emit("search_deck_open", { room: ROOM_CODE });
+        document.getElementById('player-dropzone-exit').addEventListener('click', () => {
+            document.getElementById("user-search-deck-modal").classList.remove("active");
+            socket.emit("search_deck_close", { room: ROOM_CODE });
+        });
+    });
+
+    document.getElementById("opponent-drop-zone").addEventListener("click", (e) => {
+        console.log('Opponent Drop Zone');
+        socket.emit("opponent_dropzone_open", { room: ROOM_CODE });
+        document.getElementById('opponent-dropzone-exit').addEventListener('click', () => {
+            document.getElementById("user-search-deck-modal").classList.remove("active");
+        });
+    });
 
     // Buttons
     drawCardBtn.addEventListener("click", () => {
@@ -331,78 +357,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } 
     }
 
-    function highlightCard(cardData) {
-        console.log("Highlighting card:", cardData.name);
-        socket.emit("highlight_card", {
-            room: ROOM_CODE,
-            card: cardData
-        });
-    }
-
-    function toggleRest(cardData) {
-        socket.emit("card_rest_toggle", {
-            room: ROOM_CODE,
-            card: cardData
-        });
-    }
-      
-    socket.on("card_rest_update", (data) => {
-        const { card, isRest } = data;
-        applyRestToCard(card, isRest);
-    });
-      
-    function applyHighlightToCard(cardData, owner) {
-        const cardElem = document.querySelector(`[data-card-obj*='"id":${cardData.id}'] img`);
-        if (!cardElem) return;
-        if (owner === OPPONENT_NAME) {
-            cardElem.style.outline = "2px solid red";
-        } else {
-            cardElem.style.outline = "2px solid blue";
-        }
-    }
-      
-    function applyRestToCard(cardData, isRest) {
-        const cardElem = document.querySelector(
-            `[data-card-obj*='"id":${cardData.id}'] img`
-        );
-        if (!cardElem) return;
-        if (isRest) {
-            cardElem.style.transform = "rotate(90deg)";
-        } else {
-            cardElem.style.transform = "rotate(0deg)";
-        }
-    }
-
-    function removeHighlightFromCard(cardData) {
-        const cardElem = document.querySelector(`[data-card-obj*='"id":${cardData.id}'] img`);
-        if (!cardElem) return;
-        cardElem.style.outline = "none";
-    }
-    function removeAllHighlightsFromOwner(owner) {
-       const allImages = document.querySelectorAll('.hand-card img');
-       allImages.forEach(img => {
-          if (owner === OPPONENT_NAME) {
-              if (img.style.outline === "2px solid red") {
-                  img.style.outline = "none";
-              }
-          } else {
-              if (img.style.outline === "2px solid blue") {
-                  img.style.outline = "none";
-              }
-          }
-       });
-    }
-
-    socket.on("card_highlighted", (data) => {
-        const { card, owner, unhighlight } = data; 
-        if (unhighlight) {
-           removeHighlightFromCard(card);
-        } else {
-           removeAllHighlightsFromOwner(owner);
-           applyHighlightToCard(card, owner);
-        }
-    });
-
     function renderCards(data) {
         console.log('Rendering Cards')
         console.log(data);
@@ -465,6 +419,66 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (opponentBuddyRest == false) {
             opponentBuddy.style.rotate = '0deg';
         }
+
+        const userDeckDiv = document.getElementById("player-deck-content");
+        userDeckDiv.innerHTML = '';
+        userDeckList.forEach((card) => {
+            const cardDiv = document.createElement("div");
+            cardDiv.dataset.cardObj = JSON.stringify(card);
+            cardDiv.dataset.fromZone = "hand";
+            cardDiv.classList.add("hand-card");
+            cardDiv.draggable = true;
+            if (impactChecker(card)) {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="true">
+                `;
+                userDeckDiv.appendChild(cardDiv);
+            } else {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="true">
+                `;
+                userDeckDiv.appendChild(cardDiv); 
+            }
+        });
+
+        userDropDiv = document.getElementById("player-drop-zone");
+        userDropDiv.innerHTML = '';
+        userDropzone.forEach((card) => {
+            const cardDiv = document.createElement("div");
+            cardDiv.dataset.cardObj = JSON.stringify(card);
+            cardDiv.classList.add("hand-card");
+            cardDiv.draggable = true;
+            if (impactChecker(card)) {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="true">
+                `;
+                userDropDiv.appendChild(cardDiv);
+            } else {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="true">
+                `;
+                userDropDiv.appendChild(cardDiv); 
+            }
+        });
+
+        const opponentDropDiv = document.getElementById("opponent-dropzone-content");
+        opponentDropDiv.innerHTML = '';
+        opponentDropzone.forEach((card) => {
+            const cardDiv = document.createElement("div");
+            cardDiv.classList.add("hand-card");
+            cardDiv.draggable = false;
+            if (impactChecker(card)) {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="true">
+                `;
+                opponentDropDiv.appendChild(cardDiv);
+            } else {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="true">
+                `;
+                opponentDropDiv.appendChild(cardDiv); 
+            }
+        });
 
         const userHandDiv = document.getElementById("user-hand-cards");
         userHandDiv.innerHTML = ''; 
@@ -544,6 +558,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     class="normal-card" draggable="true" style="pointer-events: auto;">
                 `;
             }
+            if (userLeftCard.rest == true) {
+                cardDiv.style.transform = "rotate(90deg)";
+            } else {
+                cardDiv.style.transform = "rotate(0deg)";
+            }
+            if (userLeftCard.id === userHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid blue"; 
+                }
+            } else if (userLeftCard.id === opponentHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid red";
+                }
+            } else {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "none";
+                }
+            }
             userLeftSlot.appendChild(cardDiv);
         }
 
@@ -568,6 +603,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 userCenterSlot.appendChild(cardDiv);
             }
+            if (userCenterCard.rest == true) {
+                cardDiv.style.transform = "rotate(90deg)";
+            } else {
+                cardDiv.style.transform = "rotate(0deg)";
+            }
+            if (userCenterCard.id === userHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid blue"; 
+                }
+            } else if (userCenterCard.id === opponentHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid red";
+                }
+            } else {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "none";
+                }
+            }
         }
 
         const userRightSlot = document.getElementById("player-right");
@@ -590,6 +646,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     class="normal-card" draggable="true" style="pointer-events: none;">
                 `;
                 userRightSlot.appendChild(cardDiv);
+            }
+            if (userRightCard.rest == true) {
+                cardDiv.style.transform = "rotate(90deg)";
+            } else {
+                cardDiv.style.transform = "rotate(0deg)";
+            }
+            if (userRightCard.id === userHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid blue"; 
+                }
+            } else if (userRightCard.id === opponentHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid red";
+                }
+            } else {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "none";
+                }
             }
         }
 
@@ -623,6 +700,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             }
             userItemSlot.appendChild(cardDiv);
+            if (userItemCard.rest == true) {
+                cardDiv.style.transform = "rotate(90deg)";
+            } else {
+                cardDiv.style.transform = "rotate(0deg)";
+            }
+            if (userItemCard.id === userHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid blue"; 
+                }
+            } else if (userItemCard.id === opponentHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid red";
+                }
+            } else {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "none";
+                }
+            }
         }
 
         const opponentLeftSlot = document.getElementById("opponent-left");
@@ -654,6 +752,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             }
             opponentLeftSlot.appendChild(cardDiv);
+            if (opponentLeftCard.rest == true) {
+                cardDiv.style.transform = "rotate(90deg)";
+            } else {
+                cardDiv.style.transform = "rotate(0deg)";
+            }
+            if (opponentLeftCard.id === userHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid blue"; 
+                }
+            } else if (opponentLeftCard.id === opponentHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid red";
+                }
+            } else {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "none";
+                }
+            }
         }
 
         const opponentCenterSlot = document.getElementById("opponent-center");
@@ -685,6 +804,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             }
             opponentCenterSlot.appendChild(cardDiv);
+            if (opponentCenterCard.rest == true) {
+                cardDiv.style.transform = "rotate(90deg)";
+            } else {
+                cardDiv.style.transform = "rotate(0deg)";
+            }
+            if (opponentCenterCard.id === userHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid blue"; 
+                }
+            } else if (opponentCenterCard.id === opponentHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid red";
+                }
+            } else {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "none";
+                }
+            }
         }
 
         const opponentRightSlot = document.getElementById("opponent-right");
@@ -716,6 +856,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             }
             opponentRightSlot.appendChild(cardDiv);
+            if (opponentRightCard.rest == true) {
+                cardDiv.style.transform = "rotate(90deg)";
+            } else {
+                cardDiv.style.transform = "rotate(0deg)";
+            }
+            if (opponentRightCard.id === userHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid blue"; 
+                }
+            } else if (opponentRightCard.id === opponentHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid red";
+                }
+            } else {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "none";
+                }
+            }
         }
 
         const opponentItemSlot = document.getElementById("opponent-flag-zone");
@@ -747,6 +908,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             }
             opponentItemSlot.appendChild(cardDiv);
+            if (opponentItemCard.rest == true) {
+                cardDiv.style.transform = "rotate(90deg)";
+            } else {
+                cardDiv.style.transform = "rotate(0deg)";
+            }
+            if (opponentItemCard.id === userHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid blue"; 
+                }
+            } else if (opponentItemCard.id === opponentHighlight) {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "2px solid red";
+                }
+            } else {
+                const img = cardDiv.querySelector('img');
+                if (img) {
+                  img.style.outline = "none";
+                }
+            }
         }
 
         attachHandCardListeners();

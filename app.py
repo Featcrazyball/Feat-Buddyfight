@@ -214,7 +214,7 @@ def register():
 
         # Create new user
         hashed_password = generate_password_hash(password)
-        new_user = User(username=username, email=email, password=hashed_password, role='admin', unlocked_cards=unlocked_cards)
+        new_user = User(username=username, email=email, password=hashed_password, role='user', unlocked_cards=unlocked_cards)
         db.session.add(new_user)
         db.session.commit()
 
@@ -845,19 +845,6 @@ def game_room_joined(data):
     join_room(room_code)
     return
 
-# Highlight Card [Complete] [Not sure]
-@socketio.on('hightlight_zone')
-def highlight_card(data):
-    room_code = data.get('room')
-    username = session['user']
-    zone = data.get('zone')
-
-    game_rooms[room_code]['players'][username]['highlighter'] = zone
-
-    emit('highlight_zone', {
-        'zone': zone
-    }, room=room_code, include_self=False)
-
 # Phase Updater [Complete]
 @socketio.on('phase_update')
 def phase_update(data):
@@ -997,7 +984,6 @@ def card_moved(data):
 
     remove_card_from_zone(card_data, from_zone, room_code, spell_id)
     place_card_in_zone(card_data, to_zone, room_code, spell_id)
-    english_checker(from_zone, to_zone, card_data, username)
 
     emit('update_game_information', {}, room=room_code)
 
@@ -1197,44 +1183,40 @@ def english_checker(from_zone, to_zone, card, username):
 def handle_highlight_card(data):
     room_code = data["room"]
     username = session["user"]
-    card_data = data["card"]   
+    card_data = data["card"]
 
-    current_highlight = game_rooms[room_code]['players'][username].get('highlighted_card_id')
-    
-    if current_highlight == card_data["id"]:
-        game_rooms[room_code]['players'][username]['highlighted_card_id'] = None
-        emit("card_highlighted", {
-            "card": card_data,
-            "owner": username,
-            "unhighlight": True 
-        }, room=room_code)
-    else:
-        game_rooms[room_code]['players'][username]['highlighted_card_id'] = card_data["id"]
-        emit("card_highlighted", {
-            "card": card_data,
-            "owner": username,
-            "unhighlight": False
-        }, room=room_code)
+    if game_rooms[room_code]['players'][username].get('highlighter'):
+        current_highlight = game_rooms[room_code]['players'][username].get('highlighter')
+        if current_highlight == card_data["id"]:
+            game_rooms[room_code]['players'][username]['highlighter'] = None
+        else:
+            game_rooms[room_code]['players'][username]['highlighter'] = card_data["id"]
+
+    emit("update_game_information", {}, room=room_code)
 
 @socketio.on("card_rest_toggle")
 def handle_card_rest_toggle(data):
     room_code = data["room"]
     username = session["user"]
     card_data = data["card"]
+    zone = data.get('zone')
 
-    if "rest" not in card_data:
-        card_data["rest"] = False
+    game_rooms[room_code]['players'][username][zone]['rest'] = not game_rooms[room_code]['players'][username][zone]['rest']
 
-    card_data["rest"] = not card_data["rest"]
+    if card_data["rest"] == True:
+        if game_rooms[room_code]['players'][username]['current_phase'] == "Attack Phase":
+            action = 'attacks'
+        else:
+            action = 'rests'
+    else:
+        action = 'stands'
 
-    card_ref = find_card_in_game_rooms(card_data["id"], room_code, username)
-    if card_ref:
-        card_ref["rest"] = card_data["rest"]
-    
-    emit("card_rest_update", {
-        "card": card_data,
-        "isRest": card_data["rest"]
-    }, room=room_code)
+    emit("update_game_information", {}, room=room_code)
+
+    emit("mini_chat_message", {
+        "sender": "System",
+        "message": f"{card_data['name']} {action}."
+        }, room=room_code)
 
 @socketio.on("buddy_call")
 def buddy_call(data):
@@ -1335,6 +1317,26 @@ def search_dropzone_close(data):
     emit('mini_chat_message', {
         'sender': 'System',
         'message': f"{username} has closed the dropzone."
+        }, room=room_code)
+    
+@socketio.on('search_opponent_dropzone_open')
+def search_opponent_dropzone_open(data):
+    room_code = data.get('room')
+    username = session['user']
+
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} has opened the opponent's dropzone."
+        }, room=room_code)
+    
+@socketio.on('search_opponent_dropzone_close')
+def search_opponent_dropzone_close(data):
+    room_code = data.get('room')
+    username = session['user']
+
+    emit('mini_chat_message', {
+        'sender': 'System',
+        'message': f"{username} has closed the opponent's dropzone."
         }, room=room_code)
 
 # Shuffle Deck [Complete]
@@ -1445,7 +1447,7 @@ def select_sleeve(sleeve_id):
 
 # Deck Builder [Completed]
 @app.route('/deckBuilder', methods=['GET'])
-@login_required
+@login_required #retrieve
 def deck_builder():
     decks = Deck.query.filter_by(username=session['user']).all()
     deck_dicts = [deck.to_dict() for deck in decks]
@@ -1456,7 +1458,7 @@ def deck_builder():
 
 @app.route('/deckBuilder/create_deck', methods=['POST'])
 @login_required
-def create_deck():
+def create_deck(): #create
     username = session['user']
     deckName = request.form.get('name', '')
     flag = request.form.get('flag', '')
@@ -1565,7 +1567,7 @@ def select_deck(deck_id):
 
 @app.route('/deckBuilder/delete_deck/<int:deck_id>', methods=['POST'])
 @login_required
-def delete_deck(deck_id):
+def delete_deck(deck_id): #delete
     user = User.query.filter_by(username=session['user']).first()
 
     if not user:
@@ -1591,7 +1593,7 @@ def delete_deck(deck_id):
         return jsonify({"status": "error", "message": "An error occurred while deleting the deck."}), 500
 
 @app.route('/edit_deck', methods=['GET'])
-def edit_deck():
+def edit_deck(): #update
     user = User.query.filter_by(username=session['user']).first()
     if not user or not user.selected_deck_id:
         flash("No deck selected. Please select a deck first.", "error")
@@ -1646,7 +1648,7 @@ def edit_deck():
 
 @app.route('/edit_deck/get_deck', methods=['GET'])
 @login_required
-def get_deck():
+def get_deck(): #retrieve
     user = User.query.filter_by(username=session['user']).first()
     if not user or not user.selected_deck_id:
         return jsonify({"status": "error", "message": "No deck selected"}), 400
@@ -1712,7 +1714,7 @@ def get_deck():
 
 @app.route('/edit_deck/save', methods=['POST'])
 @login_required
-def save_deck():
+def save_deck(): #update
     user = User.query.filter_by(username=session['user']).first()
     if not user or not user.selected_deck_id:
         return jsonify({"status": "error", "message": "No deck selected"}), 400
@@ -2038,7 +2040,7 @@ def admin():
 
     sleeves_query = Sleeve.query
 
-    sleeve_search = request.args.get('search_sleeve', '')
+    sleeve_search = request.args.get('search_sleeve')
     if sleeve_search:
         sleeves_query = sleeves_query.filter(Sleeve.sleeve_type.ilike(f"%{sleeve_search}%"))
 
@@ -2059,7 +2061,14 @@ def admin():
 @app.route('/admin/get_users', methods=['GET'])
 @admin_required
 def get_users():
-    users = User.query.all()
+    search_query = request.args.get('search', '')
+    query = User.query
+    if search_query:
+        query = query.filter(
+            User.username.ilike(f"%{search_query}%") |
+            User.email.ilike(f"%{search_query}%")
+        )
+    users = query.all()
     user_data = [
         {
             "username": user.username,
@@ -2076,7 +2085,19 @@ def get_users():
 @app.route('/admin/get_reports', methods=['GET'])
 @admin_required
 def get_reports():
-    reports = Report.query.all()
+    report_query = Report.query
+    user_reporting_filter = request.args.get('user-reporting', '')
+    reported_user_filter = request.args.get('reported-user', '')
+    report_type_filter = request.args.get('report-type', '')
+
+    if user_reporting_filter:
+        report_query = report_query.filter(Report.user_reporting.ilike(f"%{user_reporting_filter}%"))
+    if reported_user_filter:
+        report_query = report_query.filter(Report.user_being_reported.ilike(f"%{reported_user_filter}%"))
+    if report_type_filter:
+        report_query = report_query.filter(Report.report_type.ilike(f"%{report_type_filter}%"))
+
+    reports = report_query.all()
     reports_data = [
         {
             "id": report.id,
@@ -2092,7 +2113,13 @@ def get_reports():
 @app.route('/admin/get_sleeves', methods=['GET'])
 @admin_required
 def get_sleeves():
-    sleeves = Sleeve.query.all()
+    sleeves_query = Sleeve.query
+
+    sleeve_search = request.args.get('search_sleeve')
+    if sleeve_search:
+        sleeves_query = sleeves_query.filter(Sleeve.sleeve_type.ilike(f"%{sleeve_search}%"))
+
+    sleeves = sleeves_query.all()
     sleeve_data = [
         {
             "id": sleeve.id,
