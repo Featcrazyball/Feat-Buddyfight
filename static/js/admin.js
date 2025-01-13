@@ -90,14 +90,18 @@ function fetchAndRenderReports() {
 }
 
 function fetchAndRenderSleeves() {
-    fetch('/admin/get_sleeves')
+    const searchSleeve = document.getElementById('search').value;
+    const url = new URL('/admin/get_sleeves', window.location.origin);
+    if (searchSleeve) {
+        url.searchParams.append('search_sleeve', searchSleeve);
+    }
+
+    fetch(url)
         .then(response => response.json())
         .then(data => {
             const sleevesContainer = document.getElementById('sleeves-container');
             if (!sleevesContainer) return;
 
-            // We'll group sleeves by sleeve_type in JS now
-            // (You can also do it directly in the template, but we’ll do it here for dynamic updates)
             const sleevesByType = {};
             data.sleeves.forEach(sleeve => {
                 if (!sleevesByType[sleeve.sleeve_type]) {
@@ -105,11 +109,8 @@ function fetchAndRenderSleeves() {
                 }
                 sleevesByType[sleeve.sleeve_type].push(sleeve);
             });
-
-            // Clear the container
             sleevesContainer.innerHTML = '';
 
-            // Build new sections for each sleeve_type
             for (const [type, sleeves] of Object.entries(sleevesByType)) {
                 const section = document.createElement('div');
                 section.className = 'sleeve-section';
@@ -141,7 +142,6 @@ function fetchAndRenderSleeves() {
             showModal('Failed to fetch sleeves', 'error');
         });
 }
-
 
 function confirmDeleteUser(username) {
     const deleteModal = document.getElementById('confirm-delete-modal');

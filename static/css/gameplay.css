@@ -434,6 +434,7 @@ body {
     align-items: center; 
     position: relative;
     pointer-events: auto;
+    cursor: pointer;
 }
 
 .normal-card {
@@ -697,38 +698,50 @@ body {
 }
 
 /* Deck Modal */
-.deck-modal-container{
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.3);
+.deck-modal-container {
+    display: none; 
+    position: fixed; 
+    top: 20%;
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    width: 60vw;
+    height: 40vh;
+    background-color: rgba(0, 0, 0, 1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     z-index: 1000;
     justify-content: center;
+    flex-direction: column;
     align-items: center;
+    margin: 0; 
+    padding: 3vh 3vw;
 }
 
-.deck-modal-content{
-    width: 50vw;
-    height: 80vh;
+.deck-modal-title {
+    font-size: 3vh;
+    color: red;
+    text-shadow: 0.1vh 0.1vh 0.3vh black;
+}
+
+.deck-modal-content {
+    width: 40vw;
+    height: 40vh;
+    box-shadow: 0 4px 15px white;
     background-color: rgba(255, 255, 255, 0.3);
     border-radius: 1vh;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: space-evenly;
+    overflow-y: auto;
     gap: 2vh;
     padding: 2vh;
 }
 
 .deck-modal-container.active {
-    display: flex;
+    display: flex; 
     pointer-events: auto; 
 }
 
-.active{
+.active {
     display: flex;
     pointer-events: auto;
 }
