@@ -985,11 +985,13 @@ def card_moved(data):
     remove_card_from_zone(card_data, from_zone, room_code, spell_id)
     place_card_in_zone(card_data, to_zone, room_code, spell_id)
 
+    english = english_checker(from_zone, to_zone, card_data, username)
+
     emit('update_game_information', {}, room=room_code)
 
     emit('mini_chat_message', {
         'sender': 'System',
-        'message': english_checker(from_zone, to_zone, card_data, username)
+        'message': english
     }, room=room_code)
 
 def remove_card_from_zone(card_data, from_zone, room_code, spell_id=None):
@@ -1114,35 +1116,36 @@ def english_checker(from_zone, to_zone, card, username):
             if card['type'] == 'Monster' and to_zone not in ['left', 'center', 'right']:
                 action = 'transforms into'
         if to_zone == 'gauge':
-            engerish = f"{username} charges."
-            return engerish
+            english = f"{username} charges."
+            return english
     
     if from_zone == 'deck':
         if to_zone == 'hand':
-            place = ''
+            place = 'from deck'
             action = 'searches for'
         if to_zone in ['left', 'center', 'right']:
-            place = f"to the {to_zone}"
+            place = f"to the {to_zone} from the deck"
             action = 'calls'
         if to_zone == 'dropzone':
-            action = 'drops'
+            action = 'drops from deck'
         if to_zone == 'item':
-            action = 'equips'
+            action = 'equips from deck'
             place = ''
             if card['type'] == 'Impact Monster' and to_zone not in ['left', 'center', 'right', 'item']:
                 action = 'transforms into'
             if card['type'] == 'Monster' and to_zone not in ['left', 'center', 'right', 'item']:
-                action = 'transforms into'
+                action = 'transforms into from deck'
     
     if from_zone == 'dropzone':
         if to_zone == 'hand':
             place = ''
             action = 'returns'
         if to_zone in ['left', 'center', 'right']:
-            place = f"to the {to_zone} from the dropzone"
+            place = f" to the {to_zone} from the dropzone"
             action = 'calls'
         if to_zone == 'deck':
             action = 'returns'
+            place = ' from dropzone to deck'
         if to_zone == 'item':
             action = 'equips'
             place = ''
@@ -1150,18 +1153,18 @@ def english_checker(from_zone, to_zone, card, username):
                 action = 'transforms into'
             if card['type'] == 'Monster' and to_zone not in ['left', 'center', 'right', 'item']:
                 action = 'transforms into'
-
+    
     if from_zone in ['left', 'center', 'right', 'item']:
         if to_zone == 'hand':
-            place = 'to the hand'
+            place = ' to the hand'
             action = 'returns'
         if to_zone == 'deck':
             action = 'returns'
             place = ' to the bottom of the deck'
         if to_zone == 'dropzone':
             action = 'drops'
-            engerish = f"{card['name']} has been destroyed."
-            return engerish
+            english = f"{card['name']} has been destroyed."
+            return english
         if to_zone == 'item':
             action = 'equips'
             place = ''
@@ -1175,18 +1178,25 @@ def english_checker(from_zone, to_zone, card, username):
     if to_zone == 'spell':
         action = 'casts'
         place = ''
-
-    engerish = f"{username} {action} {card['name']}{place}."
-    return engerish
+    
+    english = f"{username} {action} {card['name']}{place}."
+    return english
 
 @socketio.on("highlight_card")
 def handle_highlight_card(data):
-    room_code = data["room"]
-    username = session["user"]
-    card_data = data["card"]
+    room_code = data.get("room")
+    username = session.get("user")
+    card_data = data.get("card")
 
-    if game_rooms[room_code]['players'][username].get('highlighter'):
-        current_highlight = game_rooms[room_code]['players'][username].get('highlighter')
+    if not room_code or not username or not card_data:
+        emit("error", {"message": "Invalid data provided."})
+        return
+
+    current_highlight = game_rooms[room_code]['players'][username].get('highlighter')
+
+    if current_highlight is None:
+        game_rooms[room_code]['players'][username]['highlighter'] = card_data["id"]
+    else:
         if current_highlight == card_data["id"]:
             game_rooms[room_code]['players'][username]['highlighter'] = None
         else:
@@ -1201,6 +1211,8 @@ def handle_card_rest_toggle(data):
     card_data = data["card"]
     zone = data.get('zone')
 
+    if zone not in ['left', 'center', 'right', 'item']:
+        return
     game_rooms[room_code]['players'][username][zone]['rest'] = not game_rooms[room_code]['players'][username][zone]['rest']
 
     if card_data["rest"] == True:
@@ -1447,11 +1459,7 @@ def select_sleeve(sleeve_id):
 
 # Deck Builder [Completed]
 @app.route('/deckBuilder', methods=['GET'])
-<<<<<<< HEAD
 @login_required 
-=======
-@login_required #retrieve
->>>>>>> 73fdce8dcac00f0405dada6d2ac35861a1150f30
 def deck_builder():
     decks = Deck.query.filter_by(username=session['user']).all()
     deck_dicts = [deck.to_dict() for deck in decks]
@@ -1571,11 +1579,7 @@ def select_deck(deck_id):
 
 @app.route('/deckBuilder/delete_deck/<int:deck_id>', methods=['POST'])
 @login_required
-<<<<<<< HEAD
 def delete_deck(deck_id): 
-=======
-def delete_deck(deck_id): #delete
->>>>>>> 73fdce8dcac00f0405dada6d2ac35861a1150f30
     user = User.query.filter_by(username=session['user']).first()
 
     if not user:
@@ -1601,11 +1605,7 @@ def delete_deck(deck_id): #delete
         return jsonify({"status": "error", "message": "An error occurred while deleting the deck."}), 500
 
 @app.route('/edit_deck', methods=['GET'])
-<<<<<<< HEAD
 def edit_deck(): 
-=======
-def edit_deck(): #update
->>>>>>> 73fdce8dcac00f0405dada6d2ac35861a1150f30
     user = User.query.filter_by(username=session['user']).first()
     if not user or not user.selected_deck_id:
         flash("No deck selected. Please select a deck first.", "error")
@@ -1660,11 +1660,7 @@ def edit_deck(): #update
 
 @app.route('/edit_deck/get_deck', methods=['GET'])
 @login_required
-<<<<<<< HEAD
 def get_deck(): 
-=======
-def get_deck(): #retrieve
->>>>>>> 73fdce8dcac00f0405dada6d2ac35861a1150f30
     user = User.query.filter_by(username=session['user']).first()
     if not user or not user.selected_deck_id:
         return jsonify({"status": "error", "message": "No deck selected"}), 400

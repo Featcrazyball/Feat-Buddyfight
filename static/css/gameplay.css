@@ -257,8 +257,8 @@ body {
 }
 
 .gauge-space{
-    height: 20vh;
-    margin-top: -2vh;
+    height: 100vh;
+    margin-top: -1vh;
     width: 100%;
     display: grid;
     user-select: none;
@@ -269,7 +269,7 @@ body {
 }
 
 .user-gauge-space{
-    height: 20vh;
+    height: 30vh;
     width: 100%;
 }
 
@@ -434,7 +434,7 @@ body {
     align-items: center; 
     position: relative;
     pointer-events: auto;
-    cursor: pointer;
+    cursor: grab;
 }
 
 .normal-card {
@@ -698,54 +698,108 @@ body {
 }
 
 /* Deck Modal */
-.deck-modal-container {
-    display: none; 
-    position: fixed; 
-    top: 20%;
-    left: 50%; 
-    transform: translate(-50%, -50%); 
-    width: 60vw;
-    height: 40vh;
-    background-color: rgba(0, 0, 0, 1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-    z-index: 1000;
+.opponent-deck-modal-container{
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
     justify-content: center;
-    flex-direction: column;
     align-items: center;
-    margin: 0; 
-    padding: 3vh 3vw;
+    z-index: 999;
 }
 
-.deck-modal-title {
+#user-zones-modal-wrapper {
+    display: none; 
+    position: absolute; 
+    top: 0;
+    left: 0;
+    width: 100vw;
+    padding-top: 10vh;
+    height: fit-content;
+    gap: 2vh;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 999; 
+}
+
+.deck-modal-container, .opponent-deck-modal-wrapper{
+    display: none;
+    width: 50vw;
+    height: 40vh;
+    z-index: 1000;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    background-color: #000;
+    border-radius: 12px;
+}
+
+.exit-button{
+    background-color: #990000;
+    color: white;
+    border: none;
+    border-radius: 1vh;
+    cursor: pointer;
+    box-shadow: 0 0.3vh 0.5vh rgba(0,0,0,0.5);
+    font-size: 1.6vh;
+    width: 5vw;
+    height: 3vh;
+}
+
+.deck-modal-header{
+    width: 100%;
+    padding: 2vw;
+    display: flex;
+    justify-content: space-between;
+}
+
+.deck-modal-title{
     font-size: 3vh;
     color: red;
     text-shadow: 0.1vh 0.1vh 0.3vh black;
 }
 
-.deck-modal-content {
-    width: 40vw;
+.deck-modal-content{
+    width: 50vw;
     height: 40vh;
-    box-shadow: 0 4px 15px white;
-    background-color: rgba(255, 255, 255, 0.3);
+    overflow-y: auto;
+    background-color: black;
     border-radius: 1vh;
     display: flex;
-    align-items: center;
-    justify-content: space-evenly;
-    overflow-y: auto;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 2vh;
     padding: 2vh;
 }
 
 .deck-modal-container.active {
-    display: flex; 
-    pointer-events: auto; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
-.active {
+.active{
     display: flex;
     pointer-events: auto;
 }
-  
+
+.card-modal-container{
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
+
 .card-draw-content {
     background: #222;           
     border: 2px solid #660000;  

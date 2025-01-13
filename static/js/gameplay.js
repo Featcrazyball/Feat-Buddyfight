@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 newElem.classList.add("dragging");
                 const cardJson = newElem.dataset.cardObj;
                 const fromZone = newElem.dataset.fromZone;
+                newElem.style.opacity = "0.3";
                 const payload = {
                     card: JSON.parse(cardJson),
                     from_zone: fromZone,
@@ -40,8 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.dataTransfer.setData("application/json", JSON.stringify(payload));
             });
     
-            newElem.addEventListener("dragend", (e) => {
+            newElem.addEventListener("dragend", () => {
                 newElem.classList.remove("dragging");
+                newElem.style.opacity = "1";
             });
 
             newElem.addEventListener("click", (e) => {
@@ -55,6 +57,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 socket.emit('card_rest_toggle', { room: ROOM_CODE, card: JSON.parse(newElem.dataset.cardObj), zone: newElem.dataset.fromZone });
             });
+
+            newElem.addEventListener('mouseover', () => {
+                newElem.style.cursor = 'grab'
+            });
+
+            newElem.addEventListener('mousedown', () => {
+                newElem.style.cursor = 'grabing'
+            });
     
             oldElem.parentNode.replaceChild(newElem, oldElem);
         });
@@ -62,11 +72,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function bindZoneListeners() {
         const allZones = document.querySelectorAll(`
-            .player-monster-slot,
+            .player-monster-slot, 
             .player-zone,
             .player-mini-zone,
             .user-hand-cards,
-            .user-gauge-space
+            .user-gauge-space,
+            .player-deck-modal-content
         `);
     
         allZones.forEach((zoneElem) => {
@@ -187,48 +198,84 @@ document.addEventListener('DOMContentLoaded', () => {
     const lifeUpBtn = document.getElementById("life-up");
     const lifeDownBtn = document.getElementById("life-down");
 
-    searchDropBtn.addEventListener("click", () => {
-        console.log('Search Drop Zone');
-        document.getElementById("user-search-drop-modal").classList.add("active");
-        socket.emit("search_dropzone_open", { room: ROOM_CODE });
-        document.getElementById('player-deck-exit').addEventListener('click', () => {
-            document.getElementById("user-search-drop-modal").classList.remove("active");
-        });
-    });
+    const userSearchDeckModal = document.getElementById("user-search-deck-modal");
+    const userSearchDropModal = document.getElementById("user-search-drop-modal");
+    function showModalWrapper() {
+        document.getElementById('user-zones-modal-wrapper').style.display = 'flex';
+    }
+    function hideModalWrapper() {
+        document.getElementById('user-zones-modal-wrapper').style.display = 'none';
+    }
 
-    searchDeckBtn.addEventListener("click", () => {
-        console.log('Search Deck');
-        document.getElementById("user-search-deck-modal").classList.add("active");
+    // Show Deck Modal
+    searchDeckBtn.addEventListener('click', function() {
+        showModalWrapper();
+        userSearchDeckModal.style.display = 'flex';
         socket.emit("search_deck_open", { room: ROOM_CODE });
-        document.getElementById('player-dropzone-exit').addEventListener('click', () => {
-            document.getElementById("user-search-deck-modal").classList.remove("active");
-            socket.emit("search_deck_close", { room: ROOM_CODE });
+    });
+
+    // Show Dropzone Modal
+    searchDropBtn.addEventListener('click', function() {
+        showModalWrapper();
+        userSearchDropModal.style.display = 'flex';
+        socket.emit("search_dropzone_open", { room: ROOM_CODE });
+    });
+
+    const exitButtons = document.querySelectorAll('.exit-button');
+    exitButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            if (button.closest('#user-search-deck-modal')) {
+                userSearchDeckModal.style.display = 'none';
+                socket.emit('search_deck_close', { room: ROOM_CODE });
+            } else if (button.closest('#user-search-drop-modal')) {
+                userSearchDropModal.style.display = 'none';
+                socket.emit('search_dropzone_close', { room: ROOM_CODE });
+            }
+            if (userSearchDeckModal.style.display === 'none' && userSearchDropModal.style.display === 'none') {
+                hideModalWrapper();
+            }
         });
     });
 
-    document.getElementById("opponent-drop-zone").addEventListener("click", (e) => {
+    const oppoDrop = document.getElementById("opponent-search-drop-modal")
+    document.getElementById('opponent-drop-zone').addEventListener("click", (e) => {
         console.log('Opponent Drop Zone');
-        socket.emit("opponent_dropzone_open", { room: ROOM_CODE });
-        document.getElementById('opponent-dropzone-exit').addEventListener('click', () => {
-            document.getElementById("user-search-deck-modal").classList.remove("active");
-        });
+        socket.emit("search_opponent_dropzone_open", { room: ROOM_CODE });
+        oppoDrop.style.display = "flex";
+        document.getElementById('opponent-deck-modal-wrapper').style.display = 'flex';
+    });
+
+    oppoDrop.addEventListener("click", (e) => {
+        if (e.target === oppoDrop) {
+            oppoDrop.style.display = "none";
+            document.getElementById('opponent-deck-modal-wrapper').style.display = 'flex';
+            socket.emit("search_opponent_dropzone_close", { room: ROOM_CODE });
+        }
     });
 
     // Buttons
     drawCardBtn.addEventListener("click", () => {
         console.log('clicked draw card');
-        document.getElementById("card-draw-modal").classList.add("active");
+        document.getElementById("card-draw-modal").style.display = "flex";
     });
 
     gaugeBtn.addEventListener("click", () => {
         console.log('clicked gauge');
-        document.getElementById("gauge-draw-modal").classList.add("active");
-        const gaugeModal = document.getElementById("gauge-draw-modal");
-        gaugeModal.addEventListener("click", (e) => {
-            if (e.target === gaugeModal) {
-                gaugeModal.classList.remove("active");
-            }
-        });
+        document.getElementById("gauge-draw-modal").style.display = "flex";
+    });
+
+    const drawModal = document.getElementById("card-draw-modal");
+    drawModal.addEventListener("click", (e) => {
+        if (e.target === drawModal) {
+            drawModal.style.display = "none";
+        }
+    });
+
+    const gaugeModal = document.getElementById("gauge-draw-modal");
+    gaugeModal.addEventListener("click", (e) => {
+        if (e.target === gaugeModal) {
+            gaugeModal.style.display = "none";
+        }
     });
 
     shuffleBtn.addEventListener("click", () => {
@@ -441,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        userDropDiv = document.getElementById("player-drop-zone");
+        userDropDiv = document.getElementById("user-dropzone-content");
         userDropDiv.innerHTML = '';
         userDropzone.forEach((card) => {
             const cardDiv = document.createElement("div");
@@ -563,6 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }
+
             if (userLeftCard.id === userHighlight) {
                 const img = cardDiv.querySelector('img');
                 if (img) {
@@ -689,14 +737,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <img src="${userItemCard.image_url}"
                     alt="${userItemCard.name}"
                     class="impact-card"
-                    draggable="false" style="pointer-events: none;"/>
+                    draggable="false" style="pointer-events: auto;"/>
                 `;
             } else {
                 cardDiv.innerHTML = `
                 <img src="${userItemCard.image_url}"
                     alt="${userItemCard.name}"
                     class="normal-card"
-                    draggable="false" style="pointer-events: none;" />
+                    draggable="false" style="pointer-events: auto;" />
                 `;
             }
             userItemSlot.appendChild(cardDiv);
@@ -890,7 +938,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cardDiv.style.zIndex = "2";
             cardDiv.style.top = "0";
             cardDiv.style.left = "0";
-            cardDiv.style.transform = "rotate(180deg)";
+            cardDiv.style.rotate = '180deg';
         
             if (impactChecker(opponentItemCard)) {
                 cardDiv.innerHTML = `
@@ -937,5 +985,4 @@ document.addEventListener('DOMContentLoaded', () => {
             zonesBound = true;
         }
     }
-    
 });
