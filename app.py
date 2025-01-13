@@ -1447,7 +1447,7 @@ def select_sleeve(sleeve_id):
 
 # Deck Builder [Completed]
 @app.route('/deckBuilder', methods=['GET'])
-@login_required #retrieve
+@login_required 
 def deck_builder():
     decks = Deck.query.filter_by(username=session['user']).all()
     deck_dicts = [deck.to_dict() for deck in decks]
@@ -1458,7 +1458,7 @@ def deck_builder():
 
 @app.route('/deckBuilder/create_deck', methods=['POST'])
 @login_required
-def create_deck(): #create
+def create_deck():
     username = session['user']
     deckName = request.form.get('name', '')
     flag = request.form.get('flag', '')
@@ -1567,7 +1567,7 @@ def select_deck(deck_id):
 
 @app.route('/deckBuilder/delete_deck/<int:deck_id>', methods=['POST'])
 @login_required
-def delete_deck(deck_id): #delete
+def delete_deck(deck_id): 
     user = User.query.filter_by(username=session['user']).first()
 
     if not user:
@@ -1593,7 +1593,7 @@ def delete_deck(deck_id): #delete
         return jsonify({"status": "error", "message": "An error occurred while deleting the deck."}), 500
 
 @app.route('/edit_deck', methods=['GET'])
-def edit_deck(): #update
+def edit_deck(): 
     user = User.query.filter_by(username=session['user']).first()
     if not user or not user.selected_deck_id:
         flash("No deck selected. Please select a deck first.", "error")
@@ -1648,7 +1648,7 @@ def edit_deck(): #update
 
 @app.route('/edit_deck/get_deck', methods=['GET'])
 @login_required
-def get_deck(): #retrieve
+def get_deck(): 
     user = User.query.filter_by(username=session['user']).first()
     if not user or not user.selected_deck_id:
         return jsonify({"status": "error", "message": "No deck selected"}), 400
