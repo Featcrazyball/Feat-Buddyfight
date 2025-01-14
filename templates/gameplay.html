@@ -131,7 +131,7 @@
                         <div class="mini-zone-circle spells-zone player-mini-zone" data-zone="spell" data-allow-append="false" id="player-spell-zone" style="margin-top: -13vh;">
                             Spells Zone
                         </div>
-                        <div class="mini-zone-circle player-mini-zone" style="margin-top: -16vh;" >
+                        <div class="mini-zone-circle " style="margin-top: -16vh;" >
                             <img src="{{ url_for('static', filename=user_flag) }}" alt="User's flag" class="card actual-flag" id="opponent-flag" style="user-select: none; position:absolute; pointer-events: none; z-index: index 1;" draggable="false" >
                             <div class="mini-zone-circle player-mini-zone" id="player-flag-zone" data-zone="item" style="border: 0;" data-allow-append="true"></div>
                         </div>
@@ -191,7 +191,7 @@
         </div>
     </div>
 
-    <div class="deck-modal-container" id="card-draw-modal">
+    <div class="card-modal-container" id="card-draw-modal">
         <div class="card-draw-content" id="card-draw-content">
             <form id="card-draw-form" class="card-draw-form">
                 <h2>Draw Cards</h2>
@@ -201,7 +201,7 @@
         </div>
     </div>
 
-    <div class="deck-modal-container" id="gauge-draw-modal">
+    <div class="card-modal-container" id="gauge-draw-modal">
         <div class="card-draw-content" id="gauge-draw-content">
         <form id="gauge-draw-form" class="card-draw-form">
             <h2>Charge Gauge</h2>
@@ -211,26 +211,36 @@
         </div>
     </div>
 
-    <div id="user-search-deck-modal" class="deck-modal-container">
-        <h1 class="deck-modal-title" id="player-deck-exit">Your Deck</h1>
-        <div class="deck-modal-content" id="player-deck-content" data-zone="deck">
-            <!-- Dynamically Generated -->
+    <div id="user-zones-modal-wrapper">
+        <div id="user-search-deck-modal" class="deck-modal-container">
+            <div class="deck-modal-header">
+                <h1 class="deck-modal-title" id="player-deck-exit">Your Deck</h1>
+                <button class="exit-button">Exit</button>
+            </div>
+            <div class="deck-modal-content player-deck-modal-content" id="player-deck-content" data-zone="deck">
+                <!-- Dynamically Generated -->
+            </div>
+        </div>
+
+        <div class="deck-modal-container" id="user-search-drop-modal">
+            <div class="deck-modal-header">
+                <h1 class="deck-modal-title">Your Dropzone</h1>
+                <button class="exit-button">Exit</button>
+            </div>
+            <div class="deck-modal-content player-deck-modal-content" id="user-dropzone-content" data-zone="dropzone">
+                <!-- Dynamically Generated -->
+            </div>
         </div>
     </div>
 
-    <div class="deck-modal-container" id="user-search-drop-modal">
-        <h1 class="deck-modal-title">Your Dropzone</h1>
-        <button class="exit-button" id="player-dropzone-exit">Exit</button>
-        <div class="deck-modal-content" id="user-dropzone-content" data-zone="dropzone">
-            <!-- Dynamically Generated -->
-        </div>
-    </div>
-
-    <div class="deck-modal-container" id="opponent-search-drop-modal">
-        <h1 class="deck-modal-title">Opponent's Dropzone</h1>
-        <button class="exit-button" id="opponent-dropzone-exit">id="player-dropzone-exit">Exit</button>
-        <div class="deck-modal-content" id="opponent-dropzone-content">
-            <!-- Dynamically Generated -->
+    <div class="opponent-deck-modal-container" id="opponent-search-drop-modal">
+        <div class="opponent-deck-modal-wrapper" id="opponent-deck-modal-wrapper" style="height: 60vh;">
+            <div class="deck-modal-header">
+                <h1 class="deck-modal-title">Opponent's Dropzone</h1>
+            </div>
+            <div class="deck-modal-content" id="opponent-dropzone-content">
+                <!-- Dynamically Generated -->
+            </div>
         </div>
     </div>
 
