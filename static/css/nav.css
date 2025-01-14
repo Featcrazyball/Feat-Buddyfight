@@ -193,23 +193,6 @@ body {
     box-shadow: 0px 0px 20px rgb(251, 255, 0);
 }
 
-/* Responsive Design */
-@media screen and (max-width: 768px) {
-    .listOfEverything ul {
-        display: none;
-    }
-
-    .top-bar {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .account {
-        margin-top: 10px;
-        margin-left: 40px;
-    }
-}
-
 .deck-name{
     margin-top: 55vh;
     position: absolute;
@@ -242,4 +225,25 @@ body {
 .guest-btn span {
     position: relative;
     z-index: 1;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 1000px) {
+    .listOfEverything{
+        display: none;
+    }
+
+    .guest-btn {
+        display: none;
+    }
+
+    .top-bar {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .account {
+        margin-top: 10px;
+        margin-left: 40px;
+    }
 }

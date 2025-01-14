@@ -96,17 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const fromZone = payload.from_zone;
                 const toZone = zoneElem.dataset.zone;
 
-                const allowAppend = zoneElem.dataset.allowAppend === "true";
-    
                 if (fromZone === toZone) return;
-    
-                if (allowAppend) {
-                    const draggedElem = document.querySelector(".hand-card.dragging");
-                    if (draggedElem) {
-                        zoneElem.appendChild(draggedElem);
-                        draggedElem.dataset.fromZone = toZone;
-                    }
-                }
     
                 socket.emit("card_move", {
                     room: ROOM_CODE,
@@ -472,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
         userDeckList.forEach((card) => {
             const cardDiv = document.createElement("div");
             cardDiv.dataset.cardObj = JSON.stringify(card);
-            cardDiv.dataset.fromZone = "hand";
+            cardDiv.dataset.fromZone = "deck";
             cardDiv.classList.add("hand-card");
             cardDiv.draggable = true;
             if (impactChecker(card)) {
@@ -494,6 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const cardDiv = document.createElement("div");
             cardDiv.dataset.cardObj = JSON.stringify(card);
             cardDiv.classList.add("hand-card");
+            cardDiv.dataset.fromZone = "dropzone";
             cardDiv.draggable = true;
             if (impactChecker(card)) {
                 cardDiv.innerHTML = `

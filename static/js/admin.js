@@ -25,7 +25,7 @@ function fetchAndRenderUsers() {
     fetch(url)
         .then(res => res.json())
         .then(data => {
-            const usersTableBody = document.getElementById('users-table-body');
+            const usersTableBody = document.getElementById('user-table-body');
             if (!usersTableBody) return;
             usersTableBody.innerHTML = '';
 
@@ -39,6 +39,10 @@ function fetchAndRenderUsers() {
                     <td>${user.wins}</td>
                     <td>${user.losses}</td>
                     <td>${user.tickets}</td>
+                    <td class="user"> 
+                        <button class="btn-primary user" onclick="openEditModal('${user.username}', '${user.email}', '${user.role}', ${user.wins}, ${user.losses}, ${user.tickets})">Edit</button>
+                        <button class="btn-danger user" onclick="confirmDeleteUser('${user.username}')">Delete</button>
+                    </td>
                 `;
                 usersTableBody.appendChild(tr);
             });
@@ -98,7 +102,8 @@ function fetchAndRenderSleeves() {
         url.searchParams.append('search_sleeve', searchSleeve);
     }
 
-    fetch(url)
+    fetch(url, { method: 'GET' }
+    )
         .then(response => response.json())
         .then(data => {
             const sleevesContainer = document.getElementById('sleeves-container');

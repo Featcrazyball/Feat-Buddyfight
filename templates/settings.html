@@ -22,15 +22,15 @@
 
     <nav>
         <a href="javascript:void(0);" onclick="updateSessionAndGoBack()" class="return-button">Return</a>
-        {% if session.get('user_role', '') == 'admin' %}
-            <a href="{{ url_for('admin') }}" class="admin-button">Admin</a>
-        {% endif %}
         <div class="tabs">
             <button class="tablinks active first" onclick="openTab(event, 'User')">User Profile</button>
             <button class="tablinks" onclick="openTab(event, 'General')">General Settings</button>
             <button class="tablinks" onclick="openTab(event, 'Payment')">Payment History</button>
             <button class="tablinks" onclick="openTab(event, 'Match')">Match History</button>
             <button class="tablinks" onclick="openTab(event, 'Report')">User Reports</button>
+            {% if session.get('user_role', '') == 'admin' %}
+            <a href="{{ url_for('admin') }}" class="admin-button" style="text-decoration: none;">Admin</a>
+            {% endif %}
         </div>
         <a href="{{ url_for('logout') }}" class="logout-button" style="user-select: none;" draggable="false"><h1>Logout</h1></a>
     </nav>

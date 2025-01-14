@@ -147,7 +147,6 @@
 
         <div id="Users" class="tabcontent">
             <h3>User List</h3>
-
             <form method="GET" id="user-filter-form" action="javascript:void(0);" onsubmit="fetchAndRenderUsers()">
                 <input type="text" id="username-search" class="search_input" name="search" placeholder="Search users..." value="{{ search_query }}">
                 <button type="submit" class="filter-btn-user">Search</button>
@@ -189,6 +188,10 @@
 
         <div id="List" class="tabcontent">
             <h3>Sleeves</h3>
+            <form method="GET" action="javascript:void(0);" onsubmit="fetchAndRenderSleeves()">
+                <input type="text" id="search" class="search_input" name="search_sleeve" placeholder="Search sleeve type..." value="{{ search_query }}">
+                <button type="submit" class="filter-btn-user">Search</button>
+            </form>
             <div class="add-sleeve-button" onclick="openAddSleeveModal()">Add Sleeve</div>
             <div id="sleeves-container">
             </div>        

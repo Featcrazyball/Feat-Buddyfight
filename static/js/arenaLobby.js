@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (gameRooms.length === 0) {
             const noRoomsDiv = document.createElement('div');
             noRoomsDiv.className = 'lobby-rooms';
-            noRoomsDiv.innerHTML = `<h1>No Rooms</h1>`;
+            noRoomsDiv.innerHTML = `<h1 style="align-items:center; margin-bottom: -30vh">No Rooms</h1>`;
             roomsContainer.appendChild(noRoomsDiv);
         }
         gameRooms.forEach(room => {

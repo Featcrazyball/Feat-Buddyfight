@@ -228,9 +228,6 @@ nav {
 
 /* Admin Button */
 .admin-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -253,6 +250,7 @@ nav {
     background: linear-gradient(145deg, #0f0f0f, #1a1a1a);
     box-shadow: 0px 4px 15px rgba(244, 3, 3, 0.8);
     transform: scale(1.05);
+    color: rgb(255, 0, 0);
 }
 
 .admin-button:active {

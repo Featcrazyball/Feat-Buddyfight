@@ -13,6 +13,8 @@ from threading import Timer
 from models import db, Card, User, Report, Deck, Sleeve, PaymentHistory, Item
 from error import handle_error
 from cardExtractor import *
+from methods import is_valid_email, admin_required, login_required, opponent_checker, get_active_game_rooms_list, add_message_to_room, generate_room_code, allowed_file, shuffle_deck, draw_cards, get_card_data, remove_card_from_zone, place_card_in_zone, english_checker
+from globals import chat_rooms, game_rooms, user_rooms
 import os, random, json, string, time, eventlet, uuid
 
 # Initialize Flask app and database
@@ -45,127 +47,8 @@ app.config['UPLOAD_SLEEVE'] = UPLOAD_SLEEVE
 # For chat Rooms and Arena
 socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*", logger=True, engineio_logger=True)
 
-chat_rooms = {
-    "General": {"messages": []},
-    "Deck": {"messages": []},
-    "Events": {"messages": []}
-}  
-
 # Error handling
-# app.register_error_handler(Exception, handle_error)
-
-game_rooms = {}
-user_rooms = {} 
-
-# Role-based access control decorators for Admin required
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if session.get('user_role') != 'admin':
-            return redirect(url_for('home'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-def login_required(func):
-    @wraps(func) 
-    def wrapper(*args, **kwargs):
-        if 'user' not in session:
-            flash("Please log in first.", "error")
-            return redirect(url_for('login'))
-        return func(*args, **kwargs) 
-    return wrapper
-
-# Some useful methods so i dont need to keep copy and pasting
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def select_deck(self, deck_id):
-    deck = Deck.query.get(deck_id)
-    if deck and deck.username == self.username: 
-        self.selected_deck_id = deck.id
-        db.session.commit()
-        return True
-    return False
-
-def deselect_deck(self):
-    """Method to deselect the currently selected deck."""
-    self.selected_deck_id = None
-    db.session.commit()
-
-def generate_room_code():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
-
-def get_active_game_rooms_list():
-    return [
-        {
-            "room_code": room_code,
-            "creator_username": room_data["creator_username"],
-            "creator_profile_picture": room_data["creator_profile_picture"],
-        }
-        for room_code, room_data in game_rooms.items()
-        if len(room_data["players"]) < 2  # Exclude full rooms
-    ]
-
-def delayed_room_cleanup(room_code):
-    try:
-        game_room = game_rooms.get(room_code)
-        if game_room and not game_room["players"]: 
-            del game_rooms[room_code]
-            print(f"Room {room_code} deleted due to inactivity.")
-    except KeyError:
-        print(f"Room {room_code} already handled.")
-
-def add_message_to_room(room, username, message):
-    chat_rooms[room]["messages"].append({
-        "username": username,
-        "message": message
-    })
-    if len(chat_rooms[room]["messages"]) > 500:
-        chat_rooms[room]["messages"].pop(0)
-
-def opponent_checker(room_code, username):
-    room_data = game_rooms[room_code]
-    if not room_data or username not in room_data["players"]:
-        emit('error', {"message": "Unexpected error joining room."}, room=request.sid)
-        return
-
-    opponent = None
-    for player in room_data["players"]:
-        if player != username:
-            opponent = player
-            return opponent
-
-def is_valid_email(email):
-    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
-    return re.match(email_regex, email)
-
-# Area Methods
-def shuffle_deck(deck):
-    random.shuffle(deck)
-    return deck
-
-def draw_cards(deck, count):
-    drawn_cards = deck[:count]
-    remaining_deck = deck[count:]
-    username = session['user']
-    if len(remaining_deck) < 1:
-        emit('mini_chat_message', {
-            'sender': 'System',
-            'message': f"{username} has run out of cards in their deck."
-        }, room=request.sid)
-        return
-    return drawn_cards, remaining_deck
-
-def get_card_data(card_ids):
-    unique_ids = set(card_ids)
-    cards = Card.query.filter(Card.id.in_(unique_ids)).all()
-    card_map = {c.id: c.to_dict() for c in cards}
-
-    result = []
-    for cid in card_ids:
-        if cid in card_map:
-            result.append(card_map[cid])
-    return result
+app.register_error_handler(Exception, handle_error)
 
 @app.route('/')
 def index():
@@ -545,6 +428,10 @@ def create_game_room():
     if user_deck.buddy_card_id is None:
         emit('error', {"message": "Please select a buddy card first.", "status": "error"}, room=request.sid)
         return
+    
+    if len(user_deck.cards) < 50:
+        emit('error', {"message": "Deck must have at least 50 cards.", "status": "error"}, room=request.sid)
+        return
 
     if user.profile_image == "uploads/default_profile.jpg":
         profile_picture = "default_profile.jpg"
@@ -585,6 +472,10 @@ def join_game_room(data):
     
     if user_deck.buddy_card_id is None:
         emit('error', {"message": "Please select a buddy card first.", "status": "error"}, room=request.sid)
+        return
+
+    if len(user_deck.cards) < 50:
+        emit('error', {"message": "Deck must have at least 50 cards.", "status": "error"}, room=request.sid)
         return
 
     if room_code not in game_rooms:
@@ -982,6 +873,9 @@ def card_moved(data):
     to_zone = data.get("to_zone")
     spell_id = data.get("spell_id")  
 
+    if from_zone == to_zone:
+        return
+
     remove_card_from_zone(card_data, from_zone, room_code, spell_id)
     place_card_in_zone(card_data, to_zone, room_code, spell_id)
 
@@ -993,194 +887,6 @@ def card_moved(data):
         'sender': 'System',
         'message': english
     }, room=room_code)
-
-def remove_card_from_zone(card_data, from_zone, room_code, spell_id=None):
-    username = session['user']
-
-    match from_zone:
-        case _ if from_zone in ("left", "center", "right", "item"):
-            occupant = game_rooms[room_code]['players'][username][from_zone]
-            if occupant and occupant['id'] == card_data['id']:
-                game_rooms[room_code]['players'][username][from_zone] = None
-
-        case "hand":
-            hand = game_rooms[room_code]['players'][username]['current_hand']
-            if card_data in hand:
-                hand.remove(card_data)
-                game_rooms[room_code]['players'][username]['current_hand_size'] -= 1
-
-        case "dropzone":
-            dropzone = game_rooms[room_code]['players'][username]["dropzone"]
-            if card_data in dropzone:
-                dropzone.remove(card_data)
-
-        case "spells":
-            spells = game_rooms[room_code]['players'][username]["spells"]
-            if card_data in spells:
-                spells.remove(card_data)
-
-        case 'spell-soul':
-            spells = game_rooms[room_code]['players'][username]['spells']
-            the_spell = next((s for s in spells if s['id'] == spell_id), None)
-            if the_spell and "soul" in the_spell:
-                if card_data in the_spell["soul"]:
-                    the_spell["soul"].remove(card_data)
-
-        case 'deck':
-            deck_list = game_rooms[room_code]['players'][username]['deck_list']
-            index = next((i for i, c in enumerate(deck_list) if c['id'] == card_data['id']), None)
-            if index is not None:
-                deck_list.pop(index)
-                game_rooms[room_code]['players'][username]['current_deck_count'] -= 1
-
-        case 'gauge':
-            current_gauge = game_rooms[room_code]['players'][username]['current_gauge']
-            index = next((i for i, c in enumerate(current_gauge) if c['id'] == card_data['id']), None)
-            if index is not None:
-                current_gauge.pop(index)
-                game_rooms[room_code]['players'][username]['current_gauge_size'] -= 1
-
-        case _:
-            pass
-
-def place_card_in_zone(card_data, to_zone, room_code, spell_id=None):
-    username = session['user']
-    card_data.setdefault('soul', [])
-    card_data.setdefault('rest', False)
-    if to_zone in ("deck", "hand", "dropzone"):
-        if card_data["soul"]:
-            for soul_card in card_data["soul"]:
-                game_rooms[room_code]['players'][username]["dropzone"].append(soul_card)
-            card_data["soul"].clear() 
-
-    match to_zone:
-        case _ if to_zone in ("left", "center", "right", "item"):
-            occupant = game_rooms[room_code]['players'][username][to_zone]
-            if occupant is not None:
-                occupant.setdefault('soul', [])
-                occupant.setdefault('rest', False)
-
-                card_data["soul"].append(occupant)
-
-                if occupant["soul"]:
-                    card_data["soul"].extend(occupant["soul"])
-                    occupant["soul"].clear()
-
-            game_rooms[room_code]['players'][username][to_zone] = card_data
-
-        case "hand":
-            game_rooms[room_code]['players'][username]['current_hand'].append(card_data)
-            game_rooms[room_code]['players'][username]['current_hand_size'] += 1
-
-        case "dropzone":
-            game_rooms[room_code]['players'][username]["dropzone"].append(card_data)
-
-        case "spells":
-            game_rooms[room_code]['players'][username]["spells"].append(card_data)
-
-        case 'spell-soul':
-            spells = game_rooms[room_code]['players'][username]['spells']
-            the_spell = next((s for s in spells if s['id'] == spell_id), None)
-            if the_spell:
-                the_spell.setdefault("soul", [])
-                the_spell["soul"].append(card_data)
-
-        case "deck":
-            game_rooms[room_code]['players'][username]['deck_list'].append(card_data)
-            game_rooms[room_code]['players'][username]['current_deck_count'] += 1
-
-        case "gauge":
-            game_rooms[room_code]['players'][username]['current_gauge'].append(card_data)
-            game_rooms[room_code]['players'][username]['current_gauge_size'] += 1
-
-        case _:
-            pass
-
-def english_checker(from_zone, to_zone, card, username):
-    action = 'moves'
-    place = f' from the {from_zone} to the {to_zone}'
-    if from_zone == 'hand':
-        place = f"to the {to_zone}"
-        action = 'calls'
-        if to_zone == 'dropzone':
-            action = 'drops'
-            place = ''
-        if to_zone == 'deck':
-            action = 'returns'
-            place = ' to the deck'
-        if to_zone == 'item':
-            action = 'equips'
-            place = ''
-            if card['type'] == 'Impact Monster' and to_zone not in ['left', 'center', 'right']:
-                action = 'transforms into'
-            if card['type'] == 'Monster' and to_zone not in ['left', 'center', 'right']:
-                action = 'transforms into'
-        if to_zone == 'gauge':
-            english = f"{username} charges."
-            return english
-    
-    if from_zone == 'deck':
-        if to_zone == 'hand':
-            place = 'from deck'
-            action = 'searches for'
-        if to_zone in ['left', 'center', 'right']:
-            place = f"to the {to_zone} from the deck"
-            action = 'calls'
-        if to_zone == 'dropzone':
-            action = 'drops from deck'
-        if to_zone == 'item':
-            action = 'equips from deck'
-            place = ''
-            if card['type'] == 'Impact Monster' and to_zone not in ['left', 'center', 'right', 'item']:
-                action = 'transforms into'
-            if card['type'] == 'Monster' and to_zone not in ['left', 'center', 'right', 'item']:
-                action = 'transforms into from deck'
-    
-    if from_zone == 'dropzone':
-        if to_zone == 'hand':
-            place = ''
-            action = 'returns'
-        if to_zone in ['left', 'center', 'right']:
-            place = f" to the {to_zone} from the dropzone"
-            action = 'calls'
-        if to_zone == 'deck':
-            action = 'returns'
-            place = ' from dropzone to deck'
-        if to_zone == 'item':
-            action = 'equips'
-            place = ''
-            if card['type'] == 'Impact Monster' and to_zone not in ['left', 'center', 'right', 'item']:
-                action = 'transforms into'
-            if card['type'] == 'Monster' and to_zone not in ['left', 'center', 'right', 'item']:
-                action = 'transforms into'
-    
-    if from_zone in ['left', 'center', 'right', 'item']:
-        if to_zone == 'hand':
-            place = ' to the hand'
-            action = 'returns'
-        if to_zone == 'deck':
-            action = 'returns'
-            place = ' to the bottom of the deck'
-        if to_zone == 'dropzone':
-            action = 'drops'
-            english = f"{card['name']} has been destroyed."
-            return english
-        if to_zone == 'item':
-            action = 'equips'
-            place = ''
-            if card['type'] == 'Impact Monster' and to_zone not in ['left', 'center', 'right', 'item']:
-                action = 'transforms into'
-            if card['type'] == 'Monster' and to_zone not in ['left', 'center', 'right', 'item']:
-                action = 'transforms into'
-        if from_zone == 'item':
-            place = ''
-    
-    if to_zone == 'spell':
-        action = 'casts'
-        place = ''
-    
-    english = f"{username} {action} {card['name']}{place}."
-    return english
 
 @socketio.on("highlight_card")
 def handle_highlight_card(data):

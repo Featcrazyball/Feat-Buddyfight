@@ -149,13 +149,12 @@ body{
     border-radius: 5px;
     font-size: 1rem;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, all 0.2s ease;
 }
 
 #save-deck-btn:hover {
     background-color: #0056b3;
 }
-
 
 /* Card Modal */
 .card-modal {
@@ -532,7 +531,6 @@ form input[type="text"]:focus {
 .search-btn:hover {
     background: linear-gradient(45deg, rgba(100, 100, 200, 1), rgba(50, 50, 150, 1));
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(255, 255, 255, 0.6);
-    transform: scale(1.05);
 }
 
 .search-btn:active {
