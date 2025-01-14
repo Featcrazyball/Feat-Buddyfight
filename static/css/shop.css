@@ -68,7 +68,7 @@ body {
 
 .shop-item:hover{
     z-index: 1;
-    transform: scale(1.2);
+    transform: translateY(-1vh);
 }
 
 .ticket-icon{

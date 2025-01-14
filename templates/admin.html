@@ -148,9 +148,9 @@
         <div id="Users" class="tabcontent">
             <h3>User List</h3>
 
-            <form method="GET" action="{{ url_for('admin', usr=session['user']) }}">
-                <input type="text" id="search" class="search_input" name="search" placeholder="Search users..." value="{{ search_query }}">
-                <button type="submit" class="filter-btn">Search</button>
+            <form method="GET" id="user-filter-form" action="javascript:void(0);" onsubmit="fetchAndRenderUsers()">
+                <input type="text" id="username-search" class="search_input" name="search" placeholder="Search users..." value="{{ search_query }}">
+                <button type="submit" class="filter-btn-user">Search</button>
             </form>
             {% if users %}
             <table class="user-table">
@@ -206,22 +206,22 @@
 
             <a href="#" class="filter-btn" onclick="toggleFilter()" style="text-decoration: none;">Filter</a>
             <div id="report-filter-panel" class="filter-panel" style="display: none;">
-                <form method="GET" action="{{ url_for('admin', usr=session['user']) }}">
-                    <label for="user-reporting">User Reporting</label>
+                <form method="GET" action="javascript:void(0);" onsubmit="fetchAndRenderReports()">
+                    <label for="user-reporting">User Reporting:</label>
                     <input type="text" id="user-reporting" name="user-reporting" placeholder="Enter User Reporting" list="user-reporting-options" value="{{ user_reporting_filter }}">
                     <datalist id="type-options">
                         {% for user in users %}
                             <option value="{{ user.username }}">{{ user.username }}</option>
                         {% endfor %}
                     </datalist>
-                    <label for="reported-user">Reported User</label>
+                    <label for="reported-user">Reported User:</label>
                     <input type="text" id="reported-user" name="reported-user" placeholder="Enter User being reported" list="reported-user-list" value="{{ reported_user_filter }}">
                     <datalist id="reported-user-list">
                         {% for user in users %} 
                             <option value="{{ user.username }}">{{ user.username }}</option>
                         {% endfor %}
                     </datalist>
-                    <label for="report-type">Report Type</label>
+                    <label for="report-type">Report Type:</label>
                     <input type="text" id="report-type" name="report-type" placeholder="Enter Report Type" list="report-type-list" value="{{ report_type_filter }}">
                     <datalist id="report-type-list">
                         <option value="User Report">User Report</option>
@@ -230,7 +230,7 @@
                         <option value="Complaints">Complaints</option>
                     </datalist>
                     <button type="submit" class="btn-primary">Apply Filter</button>
-                    <button type="button" class="btn-secondary" onclick="resetFilter()">Reset</button>
+                    <button type="button" class="btn-secondary" style="padding: 8px 15px; font-weight: bold; font-size: 14px;" onclick="resetFilter()">Reset</button>
                 </form>
             </div>
 

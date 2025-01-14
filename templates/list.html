@@ -19,7 +19,7 @@
     {% endblock %}
     <br><br><br><br><br>
     <div class="container">
-        <h1>Buddyfight Card Database</h1>
+        <h1 style="margin-bottom: 3vh;">Buddyfight Card Database</h1>
 
     <!-- Confirmation Modal -->
         <div id="confirmation-modal" class="confirm-modal">
@@ -39,12 +39,12 @@
         {% endif %}
     
         <!-- Search -->
-        <form method="GET" action="#">
+        <form class="search-form" method="GET" action="#">
+            <a href="#" class="filter-btn" onclick="toggleFilter()">Advanced Filter</a>
             <input type="text" id="search" class="search_input" name="search" placeholder="Search cards..." value="{{ search_query }}">
-            <button type="submit" class="filter-btn">Search</button>
+            <button type="submit" class="search-btn">Search Card</button>
         </form>
 
-        <a href="#" class="filter-btn" onclick="toggleFilter()">Advanced Filter</a>
         <div id="filter-panel" class="filter-panel" style="display: none;">
             <form method="GET" action="#">
                 <label for="type">Type:</label>

@@ -304,11 +304,17 @@ footer:hover {
 }
 
 /* Buttons */
+@media screen and (max-width: 768px) {
+    body {
+        display:none;
+    }
+}
+
 .btn-primary, .btn-danger, .btn-secondary {
     padding: 10px 20px;
-    margin: 10px 5px;
+    margin: 0px 5px;
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 1rem;
     cursor: pointer;
     border: none;
     transition: all 0.3s ease;
@@ -375,7 +381,7 @@ footer:hover {
     box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
 }
 
-.filter-btn {
+.filter-btn, .filter-btn-user {
     padding: 10px 20px;
     font-size: 16px;
     border: none;
@@ -385,6 +391,10 @@ footer:hover {
     color: #00d9ff;
     border: 2px solid rgba(0, 217, 255, 0.2);
     transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.filter-btn-user {
+    transform: scale(0.9);
 }
 
 .filter-btn:hover {
@@ -559,27 +569,6 @@ footer:hover {
     box-shadow: 0px 6px 20px rgba(255, 69, 69, 0.8);
 }
 
-.error-modal .btn-secondary {
-    display: block;
-    width: 130px;
-    margin: 20px auto;
-    padding: 10px;
-    font-size: 16px;
-    border: none;
-    background: linear-gradient(to right, #ff4545, #b30000);
-    color: #fff;
-    text-align: center;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.error-modal .btn-secondary:hover {
-    background: linear-gradient(to right, #b30000, #ff4545);
-    box-shadow: 0 4px 15px rgba(255, 69, 69, 0.8);
-    transform: scale(1.1);
-}
-
 @keyframes fadeInOverlay {
     from {
         opacity: 0;
@@ -672,8 +661,9 @@ textarea {
     border: 1px solid #ccc;
     border-radius: 4px;
     margin-bottom: 20px;
-    width: 70vw;
+    width: 60vw;
     margin: auto;
+    margin-top: 4vh;
 }
 
 .filter-panel form {
@@ -685,6 +675,7 @@ textarea {
 .filter-panel label {
     font-weight: bold;
     font-size: 14px;
+    margin-bottom: -0.5vh;
 }
 
 .filter-panel input, .search_input {
@@ -692,6 +683,7 @@ textarea {
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
+    margin-top: -1vh;
 }
 
 /* Sleeves */

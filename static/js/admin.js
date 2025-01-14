@@ -17,77 +17,79 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function fetchAndRenderUsers() {
-    fetch('/admin/get_users')
-        .then(response => response.json())
+    const username = document.getElementById('username-search').value;
+
+    const url = new URL('/admin/get_users', window.location.origin);
+    if (username) url.searchParams.append('username', username);
+
+    fetch(url)
+        .then(res => res.json())
         .then(data => {
             const usersTableBody = document.getElementById('users-table-body');
             if (!usersTableBody) return;
-
             usersTableBody.innerHTML = '';
 
+            // Note "user" instead of "users" and an innerHTML
             data.users.forEach(user => {
                 const tr = document.createElement('tr');
-
                 tr.innerHTML = `
-                    <td class="user">${user.username}</td>
-                    <td class="user">${user.email}</td>
-                    <td class="user">${user.role}</td>
-                    <td class="user">${user.wins}</td>
-                    <td class="user">${user.losses}</td>
-                    <td class="user">${user.tickets}</td>
-                    <td class="user">
-                        <button class="btn-primary user" 
-                            onclick="openEditModal('${user.username}', '${user.email}', '${user.role}', ${user.wins}, ${user.losses}, ${user.tickets})">
-                            Edit
-                        </button>
-                        <button class="btn-danger user" 
-                            onclick="confirmDeleteUser('${user.username}')">
-                            Delete
-                        </button>
-                    </td>
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td>${user.role}</td>
+                    <td>${user.wins}</td>
+                    <td>${user.losses}</td>
+                    <td>${user.tickets}</td>
                 `;
                 usersTableBody.appendChild(tr);
             });
         })
-        .catch(err => {
-            console.error('Error fetching users:', err);
-            showModal('Failed to fetch users', 'error');
-        });
+        .catch(err => console.error('Error fetching users:', err));
 }
 
 function fetchAndRenderReports() {
-    fetch('/admin/get_reports')
-        .then(response => response.json())
+    const reportingUser = document.getElementById('user-reporting').value;
+    const reportedUser = document.getElementById('reported-user').value;
+    const reportType = document.getElementById('report-type').value;
+
+    const url = new URL('/admin/get_reports', window.location.origin);
+    if (reportingUser) url.searchParams.append('user-reporting', reportingUser);
+    if (reportedUser) url.searchParams.append('reported-user', reportedUser);
+    if (reportType) url.searchParams.append('report-type', reportType);
+
+    fetch(url)
+        .then(res => res.json())
         .then(data => {
             const reportsTableBody = document.getElementById('reports-table-body');
             if (!reportsTableBody) return;
-
-            // Clear existing rows
             reportsTableBody.innerHTML = '';
 
             data.reports.forEach(report => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="user">${report.id}</td>
-                    <td class="user">${report.user_reporting}</td>
-                    <td class="user">${report.user_being_reported}</td>
-                    <td class="user">${report.report_type}</td>
-                    <td class="user">${report.detail}</td>
-                    <td class="user">
-                        <button class="btn-danger user" 
-                            onclick="confirmDeleteReport('${report.id}')">
-                            Delete
-                        </button>
+                    <td>${report.id}</td>
+                    <td>${report.user_reporting}</td>
+                    <td>${report.user_being_reported}</td>
+                    <td>${report.report_type}</td>
+                    <td>${report.detail}</td>
+                    <td>
+                        <button class="btn-danger" onclick="confirmDeleteReport('${report.id}')">Delete</button>
                     </td>
                 `;
                 reportsTableBody.appendChild(tr);
             });
+            if (data.reports.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="6">No Reports found</td>`;
+                reportsTableBody.appendChild(tr);
+            }
         })
-        .catch(err => {
-            console.error('Error fetching reports:', err);
-            showModal('Failed to fetch reports', 'error');
-        });
+        .catch(err => console.error('Error fetching reports:', err));
 }
+
+document.getElementById('report-filter-panel').addEventListener('submit', function(event) {
+    event.preventDefault();
+    fetchAndRenderReports();
+});
 
 function fetchAndRenderSleeves() {
     const searchSleeve = document.getElementById('search').value;
@@ -327,6 +329,7 @@ function deleteSleeve() {
     .catch(() => showModal('An unexpected error occurred. Please try again later.', 'error'))
     .finally(() => closeModal('confirm-delete-sleeve-modal'));
 }
+
 function updateFileName() {
     const input = document.getElementById('sleeve-image');
     const fileName = input.files.length > 0 ? input.files[0].name : 'No file chosen';
