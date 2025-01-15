@@ -20,7 +20,7 @@
 
         <div class="sidebar">
             <div class="home-icon">
-                <a href="{{ url_for('home', usr=session['user']) }}">
+                <a href="{{ url_for('routes.home', usr=session['user']) }}">
                     <img src="img/home.jpg" alt="Home Icon" draggable="false">
                 </a>
             </div>
@@ -28,11 +28,11 @@
                 <img src="img/Logo.webp" alt="Buddyfight Logo" class="logo" draggable="false">
             </div>
             <ul class="menu">
-                <li><span class="dot"></span><a href="{{ url_for('arenaLobby', usr=session['user']) }}" class="menu-link active">PLAY</a></li>
-                <li><span class="dot"></span><a href="{{ url_for('deck_builder', usr=session['user']) }}" class="menu-link">DECKS</a></li>
-                <li><span class="dot"></span><a href="{{ url_for('chat', usr=session['user']) }}" class="menu-link">CHAT ROOMS</a></li>
-                <li><span class="dot"></span><a href="{{ url_for('gacha', usr=session['user']) }}" class="menu-link">GACHA</a></li>
-                <li><span class="dot"></span><a href="{{ url_for('settings', usr=session['user']) }}" class="menu-link">SETTINGS</a></li>
+                <li><span class="dot"></span><a href="{{ url_for('routes.arenaLobby', usr=session['user']) }}" class="menu-link active">PLAY</a></li>
+                <li><span class="dot"></span><a href="{{ url_for('routes.deck_builder', usr=session['user']) }}" class="menu-link">DECKS</a></li>
+                <li><span class="dot"></span><a href="{{ url_for('routes.chat', usr=session['user']) }}" class="menu-link">CHAT ROOMS</a></li>
+                <li><span class="dot"></span><a href="{{ url_for('routes.gacha', usr=session['user']) }}" class="menu-link">GACHA</a></li>
+                <li><span class="dot"></span><a href="{{ url_for('routes.settings', usr=session['user']) }}" class="menu-link">SETTINGS</a></li>
             </ul>
         </div>
         

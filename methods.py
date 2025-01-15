@@ -11,7 +11,7 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get('user_role') != 'admin':
-            return redirect(url_for('home'))
+            return redirect(url_for('routes.home'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -20,7 +20,7 @@ def login_required(func):
     def wrapper(*args, **kwargs):
         if 'user' not in session:
             flash("Please log in first.", "error")
-            return redirect(url_for('login'))
+            return redirect(url_for('routes.login'))
         return func(*args, **kwargs) 
     return wrapper
 

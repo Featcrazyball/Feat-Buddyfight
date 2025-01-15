@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            disableButtonWithTimer(button, 30);
+            disableButtonWithTimer(button, 5);
 
             if (type === "10x") {
                 video.currentTime = 0;
@@ -174,6 +174,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (tickets) {
             const ticketInfo = document.createElement("div");
+            ticketInfo.style.width = "100%";
+            ticketInfo.style.textAlign = "center";
             ticketInfo.className = "ticket-info";
             ticketInfo.textContent = `You gained ${tickets} tickets for duplicate cards!`;
             cardsDisplay.appendChild(ticketInfo);

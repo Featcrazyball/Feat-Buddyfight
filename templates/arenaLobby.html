@@ -99,8 +99,8 @@
     </div>
 
     <div class="button-container">
-        <a href="{{ url_for('sleeves') }}" class="custom-button">Select Sleeves</a>
-        <a href="{{ url_for('deck_builder') }}" class="custom-button selected-deck">
+        <a href="{{ url_for('routes.sleeves') }}" class="custom-button">Select Sleeves</a>
+        <a href="{{ url_for('routes.deck_builder') }}" class="custom-button selected-deck">
             <span>Select Deck</span>
             <div id="selected-deck-name" class="selected-deck-name">{{ selected_deck if selected_deck else "No Deck Selected"}}</div>
         </a>

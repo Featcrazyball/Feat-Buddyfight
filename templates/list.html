@@ -35,7 +35,7 @@
         <div class="line"></div>
     
         {% if session.get('user_role', '') == 'admin' %}
-        <a href="{{ url_for('scrape_cards') }}" class="scrape-btn">Scrape Data</a>
+        <a href="{{ url_for('routes.scrape_cards') }}" class="scrape-btn">Scrape Data</a>
         {% endif %}
     
         <!-- Search -->

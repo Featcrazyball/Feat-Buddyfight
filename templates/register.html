@@ -4,7 +4,7 @@
 {% block entry %}
 <h1>REGISTER</h1>
 
-<form method="POST" action="{{ url_for('register') }}">
+<form method="POST" action="{{ url_for('routes.register') }}">
     <div class="input-container">
         <input type="text" id="username" name="username" class="form" placeholder="Username" maxlength="20" pattern="[a-zA-Z0-9]+" required>
     </div>

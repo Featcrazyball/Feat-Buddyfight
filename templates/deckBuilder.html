@@ -15,7 +15,6 @@
     {% endblock %}
     <div id="modal" class="modal">
         <div class="modal-content">
-            <span class="close-button">&times;</span>
             <div id="modal-message"></div>
         </div>
     </div>
@@ -34,7 +33,7 @@
         <div id="add-deck-modal" class="deck-modal">
             <div class="deck-modal-content">
                 <h2 class="add-deck-heading">Add Deck</h2>
-                <form action="{{ url_for('create_deck') }}" id="addDeck">
+                <form action="{{ url_for('routes.create_deck') }}" id="addDeck">
                     <div class="form-group">
                         <label for="name">Name:</label>
                         <input type="text" name="name" id="name" maxlength="10" required>

@@ -29,10 +29,10 @@
             <button class="tablinks" onclick="openTab(event, 'Match')">Match History</button>
             <button class="tablinks" onclick="openTab(event, 'Report')">User Reports</button>
             {% if session.get('user_role', '') == 'admin' %}
-            <a href="{{ url_for('admin') }}" class="admin-button" style="text-decoration: none;">Admin</a>
+            <a href="{{ url_for('routes.admin') }}" class="admin-button" style="text-decoration: none;">Admin</a>
             {% endif %}
         </div>
-        <a href="{{ url_for('logout') }}" class="logout-button" style="user-select: none;" draggable="false"><h1>Logout</h1></a>
+        <a href="{{ url_for('routes.logout') }}" class="logout-button" style="user-select: none;" draggable="false"><h1>Logout</h1></a>
     </nav>
     
     <div class="container">
@@ -45,7 +45,7 @@
                         <label for="profile-picture-upload" class="profile-picture-label">
                             <img 
                                 id="profile-picture" 
-                                src="{{ url_for('serve_uploaded_file', filename=username.profile_image.split('/')[-1]) if username.profile_image != 'uploads/default_profile.jpg' else url_for('static', filename=username.profile_image) }}" 
+                                src="{{ url_for('routes.serve_uploaded_file', filename=username.profile_image.split('/')[-1]) if username.profile_image != 'uploads/default_profile.jpg' else url_for('static', filename=username.profile_image) }}" 
                                 alt="Profile Picture"
                                 class="profile-img"
                             >
@@ -58,7 +58,7 @@
                 </div>
             
                 <!-- Update Username Form -->
-                <form id="updateUsernameForm" method="POST" action="{{ url_for('update_username', usr=session['user']) }}" class="dynamic-form">
+                <form id="updateUsernameForm" method="POST" action="{{ url_for('routes.update_username', usr=session['user']) }}" class="dynamic-form">
                     <div class="form-group">
                         <label for="username">Username:</label>
                         <input type="text" id="username" name="username" placeholder="Enter new username" value="{{ username.username }}" maxlength="20">
@@ -69,7 +69,7 @@
                 </form>
 
                 <!-- Update Email Form -->
-                <form id="updateEmailForm" method="POST" action="{{ url_for('update_email', usr=session['user']) }}" class="dynamic-form">
+                <form id="updateEmailForm" method="POST" action="{{ url_for('routes.update_email', usr=session['user']) }}" class="dynamic-form">
                     <div class="form-group">
                         <label for="email">Email:</label>
                         <input type="email" id="email" name="email" placeholder="Enter new email" value="{{ email }}">
@@ -80,7 +80,7 @@
                 </form>
 
                 <!-- Update Password Form -->
-                <form id="updatePasswordForm" method="POST" action="{{ url_for('update_password', usr=session['user']) }}" class="dynamic-form">
+                <form id="updatePasswordForm" method="POST" action="{{ url_for('routes.update_password', usr=session['user']) }}" class="dynamic-form">
                     <div class="form-group">
                         <label for="password">Change Password:</label>
                         <input type="password" id="password" name="password" placeholder="Enter new password" class="password-input">
@@ -139,7 +139,7 @@
             <div id="Report" class="tabcontent">
                 <h3>User Report</h3>
                 <div class="form-group">
-                    <form id="submitUserReport" method="POST" action="{{ url_for('user_report', usr=session['user']) }}" class="dynamic-form">
+                    <form id="submitUserReport" method="POST" action="{{ url_for('routes.user_report', usr=session['user']) }}" class="dynamic-form">
                         <label for="report-type">Report Type:</label>
                         <select name="report-type" id="report-type" class="type-selection" required style="width: 30vw; margin-top: -20px;">
                             <option value="User Report">User Report</option>
@@ -165,7 +165,7 @@
     <div class="delete-account-modal-content">
         <p>Are you sure you want to delete your account? This action cannot be undone.</p>
         <div class="delete-account-modal-actions">
-            <form id="deleteAccountForm" method="POST" action="{{ url_for('delete_user') }}">
+            <form id="deleteAccountForm" method="POST" action="{{ url_for('routes.delete_user') }}">
                 <button type="submit" class="btn-delete-account-confirm">Yes, Delete</button>
             </form>
             <button type="button" class="btn-delete-account-cancel" onclick="hideDeleteAccountModal()">Cancel</button>

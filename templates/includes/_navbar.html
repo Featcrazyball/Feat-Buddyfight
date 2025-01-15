@@ -2,19 +2,19 @@
 
 <nav class="hovertop">
     <div class="top-bar">
-        <a href="{{ url_for('home', usr=session['user']) }}" class="logoLink"><img src="{{ url_for('static', filename='img/Logo.webp') }}" alt="Buddyfight Logo" class="logo"></a>
+        <a href="{{ url_for('routes.home', usr=session['user']) }}" class="logoLink"><img src="{{ url_for('static', filename='img/Logo.webp') }}" alt="Buddyfight Logo" class="logo"></a>
         <nav class="listOfEverything">
             <ul>
                 <li id="home">
-                    <a href="{{ url_for('shop', usr=session['user']) }}">Shops</a>
+                    <a href="{{ url_for('routes.shop', usr=session['user']) }}">Shops</a>
                 </li>
 
                 <li id="abt">
-                    <a href="{{ url_for('list', usr=session['user']) }}" >Card List</a>
+                    <a href="{{ url_for('routes.list', usr=session['user']) }}" >Card List</a>
                 </li>
 
                 <li id="char">
-                    <a href="{{ url_for('anime', usr=session['user']) }}" >Anime</a>
+                    <a href="{{ url_for('routes.anime', usr=session['user']) }}" >Anime</a>
                     <table class="dropdown-table" id="top-anime">
                         <tr><td><a href="">Buddyfight</a></td></tr>
                         <tr><td><a href="">Buddyfight Hundred</a></td></tr>
@@ -25,27 +25,27 @@
                 </li>
 
                 <li id="arena">
-                    <a href="{{ url_for('arenaHome', usr=session['user']) }}">Arena</a>
+                    <a href="{{ url_for('routes.arenaHome', usr=session['user']) }}">Arena</a>
                     <table class="dropdown-table" id="top-arena">
                         <tr>
-                            <td><a href="{{ url_for('arenaHome', usr=session['user']) }}">Play</a></td>
+                            <td><a href="{{ url_for('routes.arenaHome', usr=session['user']) }}">Play</a></td>
                         </tr>
                         <tr>
-                            <td><a href="{{ url_for('arenaLobby', usr=session['user']) }}">Lobby</a></td>
+                            <td><a href="{{ url_for('routes.arenaLobby', usr=session['user']) }}">Lobby</a></td>
                         </tr>
                         <tr>
-                            <td><a href="{{ url_for('chat', usr=session['user']) }}">Chat Rooms</a></td>
+                            <td><a href="{{ url_for('routes.chat', usr=session['user']) }}">Chat Rooms</a></td>
                         </tr>
                         <tr>
-                            <td><a href="{{ url_for('deck_builder', usr=session['user']) }}">Deck Builder</a></td>
+                            <td><a href="{{ url_for('routes.deck_builder', usr=session['user']) }}">Deck Builder</a></td>
                         </tr>
                         <tr>
-                            <td><a href="{{ url_for('gacha', usr=session['user']) }}">Gacha</a></td>
+                            <td><a href="{{ url_for('routes.gacha', usr=session['user']) }}">Gacha</a></td>
                         </tr>
                     </table>
                 </li>
                 <li id="abt">
-                    <a href="{{ url_for('about', usr=session['user']) }}" >About Us</a>
+                    <a href="{{ url_for('routes.about', usr=session['user']) }}" >About Us</a>
                 </li>
             </ul>
         </nav>
@@ -53,10 +53,10 @@
             {% if 'user' in session %}
             <span><b>{{ session['user'] }}</b></span>
             {% else %}
-            <a href="{{ url_for('login') }}" class="guest-btn">Login</a>
-            <a href="{{ url_for('register') }}" class="guest-btn">Register</a>
+            <a href="{{ url_for('routes.login') }}" class="guest-btn">Login</a>
+            <a href="{{ url_for('routes.register') }}" class="guest-btn">Register</a>
             {% endif %}
-            <a href="{{ url_for('settings', usr=session['user']) }}"><img src="{{ url_for('static', filename='img/Settings.png') }}" alt="Settings Icon" class="settings-icon"></a>
+            <a href="{{ url_for('routes.settings', usr=session['user']) }}"><img src="{{ url_for('static', filename='img/Settings.png') }}" alt="Settings Icon" class="settings-icon"></a>
         </div>
     </div>
 </nav>

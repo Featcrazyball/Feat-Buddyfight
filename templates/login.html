@@ -4,7 +4,7 @@
 {% block entry %}
 <h1>LOGIN</h1>
 
-<form method="POST" action="{{ url_for('login') }}">
+<form method="POST" action="{{ url_for('routes.login') }}">
     <div class="input-container">
         <input type="text" id="username" name="username" class="form" placeholder="Username" required>
     </div>
@@ -12,7 +12,7 @@
         <input type="password" id="password" name="password" class="form" placeholder="Password" required>
     </div>
     <button type="submit" class="register">LOGIN</button>
-    <a href="{{ url_for('register') }}">
+    <a href="{{ url_for('routes.register') }}">
         <button type="button" class="return">REGISTER</button>
     </a>
 </form>
