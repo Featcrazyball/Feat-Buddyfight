@@ -266,7 +266,7 @@ class LobbyCreation:
             }
 
             if len(room_data["players"]) == 2:
-                eventlet.sleep(0.5)
+                eventlet.sleep(0.2)
                 emit('joining_game_player', {
                     'opponent': opponent
                 }, room=request.sid)

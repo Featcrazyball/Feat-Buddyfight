@@ -375,6 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
             msgDiv.style.padding = "5px";
             msgDiv.style.textAlign = "center";
             msgDiv.style.backgroundColor = 'black';
+            msgDiv.style.fontSize = '1.8vh';
         }
         msgDiv.textContent = `${sender}: ${message}`;
         miniChatMessages.appendChild(msgDiv);

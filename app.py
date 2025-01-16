@@ -26,10 +26,10 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"pool_pre_ping": True, "pool_recycle"
 app.secret_key = "supersecretkey"
 
 db.init_app(app)
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 # Profile Picture
 UPLOAD_FOLDER = os.path.join('static', 'uploads', 'profile_images')
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Ensure the folder exists
