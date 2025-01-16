@@ -65,7 +65,63 @@ document.addEventListener('DOMContentLoaded', () => {
             newElem.addEventListener('mousedown', () => {
                 newElem.style.cursor = 'grabing'
             });
-    
+
+            newElem.addEventListener('mouseenter', () => {
+                console.log('Mouse Enter');
+
+                const cardModal = document.getElementById('card-info-overlay');
+                cardModal.style.display = 'flex';
+
+                const cardImage = document.getElementById('overlay-card-image');
+                const cardDescription = document.getElementById('overlay-card-description');
+
+                const cardData = JSON.parse(newElem.dataset.cardObj);
+                cardImage.innerHTML = "";
+                cardDescription.innerHTML = "";
+                cardDescription.scrollTop = 0;
+                cardDescription.style.overflow = 'auto';
+                cardDescription.style.fontSize = '1.8vh';
+                const img = document.createElement('img');
+                img.src = cardData.image_url;
+                img.alt = cardData.name;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.backgroundColor = 'none'
+                cardImage.appendChild(img);
+
+                const abilityParts = cardData.ability_effect.split('■');
+                const formattedAbility = abilityParts.shift() + '<br>■' + abilityParts.join('<br>■');
+
+                cardDescription.innerHTML = `
+                    <h3>Card Name: ${cardData.name}</h3>
+                    <p>World: ${cardData.world}</p>
+                    <p>Type: ${cardData.type}</p>
+                    <p>Card ID: ${cardData.card_number}</p>
+                    <p>Card Rarity: ${cardData.rarity}</p>
+                    <p>Power: ${cardData.power}</p>
+                    <p>Defense: ${cardData.defense}</p>
+                    <p>Critical: ${cardData.critical}</p>
+                    <p>Size: ${cardData.size}</p>
+                    <p>Attribute: ${cardData.attribute}</p>
+                    <p>Ability: ${formattedAbility}</p>
+                `
+            });
+
+            newElem.addEventListener('mouseleave', () => {
+                console.log('Mouse Leave');
+                const cardModal = document.getElementById('card-info-overlay');
+                cardModal.style.display = 'none';
+            });
+
+            newElem.addEventListener('wheel', (e) => {
+                console.log('Scrolling');
+                const cardDescription = document.getElementById('overlay-card-description');
+                if (cardDescription) {
+                    cardDescription.scrollTop += e.deltaY;
+                    cardDescription.scrollLeft += e.deltaX;
+                }
+            });
+
             oldElem.parentNode.replaceChild(newElem, oldElem);
         });
     }

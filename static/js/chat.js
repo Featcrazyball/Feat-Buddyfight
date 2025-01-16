@@ -210,7 +210,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const leavePrivateRoomButton = newTabContent.querySelector(".leave-private-room");
         leavePrivateRoomButton.addEventListener("click", () => {
-            switchRoom(roomCode);
             leaveRoomButton.click();
         });
 

@@ -97,9 +97,9 @@
                 </div>
                 <div class="form-group">
                     <label for="edit-tickets">Tickets:</label>
-                    <input type="number" id="edit-tickets" name="tickets">
+                    <input type="number" id="edit-tickets" name="tickets" style="margin-bottom: 2vh;">
                 </div>
-                <button type="submit" class="btn-primary">Save Changes</button>
+                <button type="submit" class="btn-primary" style="margin-bottom: -4vh;">Save Changes</button>
             </form>
         </div>
     </div>
@@ -151,7 +151,6 @@
                 <input type="text" id="username-search" class="search_input" name="search" placeholder="Search users..." value="{{ search_query }}">
                 <button type="submit" class="filter-btn-user">Search</button>
             </form>
-            {% if users %}
             <table class="user-table">
                 <thead>
                     <tr>
@@ -165,23 +164,6 @@
                     </tr>
                 </thead>
                 <tbody id="user-table-body">   
-                    {% for user in users %}
-                        <tr>
-                            <td class="user">{{ user.username }}</td>
-                            <td class="user">{{ user.email }}</td>
-                            <td class="user" >{{ user.role }}</td>
-                            <td class="user">{{ user.wins }}</td>
-                            <td class="user">{{ user.losses }}</td>
-                            <td class="user">{{ user.tickets }}</td>
-                            <td class="user"> 
-                                <button class="btn-primary user" onclick="openEditModal('{{ user.username }}', '{{ user.email }}', '{{ user.role }}', {{ user.wins }}, {{ user.losses }}, {{ user.tickets }})">Edit</button>
-                                <button class="btn-danger user" onclick="confirmDeleteUser('{{ user.username }}')">Delete</button>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                {% else %}
-                        <h1>No Such User</h1>
-                {% endif %}
                 </tbody>
             </table>
         </div>

@@ -111,8 +111,19 @@ def remove_card_from_zone(card_data, from_zone, room_code, spell_id=None):
 
     match from_zone:
         case _ if from_zone in ("left", "center", "right", "item"):
-            occupant = game_rooms[room_code]['players'][username][from_zone]
-            if occupant and occupant['id'] == card_data['id']:
+            occupant = game_rooms[room_code]['players'][username].get(from_zone)
+            if occupant and occupant.get('id') == card_data.get('id'):
+                card_soul = occupant.get('soul', [])
+                if card_soul:
+                    dropzone = game_rooms[room_code]['players'][username].get("dropzone", [])
+
+                    for soul_card in card_soul:
+                        soul_card_id = soul_card.get('id')
+                        if not any(existing_card.get('id') == soul_card_id for existing_card in dropzone):
+                            dropzone.append(soul_card)
+                            dropzone.remove(soul_card)
+                    card_soul.clear()
+
                 game_rooms[room_code]['players'][username][from_zone] = None
 
         case "hand":
@@ -233,10 +244,10 @@ def english_checker(from_zone, to_zone, card, username):
     
     if from_zone == 'deck':
         if to_zone == 'hand':
-            place = 'from deck'
+            place = ' from deck'
             action = 'searches for'
         if to_zone in ['left', 'center', 'right']:
-            place = f"to the {to_zone} from the deck"
+            place = f" to the {to_zone} from the deck"
             action = 'calls'
         if to_zone == 'dropzone':
             action = 'drops from deck'

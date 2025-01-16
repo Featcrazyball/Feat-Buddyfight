@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app,render_template, request, redirect, url_for, flash, session, get_flashed_messages, send_from_directory, jsonify, abort, session
+from flask import Blueprint, current_app,render_template, request, redirect, url_for, flash, session, get_flashed_messages, send_from_directory, jsonify, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.utils import secure_filename, redirect
@@ -621,7 +621,7 @@ def edit_deck():
     # Filter by valid flags and attributes
     attribute_filters = [Card.attribute.ilike(f"%{attr}%") for attr in valid_attributes]
     unlocked_cards_query = unlocked_cards_query.filter(
-        or_(*[Card.world.ilike(f"%{flag}%") for flag in valid_flags]) | or_(*attribute_filters)
+        (Card.world.in_(valid_flags)) | or_(*attribute_filters)
     )
 
     # Exclude specific types
@@ -673,9 +673,8 @@ def get_deck():
 
     attribute_filters = [Card.attribute.ilike(f"%{attr}%") for attr in valid_attributes]
     unlocked_cards_query = unlocked_cards_query.filter(
-        or_(*[Card.world.ilike(f"%{flag}%") for flag in valid_flags]) | or_(*attribute_filters)
+        (Card.world.in_(valid_flags)) | or_(*attribute_filters)
     )
-
 
     if exclude_types:
         unlocked_cards_query = unlocked_cards_query.filter(~Card.type.in_(exclude_types))
@@ -852,6 +851,7 @@ def update_username():
 
     user.username = new_username
     Deck.query.filter_by(username=session['user']).update({"username": new_username})
+    PaymentHistory.query.filter_by(username=session['user']).update({"username": new_username})
     session['user'] = new_username
     db.session.commit()
     
@@ -1053,12 +1053,11 @@ def admin():
 @routes.route('/admin/get_users', methods=['GET'])
 @admin_required
 def get_users():
-    search_query = request.args.get('search', '')
+    search_query = request.args.get('username', '')
     query = User.query
     if search_query:
         query = query.filter(
-            User.username.ilike(f"%{search_query}%") |
-            User.email.ilike(f"%{search_query}%")
+            User.username.ilike(f"%{search_query}%")
         )
     users = query.all()
     user_data = [

@@ -1,12 +1,11 @@
-from flask import request, redirect, url_for, flash, session, get_flashed_messages, send_from_directory, jsonify, abort
+from flask import request, url_for, session
 from flask_socketio import SocketIO, join_room, leave_room, emit, send, rooms, close_room
 import eventlet
 # Personal Libraries
-from models import db, Card, User, Report, Deck, Sleeve, PaymentHistory, Item
+from models import db, User, Deck
 from cardExtractor import *
-from methods import is_valid_email, admin_required, login_required, opponent_checker, get_active_game_rooms_list, add_message_to_room, generate_room_code, allowed_file, shuffle_deck, draw_cards, get_card_data, remove_card_from_zone, place_card_in_zone, english_checker
+from methods import login_required, opponent_checker, get_active_game_rooms_list, add_message_to_room, generate_room_code, shuffle_deck, draw_cards, get_card_data, remove_card_from_zone, place_card_in_zone, english_checker
 from globals import chat_rooms, game_rooms, user_rooms
-from routes import routes
 
 class Main:
     def __init__(self, socketio):
@@ -279,7 +278,7 @@ class LobbyCreation:
                 emit('room_ready', {
                     "message": f"Room {room_code} is ready!",
                     "room_code": room_code,
-                    "redirect_url": url_for('gameplay', room_code=room_code),
+                    "redirect_url": url_for('routes.gameplay', room_code=room_code),
                 }, room=room_code)
 
         @self.socketio.on('leave_created_game_room')
@@ -304,7 +303,7 @@ class LobbyCreation:
                     self.socketio.emit('game_end', {
                         "message": f"Game End. Winner: {remaining_user}",
                         "room_code": room_code,
-                        "redirect_url": url_for('arenaLobby'),
+                        "redirect_url": url_for('routes.arenaLobby'),
                     }, room=room_code)
                     if remaining_user in user_rooms:
                         del user_rooms[remaining_user]
@@ -317,7 +316,7 @@ class LobbyCreation:
 
                 emit('room_closed', {
                     "message": "You have left the room.",
-                    "redirect_url": url_for('arenaLobby'),
+                    "redirect_url": url_for('routes.arenaLobby'),
                 }, room=request.sid)
 
             else:
@@ -352,7 +351,7 @@ class ArenaGameplay:
 
             emit('mini_chat_message', {
                 'sender': 'System',
-                'message': f"{username} has entered the {phase} phase."
+                'message': f"{username} has entered the {phase}."
                 }, room=room_code)
 
         # Life Counter [Complete]

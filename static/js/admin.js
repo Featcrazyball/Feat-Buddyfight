@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function fetchAndRenderUsers() {
+    console.log('clicked');
     const username = document.getElementById('username-search').value;
 
     const url = new URL('/admin/get_users', window.location.origin);
