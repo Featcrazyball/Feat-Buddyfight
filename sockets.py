@@ -501,12 +501,12 @@ class ArenaGameplay:
             current_highlight = game_rooms[room_code]['players'][username].get('highlighter')
 
             if current_highlight is None:
-                game_rooms[room_code]['players'][username]['highlighter'] = card_data["id"]
+                game_rooms[room_code]['players'][username]['highlighter'] = card_data["instance_id"]
             else:
-                if current_highlight == card_data["id"]:
+                if current_highlight == card_data["instance_id"]:
                     game_rooms[room_code]['players'][username]['highlighter'] = None
                 else:
-                    game_rooms[room_code]['players'][username]['highlighter'] = card_data["id"]
+                    game_rooms[room_code]['players'][username]['highlighter'] = card_data["instance_id"]
 
             emit("update_game_information", {}, room=room_code)
 

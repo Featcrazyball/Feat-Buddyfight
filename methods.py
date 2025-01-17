@@ -1,7 +1,7 @@
 from flask import session, redirect, url_for, flash, request
 from functools import wraps
 from flask_socketio import emit
-import random, string, re
+import random, string, re, uuid
 # Personal
 from globals import ALLOWED_EXTENSIONS, game_rooms, chat_rooms
 from models import db, Card, User, Report, Deck, Sleeve, PaymentHistory, Item
@@ -103,6 +103,7 @@ def get_card_data(card_ids):
     result = []
     for cid in card_ids:
         if cid in card_map:
+            card_map[cid]["instance_id"] = str(uuid.uuid4())
             result.append(card_map[cid])
     return result
 
