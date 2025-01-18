@@ -362,7 +362,7 @@ body {
     align-items: end;
 }
 
-.soul-holder p{
+.soul-count{
     border-radius: 50%;
     color: black;
     font-size: 2vh;
@@ -373,7 +373,10 @@ body {
     align-items: center;
     aspect-ratio: 1/1;
     width: 1.5vw;
-    z-index: 3;
+    z-index: 999999999999999999999999999;
+    position: relative;
+    cursor: pointer;
+    pointer-events: auto;
 }
 
 .user-cards-space-wrapper {

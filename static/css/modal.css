@@ -38,9 +38,9 @@
     color: #ffffff;
     text-align: center;
     overflow: hidden;
-    animation: slideDown 1s cubic-bezier(0.25, 1, 0.5, 1); /* Smooth slide-down effect */
+    animation: slideDown 1s cubic-bezier(0.25, 1, 0.5, 1); 
     box-shadow: 0 0 30px rgba(0, 255, 255, 0.8), 0 0 60px rgba(0, 255, 255, 0.4);
-    transition: box-shadow 0.3s ease-in-out; /* Smooth transition for shadow change */
+    transition: box-shadow 0.3s ease-in-out; 
 }
 
 /* Success Shadow */

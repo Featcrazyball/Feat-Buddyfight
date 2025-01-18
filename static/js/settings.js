@@ -53,4 +53,3 @@ function submitProfilePicture() {
             showModal("An error occurred. Please try again.", "error");
         });
 }
-

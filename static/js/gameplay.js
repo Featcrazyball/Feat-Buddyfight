@@ -32,17 +32,50 @@ document.addEventListener('DOMContentLoaded', () => {
             const cardObj = JSON.parse(oldElem.dataset.cardObj || '{}');
             const cardId = cardObj.instance_id;
 
-            newElem.addEventListener("dragstart", (e) => {
-                newElem.classList.add("dragging");
-                const cardJson = newElem.dataset.cardObj;
-                const fromZone = newElem.dataset.fromZone;
-                newElem.style.opacity = "0.3";
-                const payload = {
-                    card: JSON.parse(cardJson),
-                    from_zone: fromZone,
-                };
-                e.dataTransfer.setData("application/json", JSON.stringify(payload));
-            });
+            const fromZone = newElem.dataset.fromZone;
+            if (fromZone === 'soul') {
+                newElem.addEventListener("dragstart", (e) => {
+                    newElem.classList.add("dragging");
+                    const soulContent = newElem.closest('.player-deck-modal-content');
+                    
+                    let hostCard = null;
+                    try {
+                        const hostCardString = soulContent?.dataset?.hostCard;
+                        if (hostCardString) {
+                            hostCard = JSON.parse(hostCardString);
+                        }
+                    } catch (err) {
+                        console.error('Failed to parse host card:', err);
+                        hostCard = null;
+                    }
+            
+                    const payload = {
+                        card: cardObj,
+                        from_zone: fromZone,
+                        hostCard: hostCard 
+                    };
+            
+                    try {
+                        e.dataTransfer.setData("application/json", JSON.stringify(payload));
+                    } catch (err) {
+                        console.error('Failed to stringify payload:', err);
+                    }
+                    
+                    newElem.style.opacity = "0.3";
+                });
+            } else {
+                newElem.addEventListener("dragstart", (e) => {
+                    newElem.classList.add("dragging");
+                    const cardJson = newElem.dataset.cardObj;
+                    const fromZone = newElem.dataset.fromZone;
+                    newElem.style.opacity = "0.3";
+                    const payload = {
+                        card: JSON.parse(cardJson),
+                        from_zone: fromZone,
+                    };
+                    e.dataTransfer.setData("application/json", JSON.stringify(payload));
+                });
+            }
     
             newElem.addEventListener("dragend", () => {
                 newElem.classList.remove("dragging");
@@ -129,6 +162,57 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
+            if (cardObj.soul && cardObj.soul.length > 0) {
+                const soulContainer = document.createElement('div');
+                soulContainer.classList.add('soul-holder');
+                const soulCount = document.createElement('p');
+                soulCount.classList.add('soul-count');
+                soulCount.textContent = cardObj.soul.length;
+
+                soulCount.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    console.log('Soul Count Clicked');
+                    showModalWrapper()
+                    const soulModal = document.getElementById('user-search-soul-modal');
+                    soulModal.style.display = 'flex';
+                    const soulContent = document.getElementById('user-soul-content');
+                    document.getElementById('soul-modal').textContent =`Soul of ${cardObj.name}`;
+                    soulContent.innerHTML = '';
+                    soulContent.dataset.hostCard = JSON.stringify(cardObj);
+
+                    cardObj.soul.forEach((soulCard) => {
+                        const soulCardDiv = document.createElement('div');
+                        soulCardDiv.classList.add('hand-card');
+                        soulCardDiv.dataset.cardObj = JSON.stringify(soulCard);
+                        soulCardDiv.dataset.fromZone = 'soul';
+                        soulCardDiv.draggable = true;
+                        if (impactChecker(soulCard)) {
+                            soulCardDiv.innerHTML = `
+                            <img src="${soulCard.image_url}"
+                                alt="${soulCard.name}"
+                                class="impact-card"
+                                draggable="false" style="pointer-events: none;"/>
+                            `;
+                        } else {
+                            soulCardDiv.innerHTML = `
+                            <img src="${soulCard.image_url}"
+                                alt="${soulCard.name}"
+                                class="normal-card"
+                                draggable="false" style="pointer-events: none;"/>
+                            `;
+                        }
+                        soulContent.appendChild(soulCardDiv);
+                    });
+
+                    if (cardObj.owner == USERNAME) {
+                        attachHandCardListeners();
+                    }
+                });
+                soulContainer.appendChild(soulCount);
+                newElem.appendChild(soulContainer);
+            }
+            
             oldElem.parentNode.replaceChild(newElem, oldElem);
         });
     }
@@ -158,6 +242,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cardData = payload.card;
                 const fromZone = payload.from_zone;
                 const toZone = zoneElem.dataset.zone;
+                const hostCard = payload.hostCard || {}; 
+
+                if (toZone === "soul") {
+                    const occupantStr = zoneElem.dataset.hostCard;
+                    if (!occupantStr) {
+                        showModal("No occupant to place soul into!", "error");
+                        return;
+                    }
+            
+                    let occupantObj;
+                    try {
+                      occupantObj = JSON.parse(occupantStr);
+                    } catch (err) {
+                        console.error("Failed to parse occupant hostCard:", err);
+                        return;
+                    }
+                    // If occupantObj has an instance_id, use it as the 'spell_id'
+                    if (!occupantObj.instance_id) {
+                        showModal("No occupant to place soul into!", "error");
+                        return;
+                    }
+            
+                    socket.emit("card_move", {
+                        room: ROOM_CODE,
+                        card: cardData,
+                        from_zone: fromZone,
+                        to_zone: toZone,
+                        spell_id: occupantObj.instance_id,
+                    });
+                    return; 
+                }
 
                 if (fromZone === toZone) return;
     
@@ -166,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     card: cardData,
                     from_zone: fromZone,
                     to_zone: toZone,
+                    spell_id: hostCard.instance_id
                 });
             });
         });
@@ -253,6 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const userSearchDeckModal = document.getElementById("user-search-deck-modal");
     const userSearchDropModal = document.getElementById("user-search-drop-modal");
+
     function showModalWrapper() {
         document.getElementById('user-zones-modal-wrapper').style.display = 'flex';
     }
@@ -283,6 +400,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (button.closest('#user-search-drop-modal')) {
                 userSearchDropModal.style.display = 'none';
                 socket.emit('search_dropzone_close', { room: ROOM_CODE });
+            } else if (button.closest('#user-search-soul-modal')) {
+                document.getElementById('user-search-soul-modal').style.display = 'none';
             }
             if (userSearchDeckModal.style.display === 'none' && userSearchDropModal.style.display === 'none') {
                 hideModalWrapper();
@@ -542,6 +661,58 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        const playerDropzone = document.getElementById("player-drop-zone");
+        playerDropzone.style.backgroundImage = '';
+        playerDropzone.textContent = 'Drop Zone';
+        if (userDropzone.length > 0) {
+            playerDropzone.textContent = '';
+            const cardDiv = document.createElement("div");
+            cardDiv.classList.add("hand-card");
+            cardDiv.classList.add("opponent-hand-card");
+            const card = userDropzone[userDropzone.length - 1];
+
+            cardDiv.style.cursor = 'none';
+
+            if (impactChecker(userDropzone[userDropzone.length - 1])) {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" 
+                    class="impact-card" style="pointer-events: none; height: 5vw;">
+                `;
+            } else {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" 
+                    class="normal-card" style="pointer-events: none; width: 5vw;">
+                `;
+            }
+            playerDropzone.appendChild(cardDiv);
+        }
+
+        const opponentDropzoneDiv = document.getElementById("opponent-drop-zone");
+        opponentDropzoneDiv.style.backgroundImage = '';
+        opponentDropzoneDiv.textContent = 'Drop Zone';
+        if (opponentDropzone.length > 0) {
+            opponentDropzoneDiv.textContent = '';
+            const cardDiv = document.createElement("div");
+            cardDiv.classList.add("hand-card");
+            cardDiv.classList.add("opponent-hand-card");
+            const card = opponentDropzone[opponentDropzone.length - 1];
+            cardDiv.style.cursor = 'none';
+
+            if (impactChecker(opponentDropzone[opponentDropzone.length - 1])) {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" 
+                    class="impact-card" style="pointer-events: none; height: 5vw;">
+                `;
+            } else {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" 
+                    class="normal-card" style="pointer-events: none; width: 5vw;">
+                `;
+            }
+
+            opponentDropzoneDiv.appendChild(cardDiv);
+        }
+
         userDropDiv = document.getElementById("user-dropzone-content");
         userDropDiv.innerHTML = '';
         userDropzone.forEach((card) => {
@@ -605,7 +776,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
         const opponentHandDiv = document.getElementById("opponent-hand-cards");
         opponentHandDiv.innerHTML = ''; 
-        opponentHand.forEach(() => {
+        for (let i = 0; i < opponentHandSize; i++) {
             const cardDiv = document.createElement("div");
             cardDiv.classList.add("hand-card");
             cardDiv.classList.add("opponent-hand-card")
@@ -615,7 +786,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <img src="/${OPPONENT_SLEEVE}" draggable="false" class="normal-card" >
             `;
             opponentHandDiv.appendChild(cardDiv);
-        });
+        };
 
         const userGuageDiv = document.getElementById("user-gauge-space");
         userGuageDiv.innerHTML = '';
@@ -632,7 +803,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const opponentGuageDiv = document.getElementById("opponent-gauge-space");
         opponentGuageDiv.innerHTML = '';
-        opponentGuage.forEach(() => {
+        for (let i = 0; i < opponentGuageSize; i++) {
             const cardDiv = document.createElement("div");
             cardDiv.classList.add("gauge-card");
             cardDiv.draggable = false;
@@ -640,7 +811,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <img src="/${OPPONENT_SLEEVE}" draggable="false" class="normal-card">
             `;
             opponentGuageDiv.appendChild(cardDiv);
-        });
+        }
 
         const userLeftSlot = document.getElementById("player-left");
         userLeftSlot.innerHTML = '';
@@ -660,15 +831,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <img src="${userLeftCard.image_url}" alt="${userLeftCard.name}" 
                     class="normal-card" draggable="true" style="pointer-events: auto;">
                 `;
-            }
-
-            if (userLeftCard.soul) {
-                soulContainer = document.createElement('div');
-                soulContainer.classList.add('soul-holder');
-                soulCount = document.createElement('p');
-                soulCount.textContent = userLeftCard.soul.length;
-                soulContainer.appendChild(soulCount);
-                cardDiv.appendChild(soulContainer);
             }
 
             if (userLeftCard.rest == true) {
@@ -1038,10 +1200,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        document.getElementById('user-search-soul-modal').style.display = 'none';
+
         attachHandCardListeners();
         if (!zonesBound) {
             bindZoneListeners();
             zonesBound = true;
         }
     }
+});
+
+document.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
 });

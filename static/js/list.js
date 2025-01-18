@@ -73,4 +73,3 @@ function handleKeyDown(event) {
         closeModal();
     }
 }
-

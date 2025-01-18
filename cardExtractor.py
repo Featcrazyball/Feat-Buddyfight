@@ -125,4 +125,3 @@ def scrape_all_cards():
                     print(f"Inserted: {card_no}")
             except Exception as e:
                 print(f"Error processing card {card_no}: {e}")
-                

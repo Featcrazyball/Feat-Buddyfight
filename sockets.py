@@ -212,14 +212,14 @@ class LobbyCreation:
             opponent_gauge_ids, opponent_remaining_deck = draw_cards(opponent_remaining_deck, opponent_deck.initial_gauge)
 
             # Get card data
-            user_hand = get_card_data(user_hand_ids)
-            user_gauge = get_card_data(user_gauge_ids)
+            user_hand = get_card_data(user_hand_ids, session['user'])
+            user_gauge = get_card_data(user_gauge_ids, session['user'])
 
-            opponent_hand = get_card_data(opponent_hand_ids)
-            opponent_gauge = get_card_data(opponent_gauge_ids)
+            opponent_hand = get_card_data(opponent_hand_ids, opponent)
+            opponent_gauge = get_card_data(opponent_gauge_ids, opponent)
 
-            user_deck_list = get_card_data(user_remaining_deck)
-            opponent_deck_list = get_card_data(opponent_remaining_deck)
+            user_deck_list = get_card_data(user_remaining_deck, session['user'])
+            opponent_deck_list = get_card_data(opponent_remaining_deck, opponent)
 
             # Deck Count
             user_deck_count = len(user_remaining_deck)

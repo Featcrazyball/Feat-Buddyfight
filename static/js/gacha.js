@@ -199,4 +199,3 @@ document.addEventListener("DOMContentLoaded", () => {
         button.addEventListener("click", () => handlePull("10x", button));
     });
 });
-
