@@ -96,15 +96,15 @@ def draw_cards(deck, count):
     return drawn_cards, remaining_deck
 
 def get_card_data(card_ids):
-    unique_ids = set(card_ids)
-    cards = Card.query.filter(Card.id.in_(unique_ids)).all()
+    cards = Card.query.filter(Card.id.in_(set(card_ids))).all()
     card_map = {c.id: c.to_dict() for c in cards}
 
     result = []
     for cid in card_ids:
         if cid in card_map:
-            card_map[cid]["instance_id"] = str(uuid.uuid4())
-            result.append(card_map[cid])
+            card_instance = card_map[cid].copy()
+            card_instance["instance_id"] = str(uuid.uuid4())
+            result.append(card_instance)
     return result
 
 def remove_card_from_zone(card_data, from_zone, room_code, spell_id=None):
@@ -164,6 +164,16 @@ def remove_card_from_zone(card_data, from_zone, room_code, spell_id=None):
                 current_gauge.pop(index)
                 game_rooms[room_code]['players'][username]['current_gauge_size'] -= 1
 
+        case 'soul':
+            soul = card_data.get('soul', [])
+            if soul:
+                for soul_card in soul:
+                    soul_card_id = soul_card.get('id')
+                    if not any(existing_card.get('id') == soul_card_id for existing_card in game_rooms[room_code]['players'][username]['dropzone']):
+                        game_rooms[room_code]['players'][username]['dropzone'].append(soul_card)
+                        game_rooms[room_code]['players'][username]['dropzone'].remove(soul_card)
+                card_data['soul'].clear()
+
         case _:
             pass
 
@@ -191,6 +201,9 @@ def place_card_in_zone(card_data, to_zone, room_code, spell_id=None):
                     occupant["soul"].clear()
 
             game_rooms[room_code]['players'][username][to_zone] = card_data
+
+        case 'soul':
+            game_rooms[room_code]['players'][username][to_zone]['soul'].append(card_data)
 
         case "hand":
             game_rooms[room_code]['players'][username]['current_hand'].append(card_data)

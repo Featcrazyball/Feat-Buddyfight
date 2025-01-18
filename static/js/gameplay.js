@@ -73,6 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             newElem.addEventListener('mouseenter', () => {
                 console.log('Mouse Enter');
+                if (newElem.classList.contains('opponent-hand-card')) {
+                    return
+                } 
 
                 const cardModal = document.getElementById('card-info-overlay');
                 cardModal.style.display = 'flex';
@@ -605,6 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
         opponentHand.forEach(() => {
             const cardDiv = document.createElement("div");
             cardDiv.classList.add("hand-card");
+            cardDiv.classList.add("opponent-hand-card")
             cardDiv.draggable = false;
             cardDiv.style.rotate = '180deg';
             cardDiv.innerHTML = `
@@ -657,6 +661,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     class="normal-card" draggable="true" style="pointer-events: auto;">
                 `;
             }
+
+            if (userLeftCard.soul) {
+                soulContainer = document.createElement('div');
+                soulContainer.classList.add('soul-holder');
+                soulCount = document.createElement('p');
+                soulCount.textContent = userLeftCard.soul.length;
+                soulContainer.appendChild(soulCount);
+                cardDiv.appendChild(soulContainer);
+            }
+
             if (userLeftCard.rest == true) {
                 cardDiv.style.transform = "rotate(90deg)";
             } else {
@@ -664,7 +678,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (userHighlight === opponentHighlight) {
-                if (userHighlight) {
+                if (userHighlight && userHighlight === userLeftCard.instance_id) {
                     const overlay = document.createElement('div');
                     overlay.classList.add('card-overlay', 'overlay-pink');
                     cardDiv.appendChild(overlay);
@@ -708,21 +722,20 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }
-            if (userCenterCard.instance_id === userHighlight) {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "2px solid rgba(0, 0, 255, 0.5)"; 
+            if (userHighlight === opponentHighlight) {
+                if (userHighlight && userHighlight === userCenterCard.instance_id) {
+                    const overlay = document.createElement('div');
+                    overlay.classList.add('card-overlay', 'overlay-pink');
+                    cardDiv.appendChild(overlay);
                 }
+            } else if (userCenterCard.instance_id === userHighlight) {
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-blue');
+                cardDiv.appendChild(overlay);
             } else if (userCenterCard.instance_id === opponentHighlight) {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "2px solid rgba(255, 0, 0, 0.5)";
-                }
-            } else {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "none";
-                }
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-red');
+                cardDiv.appendChild(overlay);
             }
         }
 
@@ -752,21 +765,20 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }
-            if (userRightCard.instance_id === userHighlight) {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "2px solid rgba(0, 0, 255, 0.5)"; 
+            if (userHighlight === opponentHighlight) {
+                if (userHighlight && userHighlight === userRightCard.instance_id) {
+                    const overlay = document.createElement('div');
+                    overlay.classList.add('card-overlay', 'overlay-pink');
+                    cardDiv.appendChild(overlay);
                 }
+            } else if (userRightCard.instance_id === userHighlight) {
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-blue');
+                cardDiv.appendChild(overlay);
             } else if (userRightCard.instance_id === opponentHighlight) {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "2px solid rgba(255, 0, 0, 0.5)";
-                }
-            } else {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "none";
-                }
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-red');
+                cardDiv.appendChild(overlay);
             }
         }
 
@@ -805,21 +817,20 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }
-            if (userItemCard.instance_id === userHighlight) {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "2px solid rgba(0, 0, 255, 0.5)"; 
+            if (userHighlight === opponentHighlight) {
+                if (userHighlight && userHighlight === userItemCard.instance_id) {
+                    const overlay = document.createElement('div');
+                    overlay.classList.add('card-overlay', 'overlay-pink');
+                    cardDiv.appendChild(overlay);
                 }
+            } else if (userItemCard.instance_id === userHighlight) {
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-blue');
+                cardDiv.appendChild(overlay);
             } else if (userItemCard.instance_id === opponentHighlight) {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "2px solid rgba(255, 0, 0, 0.5)";
-                }
-            } else {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "none";
-                }
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-red');
+                cardDiv.appendChild(overlay);
             }
         }
 
@@ -857,21 +868,20 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }
-            if (opponentLeftCard.instance_id === userHighlight) {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "2px solid rgba(0, 0, 255, 0.5)"; 
+            if (userHighlight === opponentHighlight) {
+                if (userHighlight && userHighlight === opponentLeftCard.instance_id) {
+                    const overlay = document.createElement('div');
+                    overlay.classList.add('card-overlay', 'overlay-pink');
+                    cardDiv.appendChild(overlay);
                 }
+            } else if (opponentLeftCard.instance_id === userHighlight) {
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-blue');
+                cardDiv.appendChild(overlay);
             } else if (opponentLeftCard.instance_id === opponentHighlight) {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "2px solid rgba(255, 0, 0, 0.5)";
-                }
-            } else {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "none";
-                }
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-red');
+                cardDiv.appendChild(overlay);
             }
         }
 
@@ -909,21 +919,20 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }
-            if (opponentCenterCard.instance_id === userHighlight) {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "2px solid rgba(0, 0, 255, 0.5)"; 
+            if (userHighlight === opponentHighlight) {
+                if (userHighlight && userHighlight === opponentCenterCard.instance_id) {
+                    const overlay = document.createElement('div');
+                    overlay.classList.add('card-overlay', 'overlay-pink');
+                    cardDiv.appendChild(overlay);
                 }
+            } else if (opponentCenterCard.instance_id === userHighlight) {
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-blue');
+                cardDiv.appendChild(overlay);
             } else if (opponentCenterCard.instance_id === opponentHighlight) {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "2px solid rgba(255, 0, 0, 0.5)";
-                }
-            } else {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "none";
-                }
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-red');
+                cardDiv.appendChild(overlay);
             }
         }
 
@@ -961,21 +970,20 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }
-            if (opponentRightCard.instance_id === userHighlight) {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "2px solid rgba(0, 0, 255, 0.5)"; 
+            if (userHighlight === opponentHighlight) {
+                if (userHighlight && userHighlight === opponentRightCard.instance_id) {
+                    const overlay = document.createElement('div');
+                    overlay.classList.add('card-overlay', 'overlay-pink');
+                    cardDiv.appendChild(overlay);
                 }
+            } else if (opponentRightCard.instance_id === userHighlight) {
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-blue');
+                cardDiv.appendChild(overlay);
             } else if (opponentRightCard.instance_id === opponentHighlight) {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "2px solid rgba(255, 0, 0, 0.5)";
-                }
-            } else {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "none";
-                }
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-red');
+                cardDiv.appendChild(overlay);
             }
         }
 
@@ -1013,21 +1021,20 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }
-            if (opponentItemCard.instance_id === userHighlight) {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "2px solid rgba(0, 0, 255, 0.5)"; 
+            if (userHighlight === opponentHighlight) {
+                if (userHighlight && userHighlight === opponentItemCard.instance_id) {
+                    const overlay = document.createElement('div');
+                    overlay.classList.add('card-overlay', 'overlay-pink');
+                    cardDiv.appendChild(overlay);
                 }
+            } else if (opponentItemCard.instance_id === userHighlight) {
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-blue');
+                cardDiv.appendChild(overlay);
             } else if (opponentItemCard.instance_id === opponentHighlight) {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "2px solid rgba(255, 0, 0, 0.5)";
-                }
-            } else {
-                const img = cardDiv.querySelector('img');
-                if (img) {
-                  img.style.outline = "none";
-                }
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-red');
+                cardDiv.appendChild(overlay);
             }
         }
 

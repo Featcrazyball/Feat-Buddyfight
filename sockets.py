@@ -556,25 +556,6 @@ class ArenaGameplay:
 
             emit("update_game_information", {}, room=room_code)
 
-        # Search Deck [Complete]
-        @self.socketio.on('search_deck')
-        def card_call_soul(data):
-            room_code = data.get('room')
-            card = data.get('card')
-            username = session['user']
-
-            game_rooms[room_code]['players'][username]['deck_list'].remove(card)
-            game_rooms[room_code]['players'][username]['current_deck_count'] -= 1
-            game_rooms[room_code]['players'][username]['current_hand'].append(card)
-            game_rooms[room_code]['players'][username]['current_hand_size'] += 1
-
-            emit('update_game_information', {}, room=room_code)
-
-            emit('mini_chat_message', {
-                'sender': 'System',
-                'message': f"{username} adds {card.name} from the deck to hand."
-                }, room=room_code)
-
         @self.socketio.on('search_deck_open')
         def search_open(data):
             room_code = data.get('room')
@@ -598,24 +579,6 @@ class ArenaGameplay:
                 }, room=room_code)
             
             emit('update_game_information', {}, room=request.sid)
-
-        # Search Dropzone [Complete]
-        @self.socketio.on('search_dropzone')
-        def search_dropzone(data):
-            room_code = data.get('room')
-            card = data.get('card')
-            username = session['user']
-
-            game_rooms[room_code]['players'][username]['dropzone'].remove(card)
-            game_rooms[room_code]['players'][username]['current_hand'].append(card)
-            game_rooms[room_code]['players'][username]['current_hand_size'] += 1
-
-            emit('update_game_information', {}, room=room_code, include_self=False)
-
-            emit('mini_chat_message', {
-                'sender': 'System',
-                'message': f"{username} adds {card.name} from his dropzone to his hand."
-                }, room=room_code)
 
         @self.socketio.on('search_dropzone_open')
         def search_dropzone_open(data):
@@ -688,12 +651,6 @@ class ArenaGameplay:
                 game_rooms[room_code]['players'][username]['dropzone'].append(card)
             game_rooms[room_code]['players'][username]['deck_list'] = deck
             game_rooms[room_code]['players'][username]['current_deck_count'] -= number_of_cards
-
-            emit('dropzone_from_deck', {
-                'deck_count': game_rooms[room_code]['players'][username]['current_deck_count'],
-                'deck': game_rooms[room_code]['players'][username]['deck_list'],
-                'dropzone': game_rooms[room_code]['players'][username]['dropzone'],
-            }, room=room_code, include_self=False)
 
             emit('update_game_information', {}, room=request.sid)
 

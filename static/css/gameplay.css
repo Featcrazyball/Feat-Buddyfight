@@ -357,20 +357,22 @@ body {
     border-radius: 8px;
     position: absolute;
     color: white;
-    display: none;
+    display: flex;
     justify-content: flex-start;
     align-items: end;
 }
 
 .soul-holder p{
     border-radius: 50%;
-    color: white;
-    background-color: rgba(255, 255, 255, 0.3);
+    color: black;
+    font-size: 2vh;
+    font-weight: bolder;
+    background-color: rgba(255, 255, 255, 0.7);
     display: flex;
     justify-content: center;
     align-items: center;
     aspect-ratio: 1/1;
-    width: 1vw;
+    width: 1.5vw;
     z-index: 3;
 }
 
@@ -424,7 +426,7 @@ body {
 
 /* Hand cards area */
 .hand-card {
-    width: 3.5vw;
+    width: 3.2vw;
     aspect-ratio: 2/3;
     margin: 0.5vw;
     border-radius: 0.5vh;
@@ -690,7 +692,7 @@ body {
 
 /* Soul and holders */
 .holder-card{
-    width: 4vw;
+    width: 3vw;
     aspect-ratio: 2/3;
     border-radius: 8px;
     position: absolute;
