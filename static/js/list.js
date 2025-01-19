@@ -29,8 +29,15 @@ function openModal(cardId) {
         document.getElementById('modal-type').innerText = card.type;
 
         const abilityParts = card.ability_effect.split('■');
-        const formattedAbility = abilityParts.shift() + '<br>■' + abilityParts.join('<br>■');
-        document.getElementById('modal-ability').innerHTML = formattedAbility;
+        const mainParts = abilityParts.shift();
+        const restParts = abilityParts.join('<br>■');
+
+        // Handle ・ in the main text
+        const dotParts = mainParts.split('・');
+        const formattedMain = dotParts.join('<br>・');
+
+        // Combine everything
+        document.getElementById('modal-ability').innerHTML = formatAbilityText(card.ability_effect);
 
         document.getElementById('modal-image').src = card.image_url;
         document.getElementById('modal-image').alt = card.name;

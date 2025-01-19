@@ -91,9 +91,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             newElem.addEventListener("contextmenu", (e) => {
-                console.log('right clicked card');
+                console.log('Right Clicked');
                 e.preventDefault();
-                socket.emit('card_rest_toggle', { room: ROOM_CODE, card: JSON.parse(newElem.dataset.cardObj), zone: newElem.dataset.fromZone });
+                if (["left","center","right","item"].includes(newElem.dataset.fromZone)) {
+                    socket.emit('card_rest_toggle', {
+                        room: ROOM_CODE,
+                        card: JSON.parse(newElem.dataset.cardObj),
+                        zone: newElem.dataset.fromZone
+                    });
+                }
             });
 
             newElem.addEventListener('mouseover', () => {
@@ -130,9 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 img.style.backgroundColor = 'none'
                 cardImage.appendChild(img);
 
-                const abilityParts = cardData.ability_effect.split('■');
-                const formattedAbility = abilityParts.shift() + '<br>■' + abilityParts.join('<br>■');
-
                 cardDescription.innerHTML = `
                     <h3>Card Name: ${cardData.name}</h3>
                     <p>World: ${cardData.world}</p>
@@ -143,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p>Critical: ${cardData.critical}</p>
                     <p>Size: ${cardData.size}</p>
                     <p>Attribute: ${cardData.attribute}</p>
-                    <p>Ability: ${formattedAbility}</p>
+                    <p>Ability: ${formatAbilityText(cardData.ability_effect)}</p>
                 `
             });
 
@@ -154,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             newElem.addEventListener('wheel', (e) => {
+                e.preventDefault();
                 console.log('Scrolling');
                 const cardDescription = document.getElementById('overlay-card-description');
                 if (cardDescription) {
@@ -181,11 +185,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     soulContent.innerHTML = '';
                     soulContent.dataset.hostCard = JSON.stringify(cardObj);
 
+                    let fromZoneForSoul = 'soul';
+
                     cardObj.soul.forEach((soulCard) => {
                         const soulCardDiv = document.createElement('div');
                         soulCardDiv.classList.add('hand-card');
                         soulCardDiv.dataset.cardObj = JSON.stringify(soulCard);
-                        soulCardDiv.dataset.fromZone = 'soul';
+                        soulCardDiv.dataset.fromZone = fromZoneForSoul;
                         soulCardDiv.draggable = true;
                         if (impactChecker(soulCard)) {
                             soulCardDiv.innerHTML = `
@@ -370,6 +376,70 @@ document.addEventListener('DOMContentLoaded', () => {
     const userSearchDeckModal = document.getElementById("user-search-deck-modal");
     const userSearchDropModal = document.getElementById("user-search-drop-modal");
 
+    topDeckDropBtn.addEventListener("click", () => {
+        document.getElementById('top-drop-modal').style.display = 'flex';
+    });
+
+    topDeckSoulBtn.addEventListener("click", () => {
+        if (!userHighlight) {
+            console.log('no hightlight')
+            return
+        }
+        document.getElementById('top-soul-modal').style.display = 'flex';
+    });
+
+    topDeckLookBtn.addEventListener("click", () => {
+        document.getElementById('top-look-modal').style.display = 'flex';
+    });
+
+    const topDeckDropModal = document.getElementById("top-drop-modal");
+    topDeckDropModal.addEventListener("click", (e) => {
+        if (e.target === topDeckDropModal) {
+            topDeckDropModal.style.display = "none";
+        }
+    });
+
+    const topDeckSoulModal = document.getElementById("top-soul-modal");
+    topDeckSoulModal.addEventListener("click", (e) => {
+        if (e.target === topDeckSoulModal) {
+            topDeckSoulModal.style.display = "none";
+        }
+    });
+
+    const topDeckLookModal = document.getElementById("top-look-modal");
+    topDeckLookModal.addEventListener("click", (e) => {
+        if (e.target === topDeckLookModal) {
+            topDeckLookModal.style.display = "none";
+        }
+    });
+
+    const topDeckDropForm = document.getElementById("top-drop-form");
+    topDeckDropForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const drawCount = parseInt(document.getElementById("top-drop-amount").value, 10);
+        socket.emit("top_deck_to_dropzone", { room: ROOM_CODE, cards_drawn: drawCount });
+        
+        document.getElementById("card-draw-modal").classList.remove("active");
+    });
+
+    const topDeckSoulForm = document.getElementById("top-soul-form");
+    topDeckSoulForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const soulCount = parseInt(document.getElementById("top-soul-amount").value, 10);
+        socket.emit("top_deck_to_soul", { room: ROOM_CODE, soul_count: soulCount });
+    
+        document.getElementById("top-soul-modal").classList.remove("active");
+    });
+
+    const topDeckLookForm = document.getElementById("top-look-form");
+    topDeckLookForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const lookCount = parseInt(document.getElementById("top-look-amount").value, 10);
+        socket.emit("look_top_deck", { room: ROOM_CODE, look_count: lookCount });
+
+        document.getElementById("top-look-modal").classList.remove("active");
+    });
+
     function showModalWrapper() {
         document.getElementById('user-zones-modal-wrapper').style.display = 'flex';
     }
@@ -402,8 +472,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 socket.emit('search_dropzone_close', { room: ROOM_CODE });
             } else if (button.closest('#user-search-soul-modal')) {
                 document.getElementById('user-search-soul-modal').style.display = 'none';
+            } else if (button.closest('#spell-modal')) {
+                document.getElementById('spell-modal').style.display = 'none';
             }
-            if (userSearchDeckModal.style.display === 'none' && userSearchDropModal.style.display === 'none') {
+            if (userSearchDeckModal.style.display === 'none' 
+                && userSearchDropModal.style.display === 'none' 
+                && document.getElementById('spell-modal').style.display === 'none' 
+                && document.getElementById('user-search-soul-modal').style.display === 'none') {
                 hideModalWrapper();
             }
         });
@@ -572,10 +647,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function impactChecker(card) {
-        if (card.type == 'Impact') {
+        if (card.type == 'Impact' || card.type === 'Impact Monster') {
             return true;
         } 
     }
+
+    const userSpellZone = document.getElementById("player-spell-zone");
+    const opponentSpellZone = document.getElementById("opponent-spell-zone");
+
+    opponentSpellZone.addEventListener("click", (e) => {
+        console.log('Opponent Spell Zone');
+        const opponentSpellsModal = document.getElementById('opponent-spells-modal');
+        opponentSpellsModal.style.display = 'flex';
+        opponentSpellsModal.classList.add('active');
+    });
+
+    const oppoSpell = document.getElementById("opponent-spells-modal");
+    oppoSpell.addEventListener("click", (e) => {
+        if (e.target === oppoSpell) {
+            oppoSpell.style.display = "none";
+        }
+    });
+
+    userSpellZone.addEventListener("click", (e) => {
+        console.log('User Spell Zone');
+        showModalWrapper() 
+        document.getElementById('spell-modal').style.display = 'flex';
+    });
 
     function renderCards(data) {
         console.log('Rendering Cards')
@@ -599,13 +697,11 @@ document.addEventListener('DOMContentLoaded', () => {
         userPhase = userState.current_phase;
         userHighlight = userState.highlighter;
         userBuddyRest = userState.buddy_rest;
+        userLook = userState.look;
 
         opponentLife = opponentState.current_life;
         opponentGuageSize = opponentState.current_gauge_size;
-        opponentGuage = opponentState.current_gauge;
         opponentHandSize = opponentState.current_hand_size;
-        opponentHand = opponentState.current_hand;
-        opponentDeckList = opponentState.deck_list;
         opponentDeckListCount = opponentState.current_deck_count;
         opponentLeftCard = opponentState.left;
         opponentCenterCard = opponentState.center;
@@ -625,6 +721,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('user-game-phase-content').textContent = userState.current_phase;
         document.getElementById('opponent-game-phase-content').textContent = opponentState.current_phase;
+
+        if (userLook.length > 0) {
+            console.log('User Look:', userLook);
+            document.getElementById('user-top-deck-modal').style.display = 'flex';
+            document.getElementById('top-look-title').textContent = `Top ${userLook.length} Cards of Deck`;
+            const lookZone = document.getElementById('top-deck-look-content');
+            lookZone.innerHTML = '';
+            userLook.forEach((card) => {
+                const cardDiv = document.createElement('div');
+                cardDiv.dataset.cardObj = JSON.stringify(card);
+                cardDiv.classList.add('hand-card');
+                cardDiv.dataset.fromZone = 'look';
+                cardDiv.draggable = true;
+                if (impactChecker(card)) {
+                    cardDiv.innerHTML = `
+                        <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="true">
+                    `;
+                    lookZone.appendChild(cardDiv);
+                } else {
+                    cardDiv.innerHTML = `
+                        <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="true">
+                    `;
+                    lookZone.appendChild(cardDiv);
+                }
+            });
+        } else {
+            document.getElementById('user-top-deck-modal').style.display = '';
+            document.getElementById('top-look-title').textContent = '';
+        }
 
         userBuddy = document.getElementById("player-buddy-zone");
         if (userBuddyRest == true) {
@@ -750,6 +875,89 @@ document.addEventListener('DOMContentLoaded', () => {
                     <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="true">
                 `;
                 opponentDropDiv.appendChild(cardDiv); 
+            }
+        });
+
+        const opponentSpellDiv = document.getElementById("opponent-spells-content");
+        opponentSpellDiv.innerHTML = '';
+        opponentSpells.forEach((card) => {
+            const cardDiv = document.createElement("div");
+            cardDiv.dataset.cardObj = JSON.stringify(card);
+            cardDiv.classList.add("hand-card");
+            if (impactChecker(card)) {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="true">
+                `;
+                opponentSpellDiv.appendChild(cardDiv);
+            } else {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="true">
+                `;
+                opponentSpellDiv.appendChild(cardDiv);
+            }
+            if (card.rest == true) {
+                cardDiv.style.transform = "rotate(90deg)";
+            } else {
+                cardDiv.style.transform = "rotate(0deg)";
+            } 
+
+            if (opponentHighlight === userHighlight) {
+                if (opponentHighlight && opponentHighlight === card.instance_id) {
+                    const overlay = document.createElement('div');
+                    overlay.classList.add('card-overlay', 'overlay-pink');
+                    cardDiv.appendChild(overlay);
+                }
+            } else if (card.instance_id === opponentHighlight) {
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-blue');
+                cardDiv.appendChild(overlay);
+            } else if (card.instance_id === userHighlight) {
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-red');
+                cardDiv.appendChild(overlay);
+            }
+        });
+
+        const userSpellDiv = document.getElementById("user-spell-content");
+        userSpellDiv.innerHTML = '';
+        userSpells.forEach((card) => {
+            const cardDiv = document.createElement("div");
+            cardDiv.dataset.cardObj = JSON.stringify(card);
+            cardDiv.classList.add("hand-card");
+            cardDiv.dataset.fromZone = "spells";
+            cardDiv.draggable = true;
+            cardDiv.style.height = '10vh';
+            if (impactChecker(card)) {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="true">
+                `;
+                userSpellDiv.appendChild(cardDiv);
+            } else {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="true">
+                `;
+                userSpellDiv.appendChild(cardDiv);
+            }
+            if (card.rest == true) {
+                cardDiv.style.transform = "rotate(90deg)";
+            } else {
+                cardDiv.style.transform = "rotate(0deg)";
+            } 
+
+            if (opponentHighlight === userHighlight) {
+                if (opponentHighlight && opponentHighlight === card.instance_id) {
+                    const overlay = document.createElement('div');
+                    overlay.classList.add('card-overlay', 'overlay-pink');
+                    cardDiv.appendChild(overlay);
+                }
+            } else if (card.instance_id === opponentHighlight) {
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-blue');
+                cardDiv.appendChild(overlay);
+            } else if (card.instance_id === userHighlight) {
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-red');
+                cardDiv.appendChild(overlay);
             }
         });
 

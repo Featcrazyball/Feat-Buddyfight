@@ -87,6 +87,7 @@ def draw_cards(deck, count):
     drawn_cards = deck[:count]
     remaining_deck = deck[count:]
     username = session['user']
+    
     if len(remaining_deck) < 1:
         emit('mini_chat_message', {
             'sender': 'System',
@@ -140,16 +141,9 @@ def remove_card_from_zone(card_data, from_zone, room_code, spell_id=None):
                 dropzone.remove(card_data)
 
         case "spells":
-            spells = game_rooms[room_code]['players'][username]["spells"]
+            spells = game_rooms[room_code]['players'][username].setdefault("spells", [])
             if card_data in spells:
                 spells.remove(card_data)
-
-        case 'spell-soul':
-            spells = game_rooms[room_code]['players'][username]['spells']
-            the_spell = next((s for s in spells if s['id'] == spell_id), None)
-            if the_spell and "soul" in the_spell:
-                if card_data in the_spell["soul"]:
-                    the_spell["soul"].remove(card_data)
 
         case 'deck':
             deck_list = game_rooms[room_code]['players'][username]['deck_list']
@@ -165,12 +159,27 @@ def remove_card_from_zone(card_data, from_zone, room_code, spell_id=None):
                 current_gauge.pop(index)
                 game_rooms[room_code]['players'][username]['current_gauge_size'] -= 1
 
-        case 'soul':
+        case "soul":
             for zone in ['left', 'center', 'right', 'item']:
                 host_card = game_rooms[room_code]['players'][username][zone]
                 if host_card and 'soul' in host_card:
-                    host_card['soul'] = [s for s in host_card['soul'] 
-                    if s['instance_id'] != card_data['instance_id']]
+                    host_card['soul'] = [
+                        s for s in host_card['soul']
+                        if s['instance_id'] != card_data['instance_id']
+                    ]
+            spells = game_rooms[room_code]['players'][username]['spells']
+            for s in spells:
+                if 'soul' in s:
+                    s['soul'] = [
+                        sc for sc in s['soul']
+                        if sc['instance_id'] != card_data['instance_id']
+                    ]
+
+        case 'look':
+            look = game_rooms[room_code]['players'][username]['look']
+            index = next((i for i, c in enumerate(look) if c['id'] == card_data['id']), None)
+            if index is not None:
+                look.pop(index)
 
         case _:
             pass
@@ -204,18 +213,19 @@ def place_card_in_zone(card_data, to_zone, room_code, spell_id=None):
             if not spell_id:
                 print("Error: No spell_id provided for soul placement.")
                 return
-
             for zone in ['left', 'center', 'right', 'item']:
                 host_card = game_rooms[room_code]['players'][username][zone]
                 if host_card and str(host_card.get('instance_id')) == str(spell_id):
-                    if host_card['id'] == card_data['id']:
-                        print("Cannot place host card into its own soul. Ignoring.")
-                        return
-
                     host_card.setdefault('soul', [])
                     host_card['soul'].append(card_data)
-                    print(f"Added {card_data['name']} to {host_card['name']}'s soul")
-                    break
+                    return
+
+            spells = game_rooms[room_code]['players'][username]['spells']
+            for s in spells:
+                if str(s.get('instance_id')) == str(spell_id):
+                    s.setdefault('soul', [])
+                    s['soul'].append(card_data)
+                    return
 
         case "hand":
             game_rooms[room_code]['players'][username]['current_hand'].append(card_data)
@@ -226,13 +236,6 @@ def place_card_in_zone(card_data, to_zone, room_code, spell_id=None):
 
         case "spells":
             game_rooms[room_code]['players'][username]["spells"].append(card_data)
-
-        case 'spell-soul':
-            spells = game_rooms[room_code]['players'][username]['spells']
-            the_spell = next((s for s in spells if s['id'] == spell_id), None)
-            if the_spell:
-                the_spell.setdefault("soul", [])
-                the_spell["soul"].append(card_data)
 
         case "deck":
             game_rooms[room_code]['players'][username]['deck_list'].append(card_data)
@@ -324,7 +327,7 @@ def english_checker(from_zone, to_zone, card, username):
         if from_zone == 'item':
             place = ''
     
-    if to_zone == 'spell':
+    if to_zone == 'spells':
         action = 'casts'
         place = ''
     

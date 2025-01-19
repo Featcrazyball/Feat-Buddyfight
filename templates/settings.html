@@ -28,9 +28,6 @@
             <button class="tablinks" onclick="openTab(event, 'Payment')">Payment History</button>
             <button class="tablinks" onclick="openTab(event, 'Match')">Match History</button>
             <button class="tablinks" onclick="openTab(event, 'Report')">User Reports</button>
-            {% if session.get('user_role', '') == 'admin' %}
-            <a href="{{ url_for('routes.admin') }}" class="admin-button" style="text-decoration: none;">Admin</a>
-            {% endif %}
         </div>
         <a href="{{ url_for('routes.logout') }}" class="logout-button" style="user-select: none;" draggable="false"><h1>Logout</h1></a>
     </nav>
@@ -38,7 +35,9 @@
     <div class="container">
             <div id="User" class="tabcontent" style="display: block;">
                 <h3>User Profile</h3>
-
+                {% if session.get('user_role', '') == 'admin' %}
+                <a href="{{ url_for('routes.admin') }}" class="admin-button" style="text-decoration: none; position: absolute; ">Admin</a>
+                {% endif %}
                 <div class="profile-picture-container">
                     <!-- Display Current Profile Picture -->
                     <form id="profilePictureForm" enctype="multipart/form-data">

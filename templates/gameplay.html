@@ -128,7 +128,7 @@
             <div class="user-cards-space-wrapper">
                 <div class="user-cards-space">
                     <div class="user-cards-space-content">
-                        <div class="mini-zone-circle spells-zone player-mini-zone" data-zone="spell" data-allow-append="false" id="player-spell-zone" style="margin-top: -13vh;">
+                        <div class="mini-zone-circle spells-zone player-mini-zone" data-zone="spells" data-allow-append="false" id="player-spell-zone" style="margin-top: -13vh;">
                             Spells Zone
                         </div>
                         <div class="mini-zone-circle " style="margin-top: -16vh;" >
@@ -211,6 +211,36 @@
         </div>
     </div>
 
+    <div class="card-modal-container" id="top-drop-modal">
+        <div class="card-draw-content" id="top-drop-content">
+        <form id="top-drop-form" class="card-draw-form">
+            <h2>Drop Top Deck</h2>
+            <input type="number" id="top-drop-amount" placeholder="Amount" required>
+            <button type="submit" id="top-drop-submit">Drop</button>
+        </form>
+        </div>
+    </div>
+
+    <div class="card-modal-container" id="top-soul-modal">
+        <div class="card-draw-content" id="top-soul-content">
+        <form id="top-soul-form" class="card-draw-form">
+            <h2>Top Deck to Soul</h2>
+            <input type="number" id="top-soul-amount" placeholder="Amount" required>
+            <button type="submit" id="top-soul-submit">Soul</button>
+        </form>
+        </div>
+    </div>
+
+    <div class="card-modal-container" id="top-look-modal">
+        <div class="card-draw-content" id="top-look-content">
+        <form id="top-look-form" class="card-draw-form">
+            <h2>Look at top Deck</h2>
+            <input type="number" id="top-look-amount" placeholder="Amount" required>
+            <button type="submit" id="top-look-submit">Look</button>
+        </form>
+        </div>
+    </div>
+
     <div id="user-zones-modal-wrapper">
         <div id="user-search-deck-modal" class="deck-modal-container">
             <div class="deck-modal-header">
@@ -241,15 +271,13 @@
                 <!-- Dynamically Generated -->
             </div>
         </div>
-    </div>
 
-    <!-- Check Top Deck -->
-    <div class="opponent-deck-modal-container" id="look-top-deck-modal">
-        <div class="opponent-deck-modal-wrapper" id="deck-modal-wrapper" style="height: 60vh;">
+        <div class="deck-modal-container" id="spell-modal">
             <div class="deck-modal-header">
-                <h1 class="deck-modal-title" id="top-deck-title"></h1>
+                <h1 class="deck-modal-title">Your Spells</h1>
+                <button class="exit-button">Exit</button>
             </div>
-            <div class="deck-modal-content" id="look-top-deck-modal-content">
+            <div class="deck-modal-content player-deck-modal-content" id="user-spell-content" data-zone="spells">
                 <!-- Dynamically Generated -->
             </div>
         </div>
@@ -266,6 +294,25 @@
         </div>
     </div>
 
+    <div class="opponent-deck-modal-container" id="opponent-spells-modal">
+        <div class="opponent-deck-modal-wrapper" id="opponent-deck-modal-wrapper" style="height: 40vh; display: flex; margin-top: 10vh;">
+            <div class="deck-modal-header">
+                <h1 class="deck-modal-title">Opponent's Spells</h1>
+            </div>
+            <div class="deck-modal-content" id="opponent-spells-content">
+                <!-- Dynamically Generated -->
+            </div>
+        </div>
+    </div>
+
+    <div class="opponent-deck-modal-wrapper" id="user-top-deck-modal" style="height: 30vh;">
+        <div class="deck-modal-header">
+            <h1 class="deck-modal-title" id="top-look-title"></h1>
+        </div>
+        <div class="deck-modal-content player-deck-modal-content" id="top-deck-look-content" data-zone="look">
+            <!-- Dynamically Generated -->
+        </div>
+    </div>
 
     <div id="modal" class="modal">
         <div class="modal-content">
@@ -273,6 +320,7 @@
         </div>
     </div>
 
+    <script src="{{ url_for('static', filename='js/format.js') }}"></script>
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
     <script>
         const ROOM_CODE = "{{ room_code }}";

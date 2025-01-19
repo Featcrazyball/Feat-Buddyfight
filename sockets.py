@@ -242,7 +242,8 @@ class LobbyCreation:
                     'buddy_rest': False,
                     'selector': None,
                     'current_phase': 'Draw Phase',
-                    'highlighter': None
+                    'highlighter': None,
+                    'look': []
                 }
 
             game_rooms[room_code]['players'][opponent] = {
@@ -262,7 +263,8 @@ class LobbyCreation:
                 'buddy_rest': False,
                 'selector': None,
                 'current_phase': 'End Turn',
-                'highlighter': None
+                'highlighter': None,
+                'look': []
             }
 
             if len(room_data["players"]) == 2:
@@ -305,6 +307,17 @@ class LobbyCreation:
                         "room_code": room_code,
                         "redirect_url": url_for('routes.arenaLobby'),
                     }, room=room_code)
+
+                    winner = User.query.filter_by(username=remaining_user).first()
+                    loser = User.query.filter_by(username=username).first()
+
+                    winner.tickets += 10
+                    loser.tickets += 3
+                    winner.wins += 1
+                    loser.losses += 1
+
+                    db.session.commit()
+
                     if remaining_user in user_rooms:
                         del user_rooms[remaining_user]
                     del game_rooms[room_code]
@@ -378,6 +391,14 @@ class ArenaGameplay:
             cards_drawn = data.get('cards_drawn')
             username = session['user']
             deck = game_rooms[room_code]['players'][username]['deck_list']
+
+            if cards_drawn < 0:
+                emit('mini_modal', {
+                    'sender': 'System',
+                    'status': 'error',
+                    'message': "Invalid Number of Cards"
+                }, room=request.sid)
+                return
 
             if (game_rooms[room_code]['players'][username]['current_deck_count']) - cards_drawn < 0:
                 emit('mini_modal', {
@@ -474,6 +495,9 @@ class ArenaGameplay:
             spell_id = data.get("spell_id")  
 
             if from_zone == to_zone:
+                return
+            
+            if to_zone == 'look':
                 return
 
             remove_card_from_zone(card_data, from_zone, room_code, spell_id)
@@ -641,22 +665,132 @@ class ArenaGameplay:
         @self.socketio.on('top_deck_to_dropzone')
         def top_deck_to_dropzone(data):
             room_code = data.get('room')
-            number_of_cards = data.get('number_of_cards')
             username = session['user']
+            cards_dropped = data.get('cards_drawn')
+
+            if cards_dropped < 0:
+                emit('mini_modal', {
+                    'sender': 'System',
+                    'status': 'error',
+                    'message': "Invalid Number of Cards"
+                }, room=request.sid)
+                return
 
             deck = game_rooms[room_code]['players'][username]['deck_list']
-            game_rooms[room_code]['players'][username]['deck_list'] = deck[number_of_cards:]
-            for _ in range(number_of_cards):
-                card = deck.pop(0)
-                game_rooms[room_code]['players'][username]['dropzone'].append(card)
-            game_rooms[room_code]['players'][username]['deck_list'] = deck
-            game_rooms[room_code]['players'][username]['current_deck_count'] -= number_of_cards
+            if (game_rooms[room_code]['players'][username]['current_deck_count']) - cards_dropped < 0:
+                emit('mini_modal', {
+                    'sender': 'System',
+                    'status': 'error',
+                    'message': f"{username} does not have enough cards in deck."
+                }, room=request.sid)
+                return
+            
+            cards, remaining_deck = draw_cards(deck, cards_dropped)
+            game_rooms[room_code]['players'][username]['deck_list'] = remaining_deck
+            game_rooms[room_code]['players'][username]['current_deck_count'] = len(remaining_deck)
+            game_rooms[room_code]['players'][username]['dropzone'].extend(cards)
 
-            emit('update_game_information', {}, room=request.sid)
+            emit('update_game_information', {}, room=room_code)
 
             emit('mini_chat_message', {
                 'sender': 'System',
-                'message': f"{card.name} has been dropped from the top of the deck."
+                'message': f"{username} has dropped {cards_dropped} cards from the top of the deck to the dropzone."
+                }, room=room_code)
+
+        #  Top Deck to Soul 
+        @self.socketio.on('top_deck_to_soul')
+        def top_deck_to_soul(data):
+            room_code = data.get('room')
+            username = session['user']
+            cards_dropped = data['soul_count']
+
+            highlighted_card = self.game_rooms[room_code]['players'][username]['highlighter']
+            if highlighted_card is None:
+                return
+
+            if cards_dropped < 0:
+                emit('mini_modal', {
+                    'sender': 'System',
+                    'status': 'error',
+                    'message': "Invalid Number of Cards"
+                }, room=request.sid)
+                return
+
+            player_data = self.game_rooms[room_code]['players'][username]
+            deck = player_data['deck_list']
+
+            if (player_data['current_deck_count'] - cards_dropped) < 0:
+                emit('mini_modal', {
+                    'sender': 'System',
+                    'status': 'error',
+                    'message': f"{username} does not have enough cards in deck."
+                }, room=request.sid)
+                return
+
+            cards, remaining_deck = draw_cards(deck, cards_dropped)
+            player_data['deck_list'] = remaining_deck
+            player_data['current_deck_count'] = len(remaining_deck)
+
+            for zone in ['left', 'center', 'right', 'item']:
+                occupant = player_data[zone]
+                if occupant and str(occupant.get('instance_id')) == highlighted_card:
+                    occupant.setdefault('soul', [])
+                    occupant['soul'].extend(cards)
+                    host_name = occupant['name']
+                    emit('update_game_information', {}, room=room_code)
+                    emit('mini_chat_message', {
+                        'sender': 'System',
+                        'message': f"{username} placed top {cards_dropped} cards from the deck into {host_name}'s soul."
+                    }, room=room_code)
+                    return
+
+            for s in player_data['spells']:
+                if str(s.get('instance_id')) == highlighted_card:
+                    s.setdefault('soul', [])
+                    s['soul'].extend(cards)
+                    host_name = s['name']
+                    emit('update_game_information', {}, room=room_code)
+                    emit('mini_chat_message', {
+                        'sender': 'System',
+                        'message': f"{username} placed top {cards_dropped} cards into the soul of {host_name} (spell)."
+                    }, room=room_code)
+                    return
+
+        # Look at top Deck
+        @self.socketio.on('look_top_deck')
+        def look_top_deck(data):
+            room_code = data.get('room')
+            username = session['user']
+            cards_look = data['look_count']
+
+            deck = game_rooms[room_code]['players'][username]['deck_list']
+
+            if cards_look < 0:
+                emit('mini_modal', {
+                    'sender': 'System',
+                    'status': 'error',
+                    'message': "Invalid Number of Cards"
+                }, room=request.sid)
+                return
+            
+            if (game_rooms[room_code]['players'][username]['current_deck_count']) - cards_look < 0:
+                emit('mini_modal', {
+                    'sender': 'System',
+                    'status': 'error',
+                    'message': f"{username} does not have enough cards in deck."
+                }, room=request.sid)
+                return
+            
+            cards, remaining_deck = draw_cards(deck, cards_look)
+            game_rooms[room_code]['players'][username]['deck_list'] = remaining_deck
+            game_rooms[room_code]['players'][username]['current_deck_count'] = len(remaining_deck)
+            game_rooms[room_code]['players'][username]['look'].extend(cards)
+
+            emit('update_game_information', {}, room=room_code)
+
+            emit('mini_chat_message', {
+                'sender': 'System',
+                'message': f"{username} is looking at the top {cards_look} cards of the deck."
                 }, room=room_code)
 
         # Mini Chat [Complete]

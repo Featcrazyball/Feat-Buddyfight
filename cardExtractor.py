@@ -74,7 +74,7 @@ def scrape_all_cards():
     base_list_url = "https://en.fc-buddyfight.com/cardlist/list/?id={}"
     base_detail_url = "https://en.fc-buddyfight.com/cardlist/cardDetail/?cardno={}"
 
-    for list_id in range(1, 44):
+    for list_id in range(1, 101):
         list_url = base_list_url.format(list_id)
         response = requests.get(list_url)
         soup = BeautifulSoup(response.content, "html.parser")

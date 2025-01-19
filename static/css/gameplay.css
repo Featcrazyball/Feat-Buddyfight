@@ -34,6 +34,12 @@
     position: absolute;
 }
 
+.opponent-deck-modal-container.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 @keyframes cosmicPulse {
     0% {
         transform: scale(1);
@@ -762,6 +768,13 @@ body {
     margin: 0 auto;
     background-color: rgba(0, 0, 0, 0.5);
     border-radius: 12px;
+}
+
+#user-top-deck-modal, #opponent-spells-modal {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .exit-button{

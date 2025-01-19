@@ -616,26 +616,45 @@ def edit_deck():
         case _:
             valid_flags.append(selected_deck.flag)
 
-    unlocked_cards_query = Card.query.filter(Card.id.in_(user.unlocked_cards))
-    
-    # Filter by valid flags and attributes
-    attribute_filters = [Card.attribute.ilike(f"%{attr}%") for attr in valid_attributes]
-    unlocked_cards_query = unlocked_cards_query.filter(
-        (Card.world.in_(valid_flags)) | or_(*attribute_filters)
+    excluded_urls = [
+        'https://s3-ap-northeast-1.amazonaws.com/en.fc-buddyfight.com/wordpress/wp-content/images/cardlist/s/bf_h00.png',
+    ]
+
+    all_unlocked_cards = Card.query.filter(Card.id.in_(user.unlocked_cards)).all()
+    all_unlocked_cards = Card.query.filter(
+        ~Card.image_url.in_(excluded_urls)
+    ).all()
+    search_query = request.args.get('name', '').strip().lower() if request.args.get('name') else ""
+
+    filtered_cards = []
+    for c in all_unlocked_cards:
+        if exclude_types and c.type in exclude_types:
+            continue
+
+        splitted_worlds = [w.strip() for w in c.world.split('/')]
+
+        world_ok = bool(set(splitted_worlds).intersection(valid_flags))
+
+        attribute_ok = False
+        if valid_attributes:
+            for needed in valid_attributes:
+                if needed.lower() in (c.attribute or '').lower():
+                    attribute_ok = True
+                    break
+
+        if world_ok or attribute_ok:
+            if search_query:
+                if search_query in c.name.lower():
+                    filtered_cards.append(c)
+            else:
+                filtered_cards.append(c)
+
+    return render_template(
+        'edit_deck.html',
+        deck=selected_deck,
+        unlocked_cards=filtered_cards, 
+        search_query=search_query
     )
-
-    # Exclude specific types
-    if exclude_types:
-        unlocked_cards_query = unlocked_cards_query.filter(~Card.type.in_(exclude_types))
-
-    # Search query
-    search_query = request.args.get('name', '').strip()
-    if search_query:
-        unlocked_cards_query = unlocked_cards_query.filter(Card.name.ilike(f"%{search_query}%"))
-
-    unlocked_cards = unlocked_cards_query.all()
-
-    return render_template('edit_deck.html', deck=selected_deck, unlocked_cards=unlocked_cards, search_query=search_query)
 
 @routes.route('/edit_deck/get_deck', methods=['GET'])
 @login_required
@@ -669,21 +688,38 @@ def get_deck():
         case _:
             valid_flags.append(selected_deck.flag)
 
-    unlocked_cards_query = Card.query.filter(Card.id.in_(user.unlocked_cards))
+    excluded_urls = [
+        'https://s3-ap-northeast-1.amazonaws.com/en.fc-buddyfight.com/wordpress/wp-content/images/cardlist/s/bf_h00.png',
+    ]
 
-    attribute_filters = [Card.attribute.ilike(f"%{attr}%") for attr in valid_attributes]
-    unlocked_cards_query = unlocked_cards_query.filter(
-        (Card.world.in_(valid_flags)) | or_(*attribute_filters)
-    )
+    all_unlocked_cards = Card.query.filter(Card.id.in_(user.unlocked_cards)).all()
+    all_unlocked_cards = Card.query.filter(
+        ~Card.image_url.in_(excluded_urls)
+    ).all()
+    search_query = request.args.get('name', '').strip().lower() if request.args.get('name') else ""
 
-    if exclude_types:
-        unlocked_cards_query = unlocked_cards_query.filter(~Card.type.in_(exclude_types))
+    filtered_cards = []
+    for c in all_unlocked_cards:
+        if exclude_types and c.type in exclude_types:
+            continue
 
-    search_query = request.args.get('name', '').strip()
-    if search_query:
-        unlocked_cards_query = unlocked_cards_query.filter(Card.name.ilike(f"%{search_query}%"))
+        splitted_worlds = [w.strip() for w in c.world.split('/')]
 
-    unlocked_cards = unlocked_cards_query.all()
+        world_ok = bool(set(splitted_worlds).intersection(valid_flags))
+
+        attribute_ok = False
+        if valid_attributes:
+            for needed in valid_attributes:
+                if needed.lower() in (c.attribute or '').lower():
+                    attribute_ok = True
+                    break
+
+        if world_ok or attribute_ok:
+            if search_query:
+                if search_query in c.name.lower():
+                    filtered_cards.append(c)
+            else:
+                filtered_cards.append(c)
 
     selected_deck_data = {
         "id": selected_deck.id,
@@ -696,7 +732,7 @@ def get_deck():
         "buddy_card_id": selected_deck.buddy_card_id
     }
 
-    unlocked_cards_data = [card.to_dict() for card in unlocked_cards]
+    unlocked_cards_data = [card.to_dict() for card in filtered_cards]
 
     return jsonify({
         "deck": selected_deck_data,
@@ -759,13 +795,11 @@ def gacha_pull():
 
     if selected_world is None or selected_world == "All":
         available_cards = Card.query.filter(
-            ~Card.attribute.in_(["SEC", "SECRET", "BR", "SP"]),
             ~Card.image_url.in_(excluded_urls)
         ).all()
     else:
         available_cards = Card.query.filter(
             Card.world.ilike(selected_world),
-            ~Card.attribute.in_(["SEC", "SECRET", "BR", "SP"]),
             ~Card.image_url.in_(excluded_urls)
         ).all()
 

@@ -151,10 +151,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const addCardButton = document.getElementById("add-card-btn");
         const removeCardButton = document.getElementById("remove-card-btn");
 
-        const formattedAbility = card.ability_effect
-            ? card.ability_effect.split("■").filter(Boolean).map(line => `■${line.trim()}`).join("<br>")
-            : "None";
-
         cardInfo.innerHTML = `
             <img src="${card.image_url}">
             <h3>${card.name}</h3>
@@ -165,7 +161,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <p>Size: ${card.size}</p>
             <p>Power: ${card.power}</p>
             <p>Defense: ${card.defense}</p>
-            <p>Ability: <br>${formattedAbility}</p>
+            <p>Ability: <br>${formatAbilityText(card.ability_effect)}</p>
         `;
 
         addCardButton.onclick = function () {
