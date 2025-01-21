@@ -161,6 +161,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <p>Size: ${card.size}</p>
             <p>Power: ${card.power}</p>
             <p>Defense: ${card.defense}</p>
+            <p>Critical: ${card.critical}</p>
             <p>Ability: <br>${formatAbilityText(card.ability_effect)}</p>
         `;
 

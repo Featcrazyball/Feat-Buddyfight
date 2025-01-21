@@ -23,8 +23,11 @@
     </style>
 </head>
 <body>
-  <div class="main-container">
-    <div class="player-info-container">
+    {% block music %}
+    {% include 'includes/_sound-effects.html' %}
+    {% endblock %}
+    <div class="main-container">
+        <div class="player-info-container">
             <div class="profile-card" id="opponent-profile">
                 <div class="profile-picture" id="opponent-profile-picture">
                     <img src="{{ opponent_profile }}" alt="">

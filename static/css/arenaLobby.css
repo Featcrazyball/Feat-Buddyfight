@@ -156,6 +156,10 @@
     .user-information {
         gap: 5px;
     }
+
+    .lobby-header {
+        font-size: 2rem;
+    }
 }
 
 .button-container {

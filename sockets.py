@@ -494,6 +494,9 @@ class ArenaGameplay:
             to_zone = data.get("to_zone")
             spell_id = data.get("spell_id")  
 
+            if room_code not in game_rooms:
+                return
+
             if from_zone == to_zone:
                 return
             
@@ -503,7 +506,10 @@ class ArenaGameplay:
             remove_card_from_zone(card_data, from_zone, room_code, spell_id)
             place_card_in_zone(card_data, to_zone, room_code, spell_id)
 
-            english = english_checker(from_zone, to_zone, card_data, username)
+            if from_zone != 'look':
+                english = english_checker(from_zone, to_zone, card_data, username)
+            else:
+                english = None
 
             emit('update_game_information', {}, room=room_code)
 
@@ -546,12 +552,12 @@ class ArenaGameplay:
             game_rooms[room_code]['players'][username][zone]['rest'] = not game_rooms[room_code]['players'][username][zone]['rest']
 
             if card_data["rest"] == True:
+                action = 'stands'
+            else:
                 if game_rooms[room_code]['players'][username]['current_phase'] == "Attack Phase":
                     action = 'attacks'
                 else:
                     action = 'rests'
-            else:
-                action = 'stands'
 
             emit("update_game_information", {}, room=room_code)
 

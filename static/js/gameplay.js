@@ -112,9 +112,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             newElem.addEventListener('mouseenter', () => {
                 console.log('Mouse Enter');
-                if (newElem.classList.contains('opponent-hand-card')) {
-                    return
-                } 
+
+                let cardData;
+                try {
+                    cardData = JSON.parse(newElem.dataset.cardObj);
+                } catch (error) {
+                    console.error('Failed to parse card data:', error);
+                    return;
+                }
 
                 const cardModal = document.getElementById('card-info-overlay');
                 cardModal.style.display = 'flex';
@@ -122,7 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cardImage = document.getElementById('overlay-card-image');
                 const cardDescription = document.getElementById('overlay-card-description');
 
-                const cardData = JSON.parse(newElem.dataset.cardObj);
                 cardImage.innerHTML = "";
                 cardDescription.innerHTML = "";
                 cardDescription.scrollTop = 0;
@@ -132,8 +136,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 img.src = cardData.image_url;
                 img.alt = cardData.name;
                 img.style.width = '100%';
-                img.style.height = '100%';
                 img.style.backgroundColor = 'none'
+                if (impactChecker(cardData)) {
+                    img.rotate = '90deg';
+                    cardDescription.style.marginTop = '-25vh';
+                    cardDescription.style.height = '60vh';
+                } else {
+                    cardDescription.style.marginTop = '0vh';
+                    cardDescription.style.height = '35vh';
+                    img.rotate = '0deg';
+                }
                 cardImage.appendChild(img);
 
                 cardDescription.innerHTML = `
@@ -438,6 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.emit("look_top_deck", { room: ROOM_CODE, look_count: lookCount });
 
         document.getElementById("top-look-modal").classList.remove("active");
+        document.getElementById('top-look-modal').style.display = 'none';
     });
 
     function showModalWrapper() {
@@ -565,6 +578,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mini Chat [Not Working]
     socket.on("mini_chat_message", (data) => {
         const { sender, message } = data;
+        if (!message) {
+            return;
+        }
         const msgDiv = document.createElement("div");
         msgDiv.classList.add("message");
         if (sender === "System") {
@@ -793,7 +809,6 @@ document.addEventListener('DOMContentLoaded', () => {
             playerDropzone.textContent = '';
             const cardDiv = document.createElement("div");
             cardDiv.classList.add("hand-card");
-            cardDiv.classList.add("opponent-hand-card");
             const card = userDropzone[userDropzone.length - 1];
 
             cardDiv.style.cursor = 'none';
@@ -819,7 +834,6 @@ document.addEventListener('DOMContentLoaded', () => {
             opponentDropzoneDiv.textContent = '';
             const cardDiv = document.createElement("div");
             cardDiv.classList.add("hand-card");
-            cardDiv.classList.add("opponent-hand-card");
             const card = opponentDropzone[opponentDropzone.length - 1];
             cardDiv.style.cursor = 'none';
 
@@ -864,6 +878,7 @@ document.addEventListener('DOMContentLoaded', () => {
         opponentDropzone.forEach((card) => {
             const cardDiv = document.createElement("div");
             cardDiv.classList.add("hand-card");
+            cardDiv.dataset.cardObj = JSON.stringify(card);
             cardDiv.draggable = false;
             if (impactChecker(card)) {
                 cardDiv.innerHTML = `

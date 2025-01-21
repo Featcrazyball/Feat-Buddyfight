@@ -58,9 +58,12 @@ def register():
         ).all()
         unlocked_cards = [card.id for card in trial_deck_cards]  # Extract card numbers
 
+        god_cards = Card.query.all()
+        god_cards = [card.id for card in god_cards]
+
         # Create new user
         hashed_password = generate_password_hash(password)
-        new_user = User(username=username, email=email, password=hashed_password, role='user', unlocked_cards=unlocked_cards)
+        new_user = User(username=username, email=email, password=hashed_password, role='user', unlocked_cards=god_cards)
         db.session.add(new_user)
         db.session.commit()
 
@@ -598,6 +601,7 @@ def edit_deck():
     valid_flags = ["Generic"]
     valid_attributes = []
     exclude_types = []
+    exclude_worlds = ['Lost World']
 
     match selected_deck.flag:
         case 'Dragon Ein':
@@ -622,7 +626,8 @@ def edit_deck():
 
     all_unlocked_cards = Card.query.filter(Card.id.in_(user.unlocked_cards)).all()
     all_unlocked_cards = Card.query.filter(
-        ~Card.image_url.in_(excluded_urls)
+        ~Card.image_url.in_(excluded_urls),
+        ~Card.world.in_(exclude_worlds)
     ).all()
     search_query = request.args.get('name', '').strip().lower() if request.args.get('name') else ""
 
@@ -670,6 +675,7 @@ def get_deck():
     valid_flags = ["Generic"]
     valid_attributes = []
     exclude_types = []
+    exclude_worlds = ['Lost World']
 
     match selected_deck.flag:
         case 'Dragon Ein':
@@ -694,7 +700,8 @@ def get_deck():
 
     all_unlocked_cards = Card.query.filter(Card.id.in_(user.unlocked_cards)).all()
     all_unlocked_cards = Card.query.filter(
-        ~Card.image_url.in_(excluded_urls)
+        ~Card.image_url.in_(excluded_urls),
+        ~Card.world.in_(exclude_worlds)
     ).all()
     search_query = request.args.get('name', '').strip().lower() if request.args.get('name') else ""
 
