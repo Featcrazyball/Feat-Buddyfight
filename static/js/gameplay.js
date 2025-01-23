@@ -210,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <img src="${soulCard.image_url}"
                                 alt="${soulCard.name}"
                                 class="impact-card"
+                                
                                 draggable="false" style="pointer-events: none;"/>
                             `;
                         } else {
@@ -221,11 +222,71 @@ document.addEventListener('DOMContentLoaded', () => {
                             `;
                         }
                         soulContent.appendChild(soulCardDiv);
+
+                        if (soulCard.owner != USERNAME) {
+                            soulCardDiv.addEventListener('mouseenter', () => {
+                                console.log('Mouse Enter');
+                
+                                let cardData;
+                                try {
+                                    cardData = JSON.parse(soulCardDiv.dataset.cardObj);
+                                } catch (error) {
+                                    console.error('Failed to parse card data:', error);
+                                    return;
+                                }
+                
+                                const cardModal = document.getElementById('card-info-overlay');
+                                cardModal.style.display = 'flex';
+                
+                                const cardImage = document.getElementById('overlay-card-image');
+                                const cardDescription = document.getElementById('overlay-card-description');
+                
+                                cardImage.innerHTML = "";
+                                cardDescription.innerHTML = "";
+                                cardDescription.scrollTop = 0;
+                                cardDescription.style.overflow = 'auto';
+                                cardDescription.style.fontSize = '1.8vh';
+                                const img = document.createElement('img');
+                                img.src = cardData.image_url;
+                                img.alt = cardData.name;
+                                img.style.width = '100%';
+                                img.style.backgroundColor = 'none'
+                                if (impactChecker(cardData)) {
+                                    img.rotate = '90deg';
+                                    cardDescription.style.marginTop = '-25vh';
+                                    cardDescription.style.height = '60vh';
+                                } else {
+                                    cardDescription.style.marginTop = '0vh';
+                                    cardDescription.style.height = '35vh';
+                                    img.rotate = '0deg';
+                                }
+                                cardImage.appendChild(img);
+                
+                                cardDescription.innerHTML = `
+                                    <h3>Card Name: ${cardData.name}</h3>
+                                    <p>World: ${cardData.world}</p>
+                                    <p>Type: ${cardData.type}</p>
+                                    <p>Card Rarity: ${cardData.rarity}</p>
+                                    <p>Power: ${cardData.power}</p>
+                                    <p>Defense: ${cardData.defense}</p>
+                                    <p>Critical: ${cardData.critical}</p>
+                                    <p>Size: ${cardData.size}</p>
+                                    <p>Attribute: ${cardData.attribute}</p>
+                                    <p>Ability: ${formatAbilityText(cardData.ability_effect)}</p>
+                                `
+                            });
+                
+                            soulCardDiv.addEventListener('mouseleave', () => {
+                                console.log('Mouse Leave');
+                                const cardModal = document.getElementById('card-info-overlay');
+                                cardModal.style.display = 'none';
+                            });
+                        }
                     });
 
                     if (cardObj.owner == USERNAME) {
                         attachHandCardListeners();
-                    }
+                    } 
                 });
                 soulContainer.appendChild(soulCount);
                 newElem.appendChild(soulContainer);
@@ -922,11 +983,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     overlay.classList.add('card-overlay', 'overlay-pink');
                     cardDiv.appendChild(overlay);
                 }
-            } else if (card.instance_id === opponentHighlight) {
+            } else if (card.instance_id === userHighlight) {
                 const overlay = document.createElement('div');
                 overlay.classList.add('card-overlay', 'overlay-blue');
                 cardDiv.appendChild(overlay);
-            } else if (card.instance_id === userHighlight) {
+            } else if (card.instance_id === opponentHighlight) {
                 const overlay = document.createElement('div');
                 overlay.classList.add('card-overlay', 'overlay-red');
                 cardDiv.appendChild(overlay);

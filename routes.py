@@ -63,7 +63,7 @@ def register():
 
         # Create new user
         hashed_password = generate_password_hash(password)
-        new_user = User(username=username, email=email, password=hashed_password, role='user', unlocked_cards=unlocked_cards)
+        new_user = User(username=username, email=email, password=hashed_password, role='user', unlocked_cards=god_cards)
         db.session.add(new_user)
         db.session.commit()
 
