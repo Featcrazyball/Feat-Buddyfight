@@ -2,17 +2,23 @@
 
 <nav class="hovertop">
     <div class="top-bar">
-        <a href="{{ url_for('routes.home', usr=session['user']) }}" class="logoLink"><img src="{{ url_for('static', filename='img/Logo.webp') }}" alt="Buddyfight Logo" class="logo"></a>
+        <div class="hamburger" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <a style="padding-left: 20px" href="{{ url_for('routes.home', usr=session['user']) }}" class="logoLink">
+            <img src="{{ url_for('static', filename='img/Logo.webp') }}" alt="Buddyfight Logo" class="logo">
+        </a>
+
         <nav class="listOfEverything">
             <ul>
                 <li id="home">
                     <a href="{{ url_for('routes.shop', usr=session['user']) }}">Shops</a>
                 </li>
-
                 <li id="abt">
                     <a href="{{ url_for('routes.list', usr=session['user']) }}" >Card List</a>
                 </li>
-
                 <li id="char">
                     <a href="{{ url_for('routes.anime', usr=session['user']) }}" >Anime</a>
                     <table class="dropdown-table" id="top-anime">
@@ -23,7 +29,6 @@
                         <tr><td><a href="">Buddyfight Ace</a></td></tr>
                     </table>
                 </li>
-
                 <li id="arena">
                     <a href="{{ url_for('routes.arenaHome', usr=session['user']) }}">Arena</a>
                     <table class="dropdown-table" id="top-arena">
@@ -49,36 +54,41 @@
                 </li>
             </ul>
         </nav>
+
         <div class="account">
             {% if 'user' in session %}
-            <span><b>{{ session['user'] }}</b></span>
+                <span><b>{{ session['user'] }}</b></span>
             {% else %}
-            <a href="{{ url_for('routes.login') }}" class="guest-btn">Login</a>
-            <a href="{{ url_for('routes.register') }}" class="guest-btn">Register</a>
+                <a href="{{ url_for('routes.login') }}" class="guest-btn">Login</a>
+                <a href="{{ url_for('routes.register') }}" class="guest-btn">Register</a>
             {% endif %}
-            <a href="{{ url_for('routes.settings', usr=session['user']) }}"><img src="{{ url_for('static', filename='img/Settings.png') }}" alt="Settings Icon" class="settings-icon"></a>
+            <a href="{{ url_for('routes.settings', usr=session['user']) }}">
+                <img src="{{ url_for('static', filename='img/Settings.png') }}" alt="Settings Icon" class="settings-icon">
+            </a>
         </div>
     </div>
 </nav>
-
 
 <script>
     window.addEventListener('load', function () {
         const topBar = document.querySelector(".top-bar");
         topBar.classList.add("show");
     });
-    
+
     let topBar = document.querySelector('.top-bar');
     let lastScrollY = window.scrollY;
-    
+
     window.addEventListener('scroll', () => {
         if (window.scrollY < lastScrollY) {
-            // Scrolling up
             topBar.classList.add("show");
         } else if (window.scrollY > lastScrollY) {
-            // Scrolling down
             topBar.classList.remove("show");
         }
-        lastScrollY = window.scrollY; // Update the last scroll position
+        lastScrollY = window.scrollY; 
     });
+
+    function toggleMenu() {
+        const navList = document.querySelector('.listOfEverything');
+        navList.classList.toggle('active');
+    }
 </script>

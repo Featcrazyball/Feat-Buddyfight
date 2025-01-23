@@ -130,10 +130,12 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-right: 10px;
+    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
 }
 
 .profile-picture img{
-    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+
     height: 7vh;
     aspect-ratio: 1/1;
 }
@@ -891,4 +893,14 @@ body {
 
 .card-draw-form button:hover {
     background-color: #cc0000;
+}
+
+@media screen and (max-width: 1000px) {
+    .name-for-profile{
+        display: none;
+    }
+    .game-phase-content{
+        font-size: 1.5vh;
+        padding: 10px;
+    }
 }

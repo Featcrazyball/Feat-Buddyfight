@@ -121,6 +121,10 @@ nav {
     text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
+#sideNav.active {
+    z-index: 9999999;
+}
+
 /* Animations */
 @keyframes fadeIn {
     from {
@@ -647,4 +651,61 @@ input[type="file"] {
 .payment_history th, .payment_history td{
     padding: 10px;
     border-bottom: 1px solid #444;
+}
+
+@media (max-width: 900px) {
+    .hamburger {
+        display: block;
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        cursor: pointer;
+        z-index: 9999999999;
+    }
+    .hamburger span {
+        display: block;
+        width: 25px;
+        height: 3px;
+        margin: 5px;
+        background-color: #fff;
+        transition: 0.3s;
+    }
+
+    nav {
+        transform: translateX(-100%);
+        width: 60vw; 
+        max-width: 300px;
+    }
+
+    nav#sideNav.active {
+        transform: translateX(0);
+    }
+
+    .container {
+        margin-left: 0;
+        margin-top: 80px;
+        width: 100%;
+        padding: 10px;
+    }
+
+    .tabs {
+        margin-top: 30px;
+    }
+
+    .delete-account-container {
+        position: static;
+        margin-top: 20px;
+        bottom: auto;
+        right: auto;
+    }
+
+    .return-button{
+        position: static;
+        margin-top: 20px;
+    }
+
+    .logout-button{
+        margin-top: 20px;
+        transform: scale(0.5);
+    }
 }

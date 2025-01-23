@@ -50,6 +50,10 @@ body {
     margin-top: 10px;
 }
 
+.item-counter-content{
+    margin-right: -2vw;
+}
+
 .shop-item {
     position: relative;
     width: 17vw; 
@@ -215,5 +219,21 @@ body {
     to {
         transform: translateY(0);
         opacity: 1;
+    }
+}
+
+@media screen and (max-width: 1008px) {
+    .item-counter-content.bottom {
+        transform: scale(0.5);
+        margin-right: -7vw;
+    }
+
+    .item-counter-content.top{
+        transform: scale(0.5);
+        margin-right: -6vw;
+    }
+
+    .price-holder {
+        font-size: smaller;
     }
 }

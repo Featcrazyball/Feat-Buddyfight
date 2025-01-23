@@ -445,3 +445,9 @@ input:focus {
         transform: translate(-50%, 0);
     }
 }
+
+@media screen and (max-width: 768px) {
+    .deck-name {
+        margin-left: -9vw;
+    }
+}

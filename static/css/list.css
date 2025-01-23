@@ -170,6 +170,31 @@ img {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4), 0 0 10px rgba(255, 255, 255, 0.1);
 }
 
+@media screen and (max-width: 768px) {
+    .search-form {
+        flex-direction: column;
+    }
+
+    .search-form input[type="text"] {
+        width: 100%;
+    }
+
+    .search-btn, .filter-btn {
+        margin: 3px;
+        width: 80%;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 5px !important;
+    }
+
+    .search-btn{
+        border-left: 2px solid rgba(255, 255, 255, 0.3) !important;
+    }
+
+    .filter-btn {
+        border-right: 2px solid rgba(255, 255, 255, 0.3) !important;
+    }
+}
+
 .search-btn{
     border-radius: 0 5px 5px 0;
 }
