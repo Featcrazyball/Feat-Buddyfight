@@ -12,6 +12,7 @@ function resetFilter() {
     document.getElementById('rarity').value = '';
     document.getElementById('world').value = '';
     document.getElementById('size').value = '';
+    document.getElementById('attribute').value = '';
     document.getElementById('unlocked').checked = false;
 }
 

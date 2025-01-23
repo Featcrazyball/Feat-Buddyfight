@@ -112,6 +112,7 @@ def list():
     rarity_filter = request.args.get('rarity', '')
     world_filter = request.args.get('world', '')
     size_filter = request.args.get('size', '')
+    attribute_filter = request.args.get('attribute', '')
     unlocked_only = request.args.get('unlocked') == 'true'
 
     query = Card.query
@@ -126,6 +127,8 @@ def list():
         query = query.filter(Card.world.ilike(f"%{world_filter}%"))
     if size_filter:
         query = query.filter(Card.size == int(size_filter))
+    if attribute_filter:
+        query = query.filter(Card.attribute.ilike(f"%{attribute_filter}%"))
     if unlocked_only:
         user = User.query.filter_by(username=session['user']).first()
         if user:
