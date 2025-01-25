@@ -162,6 +162,12 @@
     }
 }
 
+.loading-image{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
 .button-container {
     display: flex;
     gap: 20px;

@@ -306,6 +306,7 @@ input:focus {
     font-size: 1em;
     width: 10vw;
     margin-top: 5px;
+    text-align: center;
 }
 
 :root{
@@ -443,11 +444,5 @@ input:focus {
     to {
         opacity: 1;
         transform: translate(-50%, 0);
-    }
-}
-
-@media screen and (max-width: 768px) {
-    .deck-name {
-        margin-left: -9vw;
     }
 }

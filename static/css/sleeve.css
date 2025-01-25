@@ -125,7 +125,7 @@ body {
 }
 
 .sleeve-item:hover {
-    transform: translateY(-5px);
+    transform: translateY(-10px);
 }
 
 .sleeve-item img {

@@ -121,3 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadActiveGameRooms();
 });
+
+document.addEventListener('contextmenu', (event) => {
+    event.preventDefault();
+});
