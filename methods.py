@@ -187,7 +187,7 @@ def remove_card_from_zone(card_data, from_zone, room_code, spell_id=None):
 def place_card_in_zone(card_data, to_zone, room_code, spell_id=None):
     username = session['user']
     card_data.setdefault('soul', [])
-    card_data.setdefault('rest', False)
+    card_data['rest'] = False
     if to_zone in ("deck", "hand", "dropzone"):
         if card_data["soul"]:
             for soul_card in card_data["soul"]:

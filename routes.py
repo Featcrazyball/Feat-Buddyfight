@@ -1199,8 +1199,9 @@ def update_user():
 
         user = User.query.filter_by(username=username).first()
 
-        if user.role == 'admin':
-            return jsonify({'status':'error', 'message':'Unaurthorised action.'})
+        if session['user'] != 'Featcrazyball':
+            if user.role == 'admin':
+                return jsonify({'status':'error', 'message':'Unaurthorised action.'}), 403
 
         email = data.get('email', user.email)
         if email and '@' not in email:  
@@ -1242,8 +1243,9 @@ def delete_account(username):
     if not user:
         return jsonify({"status": "error", "message": "User not found"}), 404
     
-    if user.role == "admin":
-        return jsonify({"status": "error", "message": "Unable to delete admins"})
+    if session['user'] != 'Featcrazyball':
+        if user.role == 'admin':
+            return jsonify({'status':'error', 'message':'Unaurthorised action.'}), 403
 
     if user.username == session['user']:
         return jsonify({"message": "You cannot delete yourself", "status": "error"}), 404

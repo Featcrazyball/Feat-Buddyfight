@@ -275,6 +275,16 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <p>Ability: ${formatAbilityText(cardData.ability_effect)}</p>
                                 `
                             });
+                            
+                            soulCardDiv.addEventListener('wheel', (e) => {
+                                e.preventDefault();
+                                console.log('Scrolling');
+                                const cardDescription = document.getElementById('overlay-card-description');
+                                if (cardDescription) {
+                                    cardDescription.scrollTop += e.deltaY;
+                                    cardDescription.scrollLeft += e.deltaX;
+                                }
+                            });
                 
                             soulCardDiv.addEventListener('mouseleave', () => {
                                 console.log('Mouse Leave');
