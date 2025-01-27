@@ -538,6 +538,22 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.emit("search_deck_open", { room: ROOM_CODE });
     });
 
+    const userDeckZone = document.getElementById("player-deck-zone");
+    userDeckZone.style.cursor = 'pointer';
+    userDeckZone.addEventListener('click', () => {
+        console.log('Player Deck Zone');
+        showModalWrapper();
+        userSearchDeckModal.style.display = 'flex';
+        socket.emit("search_deck_open", { room: ROOM_CODE });
+    });
+
+    document.getElementById('player-drop-zone').addEventListener('click', () => {
+        console.log('Player Drop Zone');
+        showModalWrapper();
+        userSearchDropModal.style.display = 'flex';
+        socket.emit("search_dropzone_open", { room: ROOM_CODE });
+    });
+
     // Show Dropzone Modal
     searchDropBtn.addEventListener('click', function() {
         showModalWrapper();
@@ -711,8 +727,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (state == 'Main Phase') {
             document.getElementById('user-game-phase-content').textContent = 'Attack Phase';
         } else if (state == 'Attack Phase') {
-            document.getElementById('user-game-phase-content').textContent = 'End Phase';
-        } else if (state == 'End Phase') {
+            document.getElementById('user-game-phase-content').textContent = 'Final Phase';
+        } else if (state == 'Final Phase') {
             document.getElementById('user-game-phase-content').textContent = 'End Turn';
         } else if (state == 'End Turn') {
             document.getElementById('user-game-phase-content').textContent = 'Start Turn';
@@ -923,7 +939,7 @@ document.addEventListener('DOMContentLoaded', () => {
             opponentDropzoneDiv.appendChild(cardDiv);
         }
 
-        userDropDiv = document.getElementById("user-dropzone-content");
+        const userDropDiv = document.getElementById("user-dropzone-content");
         userDropDiv.innerHTML = '';
         userDropzone.forEach((card) => {
             const cardDiv = document.createElement("div");
@@ -965,7 +981,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const opponentSpellDiv = document.getElementById("opponent-spells-content");
+        const opponentSpellImg = document.querySelectorAll('.opponent-spell-zone-display');
         opponentSpellDiv.innerHTML = '';
+        const opponentSpellArea = document.getElementById('opponent-spell-zone');
+        if (opponentSpells.length > 0) {
+            opponentSpellArea.innerHTML = '';
+            opponentSpellImg.forEach(element => {
+                element.style.display = 'none';
+            });
+            const latestSpell = opponentSpells[0];
+            const spellImg = document.createElement('img');
+            spellImg.src = latestSpell.image_url;
+            spellImg.style.position = 'absolute';
+            spellImg.alt = latestSpell.name;
+            spellImg.draggable = false;
+            if (impactChecker(latestSpell)) {
+                spellImg.classList.add('impact-card');
+            } else {
+                spellImg.classList.add('normal-card');
+                spellImg.style.width = '3vw';
+                spellImg.style.aspectRatio = '2/3';
+            }
+            spellImg.style.borderRadius = '0.5vh';
+            opponentSpellArea.appendChild(spellImg);
+        } else {
+            opponentSpellArea.innerHTML = `
+
+                <img class="opponent-spell-zone-display" src="/img/circle.png" alt="Circle Image">
+                <p class="opponent-spell-zone-display">Spells</p>
+            `;
+            opponentSpellImg.forEach(element => {
+                element.style.display = 'flex';
+            });
+        }
+
         opponentSpells.forEach((card) => {
             const cardDiv = document.createElement("div");
             cardDiv.dataset.cardObj = JSON.stringify(card);
@@ -993,19 +1042,51 @@ document.addEventListener('DOMContentLoaded', () => {
                     overlay.classList.add('card-overlay', 'overlay-pink');
                     cardDiv.appendChild(overlay);
                 }
-            } else if (card.instance_id === userHighlight) {
-                const overlay = document.createElement('div');
-                overlay.classList.add('card-overlay', 'overlay-blue');
-                cardDiv.appendChild(overlay);
             } else if (card.instance_id === opponentHighlight) {
                 const overlay = document.createElement('div');
                 overlay.classList.add('card-overlay', 'overlay-red');
+                cardDiv.appendChild(overlay);
+            } else if (card.instance_id === userHighlight) {
+                const overlay = document.createElement('div');
+                overlay.classList.add('card-overlay', 'overlay-blue');
                 cardDiv.appendChild(overlay);
             }
         });
 
         const userSpellDiv = document.getElementById("user-spell-content");
         userSpellDiv.innerHTML = '';
+        const userSpellImg = document.querySelectorAll('.spell-zone-display');
+        const userSpellArea = document.getElementById('player-spell-zone');
+        if (userSpells.length > 0) {
+            userSpellArea.innerHTML = '';
+            userSpellImg.forEach(element => {
+                element.style.display = 'none';
+            });
+            const latestSpell = userSpells[0];
+            let spellImg = document.createElement('img');
+            spellImg.src = latestSpell.image_url;
+            spellImg.style.position = 'absolute';
+            spellImg.alt = latestSpell.name;
+            spellImg.draggable = false;
+            if (impactChecker(latestSpell)) {
+                spellImg.classList.add('impact-card');
+            } else {
+                spellImg.classList.add('normal-card');
+                spellImg.style.width = '3vw';
+                spellImg.style.aspectRatio = '2/3';
+            }
+            spellImg.style.borderRadius = '0.5vh';
+            userSpellArea.appendChild(spellImg);
+        } else {
+            userSpellArea.innerHTML = `
+                <img class="spell-zone-display" src="/img/circle.png" alt="Circle Image">
+                <p class="spell-zone-display">Spells</p>
+                            `;
+            userSpellImg.forEach(element => {
+                element.style.display = 'flex';
+            });
+        }
+
         userSpells.forEach((card) => {
             const cardDiv = document.createElement("div");
             cardDiv.dataset.cardObj = JSON.stringify(card);
@@ -1038,11 +1119,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else if (card.instance_id === opponentHighlight) {
                 const overlay = document.createElement('div');
-                overlay.classList.add('card-overlay', 'overlay-blue');
+                overlay.classList.add('card-overlay', 'overlay-red');
                 cardDiv.appendChild(overlay);
             } else if (card.instance_id === userHighlight) {
                 const overlay = document.createElement('div');
-                overlay.classList.add('card-overlay', 'overlay-red');
+                overlay.classList.add('card-overlay', 'overlay-blue');
                 cardDiv.appendChild(overlay);
             }
         });
@@ -1128,7 +1209,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (userLeftCard.rest == true) {
-                cardDiv.style.transform = "rotate(90deg)";
+                if (impactChecker(userLeftCard)) {
+                    cardDiv.style.transform = "rotate(-90deg)";
+                } else {
+                    cardDiv.style.transform = "rotate(90deg)";
+                }
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }
@@ -1174,7 +1259,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 userCenterSlot.appendChild(cardDiv);
             }
             if (userCenterCard.rest == true) {
-                cardDiv.style.transform = "rotate(90deg)";
+                if (impactChecker(userCenterCard)) {
+                    cardDiv.style.transform = "rotate(-90deg)";
+                } else {
+                    cardDiv.style.transform = "rotate(90deg)";
+                }
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }
@@ -1217,7 +1306,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 userRightSlot.appendChild(cardDiv);
             }
             if (userRightCard.rest == true) {
-                cardDiv.style.transform = "rotate(90deg)";
+                if (impactChecker(userRightCard)) {
+                    cardDiv.style.transform = "rotate(-90deg)";
+                } else {
+                    cardDiv.style.transform = "rotate(90deg)";
+                }
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }
@@ -1269,7 +1362,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             userItemSlot.appendChild(cardDiv);
             if (userItemCard.rest == true) {
-                cardDiv.style.transform = "rotate(90deg)";
+                if (impactChecker(userItemCard)) {
+                    cardDiv.style.transform = "rotate(-90deg)";
+                } else {
+                    cardDiv.style.transform = "rotate(90deg)";
+                }
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }
@@ -1320,7 +1417,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             opponentLeftSlot.appendChild(cardDiv);
             if (opponentLeftCard.rest == true) {
-                cardDiv.style.transform = "rotate(90deg)";
+                if (impactChecker(opponentLeftCard)) {
+                    cardDiv.style.transform = "rotate(-90deg)";
+                } else {
+                    cardDiv.style.transform = "rotate(90deg)";
+                }
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }
@@ -1371,7 +1472,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             opponentCenterSlot.appendChild(cardDiv);
             if (opponentCenterCard.rest == true) {
-                cardDiv.style.transform = "rotate(90deg)";
+                if (impactChecker(opponentCenterCard)) {
+                    cardDiv.style.transform = "rotate(-90deg)";
+                } else {
+                    cardDiv.style.transform = "rotate(90deg)";
+                }
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }
@@ -1422,7 +1527,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             opponentRightSlot.appendChild(cardDiv);
             if (opponentRightCard.rest == true) {
-                cardDiv.style.transform = "rotate(90deg)";
+                if (impactChecker(opponentRightCard)) {
+                    cardDiv.style.transform = "rotate(-90deg)";
+                } else {
+                    cardDiv.style.transform = "rotate(90deg)";
+                }
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }
@@ -1473,7 +1582,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             opponentItemSlot.appendChild(cardDiv);
             if (opponentItemCard.rest == true) {
-                cardDiv.style.transform = "rotate(90deg)";
+                if (impactChecker(opponentItemCard)) {
+                    cardDiv.style.transform = "rotate(-90deg)";
+                } else {
+                    cardDiv.style.transform = "rotate(90deg)";
+                }
             } else {
                 cardDiv.style.transform = "rotate(0deg)";
             }

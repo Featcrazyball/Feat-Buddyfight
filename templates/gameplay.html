@@ -89,7 +89,8 @@
                 <div class="user-cards-space">
                     <div class="user-cards-space-content">
                         <div class="spells-zone mini-zone-circle opponent-cards" id="opponent-spell-zone" style="margin-top: -12vh;">
-                            Spells Zone
+                            <img class="opponent-spell-zone-display" src="{{ url_for('static', filename='img/circle.png') }}" alt="Circle Image">
+                            <p class="opponent-spell-zone-display">Spells</p>
                         </div>
                         <div class="mini-zone-circle" style="margin-top: -15vh;">
                             <img src="{{ url_for('static', filename=opponent_flag) }}" alt="Opponent's flag" class="card actual-flag" id="opponent-flag" style="user-select: none; position:absolute; pointer-events: none; z-index: index 1; rotate: 180deg;" draggable="false" >
@@ -132,7 +133,8 @@
                 <div class="user-cards-space">
                     <div class="user-cards-space-content">
                         <div class="mini-zone-circle spells-zone player-mini-zone" data-zone="spells" data-allow-append="false" id="player-spell-zone" style="margin-top: -13vh;">
-                            Spells Zone
+                            <img class="spell-zone-display" src="{{ url_for('static', filename='img/circle.png') }}" alt="Circle Image">
+                            <p class="spell-zone-display">Spells</p>
                         </div>
                         <div class="mini-zone-circle " style="margin-top: -16vh;" >
                             <img src="{{ url_for('static', filename=user_flag) }}" alt="User's flag" class="card actual-flag" id="opponent-flag" style="user-select: none; position:absolute; pointer-events: none; z-index: index 1;" draggable="false" >

@@ -99,7 +99,7 @@
                         </div>
                     </div>
                 </div>
-                <img src="{{ url_for('static', filename=deck.flagLink) }}" class="deck-flag">
+                <img src="{{ url_for('static', filename=deck.flagLink) }}" draggable="false" class="deck-flag">
                 <h2 class="deck-name" style="font-size:1rem;">{{ deck.name }}</h2>
             </div>
         {% endfor %}

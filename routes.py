@@ -58,12 +58,9 @@ def register():
         ).all()
         unlocked_cards = [card.id for card in trial_deck_cards]  # Extract card numbers
 
-        god_cards = Card.query.all()
-        god_cards = [card.id for card in god_cards]
-
         # Create new user
         hashed_password = generate_password_hash(password)
-        new_user = User(username=username, email=email, password=hashed_password, role='user', unlocked_cards=god_cards)
+        new_user = User(username=username, email=email, password=hashed_password, role='user', unlocked_cards=unlocked_cards)
         db.session.add(new_user)
         db.session.commit()
 

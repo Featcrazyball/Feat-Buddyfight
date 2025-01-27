@@ -135,7 +135,6 @@ body {
 }
 
 .profile-picture img{
-
     height: 7vh;
     aspect-ratio: 1/1;
 }
@@ -425,7 +424,6 @@ body {
 .mini-zone-circle {
     width: 4vw;
     height: 4vw;
-    border: 0.2vh solid yellow;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -728,9 +726,21 @@ body {
 }
 
 .spells-zone{
-    border: yellow 1px solid;
     border-radius: 8px;
     cursor: pointer;
+}
+
+.spells-zone p{
+    position: absolute;
+    font-size: 1.5vh;
+    color: white;
+    text-shadow: 0.1vh 0.1vh 0.3vh black;
+}
+
+.spells-zone img{
+    width: 4vw;
+    aspect-ratio: 1/1;
+    border-radius: 8px;
 }
 
 /* Deck Modal */
