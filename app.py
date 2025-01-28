@@ -40,7 +40,7 @@ UPLOAD_SLEEVE = os.path.join('static', 'img', 'sleeves')
 app.config['UPLOAD_SLEEVE'] = UPLOAD_SLEEVE
 
 # For chat Rooms and Arena
-socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*", logger=True, engineio_logger=True)
+socketio = SocketIO(app, async_mode='threading', cors_allowed_origins="*", logger=True, engineio_logger=True)
 default = Main(socketio)
 chatoomSocket = ChatRooms(socketio, chat_rooms)
 lobbySocket = LobbyCreation(socketio, game_rooms, user_rooms)
