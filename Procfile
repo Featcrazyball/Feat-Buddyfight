@@ -1,1 +1,1 @@
-web: gunicorn app:socketio -k gevent --bind 0.0.0.0:$PORT
+web: gunicorn app:socketio -k gevent --worker-class gevent --bind 0.0.0.0:$PORT

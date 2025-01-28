@@ -1,6 +1,6 @@
 from flask import request, url_for, session
 from flask_socketio import SocketIO, join_room, leave_room, emit, send, rooms, close_room
-import eventlet
+import gevent
 # Personal Libraries
 from models import db, User, Deck
 from cardExtractor import *
@@ -268,7 +268,7 @@ class LobbyCreation:
             }
 
             if len(room_data["players"]) == 2:
-                eventlet.sleep(0.2)
+                gevent.sleep(0.2)
                 emit('joining_game_player', {
                     'opponent': opponent
                 }, room=request.sid)
@@ -475,7 +475,7 @@ class ArenaGameplay:
                     game_rooms[room_code]['players'][username]['current_gauge_size'] -= 1
 
                     emit('update_game_information', {}, room=room_code)
-                    eventlet.sleep(0.1)
+                    gevent.sleep(0.1)
 
             english_checker = 'gained' if gauge_change > 0 else 'paid'
 
