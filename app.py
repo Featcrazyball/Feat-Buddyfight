@@ -55,4 +55,5 @@ if __name__ == '__main__':
         db.create_all(bind_key='item')
         db.create_all(bind_key='users')
         db.create_all(bind_key='reports')
-    socketio.run(app, host="0.0.0.0", port=8000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    socketio.run(app, host="0.0.0.0", port=port, debug=True)
