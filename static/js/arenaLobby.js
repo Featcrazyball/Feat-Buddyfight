@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const socket = io();
+    const socket = io('/', { transports: ['websocket'] });
 
     const roomsContainer= document.getElementById('rooms-container');
     const waitingModal  = document.getElementById('waiting-modal');

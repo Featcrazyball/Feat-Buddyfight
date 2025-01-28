@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const createRoomButton = document.querySelector(".create-room");
     const roomCodeInput = document.getElementById("roomCode");
     const joinRoomForm = document.querySelector("form");
-    const socket = io();
+    const socket = io('/', { transports: ['websocket'] });
 
     let currentRoom = "General";
     let privateRooms = new Set();
