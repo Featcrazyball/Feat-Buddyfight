@@ -1,5 +1,5 @@
 from flask import request, url_for, session
-from flask_socketio import SocketIO, join_room, leave_room, emit, send, rooms, close_room
+from flask_socketio import SocketIO, join_room, leave_room, emit, send, rooms, close_room, Namespace
 import gevent
 # Personal Libraries
 from models import db, User, Deck
@@ -18,8 +18,9 @@ class Main:
         def handle_connect():
             print("Socket connected, SID:", request.sid)
 
-class ChatRooms:
+class ChatRooms(Namespace):
     def __init__(self, socketio, chat_rooms):
+        super().__init__('/chat')
         self.socketio = socketio
         self.chat_rooms = chat_rooms
         self.register_chat()
@@ -86,7 +87,7 @@ class ChatRooms:
                 "username": username
             }, room=room)
 
-class LobbyCreation:
+class LobbyCreation(Namespace):
     def __init__(self, socketio, game_rooms, user_rooms):
         self.socketio = socketio
         self.game_rooms = game_rooms
@@ -335,7 +336,7 @@ class LobbyCreation:
             else:
                 emit('error', {"message": "You are not in that room.", "status": "error"}, room=request.sid)
 
-class ArenaGameplay:
+class ArenaGameplay(Namespace):
     def __init__(self, socketio, game_rooms, user_rooms):
         self.socketio = socketio
         self.game_rooms = game_rooms

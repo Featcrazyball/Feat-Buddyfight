@@ -43,6 +43,7 @@ app.config['UPLOAD_SLEEVE'] = UPLOAD_SLEEVE
 socketio = SocketIO(app, async_mode='gevent', cors_allowed_origins="*", logger=True, engineio_logger=True)
 default = Main(socketio)
 chatoomSocket = ChatRooms(socketio, chat_rooms)
+socketio.on_namespace(chatoomSocket)
 lobbySocket = LobbyCreation(socketio, game_rooms, user_rooms)
 arenagameplaySocket = ArenaGameplay(socketio, game_rooms, user_rooms)
 
