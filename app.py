@@ -1,7 +1,7 @@
 # Importing necessary libraries
 from flask import Flask
 from flask_socketio import SocketIO
-import os, eventlet
+import os
 # Personal Libraries
 from models import db
 from error import handle_error
@@ -55,5 +55,5 @@ if __name__ == '__main__':
         db.create_all(bind_key='item')
         db.create_all(bind_key='users')
         db.create_all(bind_key='reports')
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 8000))
     socketio.run(app, host="0.0.0.0", port=port, debug=True)
