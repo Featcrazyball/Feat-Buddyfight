@@ -15,12 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const createRoomButton = document.querySelector(".create-room");
     const roomCodeInput = document.getElementById("roomCode");
     const joinRoomForm = document.querySelector("form");
-    const socket = io('ws://featbuddyfight-63880b166ba0.herokuapp.com:8000/socket.io/?EIO=4&transport=websocket');
-    if (!socket) {
-        console.error("Failed to connect to socket.io");
-        socket = io(); 
-    }
-
+    const socket = io();
 
     let currentRoom = "General";
     let privateRooms = new Set();
