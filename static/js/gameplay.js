@@ -1,5 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const socket = io.connect('http://' + window.location.hostname + ':8000', { transports: ['websocket'] });
+    const socket = io('ws://featbuddyfight-63880b166ba0.herokuapp.com:8000/socket.io/?EIO=4&transport=websocket');
+    if (!socket) {
+        console.error("Failed to connect to socket.io");
+        const socket = io.connect('http://' + window.location.hostname + ':8000', { transports: ['websocket'] });
+    }
+
 
     socket.on('connect', () => {
         console.log('Connected to server');
