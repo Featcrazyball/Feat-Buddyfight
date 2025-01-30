@@ -1,7 +1,11 @@
 # Importing necessary libraries
+import gevent
+import gevent.monkey
+gevent.monkey.patch_all()
 from flask import Flask
 from flask_socketio import SocketIO
-import os
+from waitress import serve
+import os, sys
 # Personal Libraries
 from models import db
 from error import handle_error
@@ -25,6 +29,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"pool_pre_ping": True, "pool_recycle": 300}
 app.secret_key = "supersecretkey"
 
+sys.setrecursionlimit(1500)
 db.init_app(app)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
@@ -41,6 +46,7 @@ app.config['UPLOAD_SLEEVE'] = UPLOAD_SLEEVE
 
 # For chat Rooms and Arena
 socketio = SocketIO(app, async_mode='gevent', cors_allowed_origins="*", logger=True, engineio_logger=True)
+os.environ['GEVENT_SUPPORT'] = 'True'
 default = Main(socketio)
 chatoomSocket = ChatRooms(socketio, chat_rooms)
 socketio.on_namespace(chatoomSocket)
@@ -57,4 +63,4 @@ if __name__ == '__main__':
         db.create_all(bind_key='users')
         db.create_all(bind_key='reports')
     port = int(os.environ.get("PORT", 8000))
-    socketio.run(app, host="0.0.0.0", port=port, debug=False)
+    socketio.run(app, host='0.0.0.0', port=port, debug=False)
