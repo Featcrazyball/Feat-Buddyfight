@@ -53,7 +53,7 @@ lobbySocket = LobbyCreation(socketio, game_rooms, user_rooms)
 arenagameplaySocket = ArenaGameplay(socketio, game_rooms, user_rooms)
 
 # Error handling
-app.register_error_handler(Exception, handle_error)
+# app.register_error_handler(Exception, handle_error)
 
 if __name__ == '__main__':
     with app.app_context():
@@ -61,5 +61,5 @@ if __name__ == '__main__':
         db.create_all(bind_key='item')
         db.create_all(bind_key='users')
         db.create_all(bind_key='reports')
-    port = int(os.environ.get("PORT", 8000))
-    socketio.run(app, host='0.0.0.0', port=port, debug=False)
+    port = int(os.environ.get("PORT", 8080))
+    socketio.run(app, host='0.0.0.0', port=port, debug=True)

@@ -8,7 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('update_active_game_rooms', (gameRooms) => {
         console.log('Real-time active game rooms update received:', gameRooms);
-        renderGameRooms(gameRooms);
+        loadActiveGameRooms()
+    });
+
+    socket.on('active_game_rooms', () => { 
+        socket.emit('get_active_game_rooms');
     });
 
     socket.on('game_room_created', (data) => {
@@ -31,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sessionStorage.setItem('hasFetchedInitData', 'false');
             window.location.href = data.redirect_url;
         }
+        socket.emit('broadcast_update')
     });
 
     socket.on('joining_game_player', (data) => {
@@ -71,6 +76,62 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Error loading game rooms:', error);
                 renderGameRooms([]);
             });
+
+        fetch('/spectator_game_rooms', { method: 'GET', headers: { 'Content-Type': 'application/json' } })
+            .then(response => response.json())
+            .then(renderSpectatorRooms)
+            .catch(error => {
+                console.error('Error loading game rooms:', error);
+                renderSpectatorRooms([]);
+            });
+    }
+
+    const swapRoomType = document.getElementById('swap-room-type');
+    if (swapRoomType) {
+        swapRoomType.addEventListener('click', () => {
+            socket.emit('get_active_game_rooms');
+            console.log('clicked');
+            if (swapRoomType.textContent === 'Available Matches') {
+                document.getElementById('rooms-container').classList.add('hidden');
+                document.getElementById('spectator-rooms-container').classList.remove('hidden');
+                swapRoomType.textContent = 'Spectator Matches';
+            } else {
+                document.getElementById('rooms-container').classList.remove('hidden');
+                document.getElementById('spectator-rooms-container').classList.add('hidden');
+                swapRoomType.textContent = 'Available Matches';
+            }
+        });
+    } else {
+        console.error("Element with ID 'swap-room-type' not found.");
+    }
+
+    function renderSpectatorRooms(gameRooms) {
+        const spectatorRooms = document.getElementById('spectator-rooms-container')
+        spectatorRooms.innerHTML = '';
+        if (gameRooms.length === 0) {
+            const noRoomsDiv = document.createElement('div');
+            noRoomsDiv.className = 'lobby-rooms';
+            noRoomsDiv.innerHTML = `<h1 style="align-items:center; margin-bottom: -30vh">No Rooms to Look</h1>`;
+            spectatorRooms.appendChild(noRoomsDiv);
+        }
+        gameRooms.forEach(room => {
+            const roomDiv = document.createElement('div');
+            roomDiv.className = 'lobby-rooms';
+            roomDiv.innerHTML = `
+                <div class="user-information">
+                    <div class="profile-picture" style="background-image: url('${room.creator_profile_picture}')"></div>
+                    <div class="username">${room.creator_username}</div>
+                </div>
+                <div class="join spect-btn" style="cursor: pointer;">
+                    <p class="join-action">SPECTATE</p>
+                </div>`;
+            spectatorRooms.appendChild(roomDiv);
+            roomDiv.querySelector('.spect-btn').addEventListener('click', () => {
+                console.log(`Attempting to join room: ${room.room_code}`);
+                socket.emit('spectate_game', { room: room.room_code });
+                window.location.href = `/spectator/${room.room_code}`;
+            });
+        });
     }
 
     function renderGameRooms(gameRooms) {
@@ -89,11 +150,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="profile-picture" style="background-image: url('${room.creator_profile_picture}')"></div>
                     <div class="username">${room.creator_username}</div>
                 </div>
-                <div class="join" style="cursor: pointer;">
+                <div class="join fight-btn" style="cursor: pointer;">
                     <p class="join-action">FIGHT</p>
                 </div>`;
             roomsContainer.appendChild(roomDiv);
-            roomDiv.querySelector('.join').addEventListener('click', () => {
+            roomDiv.querySelector('.fight-btn').addEventListener('click', () => {
                 console.log(`Attempting to join room: ${room.room_code}`);
                 socket.emit('join_game_room', { room: room.room_code });
                 currentRoomCode = room.room_code; 
@@ -120,8 +181,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loadActiveGameRooms();
-});
-
-document.addEventListener('contextmenu', (event) => {
-    event.preventDefault();
 });

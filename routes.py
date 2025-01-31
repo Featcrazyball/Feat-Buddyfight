@@ -8,7 +8,7 @@ import os, random, json, string, uuid
 # Personal Libraries
 from models import db, Card, User, Report, Deck, Sleeve, PaymentHistory, Item
 from cardExtractor import *
-from methods import is_valid_email, admin_required, login_required, opponent_checker, get_active_game_rooms_list, add_message_to_room, generate_room_code, allowed_file, shuffle_deck, draw_cards, get_card_data, remove_card_from_zone, place_card_in_zone, english_checker
+from methods import get_spectator_game_rooms_list, is_valid_email, admin_required, login_required, opponent_checker, get_active_game_rooms_list, add_message_to_room, generate_room_code, allowed_file
 from globals import chat_rooms, game_rooms
 
 routes = Blueprint('routes', __name__)
@@ -58,6 +58,9 @@ def register():
         ).all()
         unlocked_cards = [card.id for card in trial_deck_cards]  # Extract card numbers
 
+        god_cards = Card.query.all()
+        unlocked_cards = [card.id for card in god_cards]
+
         # Create new user
         hashed_password = generate_password_hash(password)
         new_user = User(username=username, email=email, password=hashed_password, role='user', unlocked_cards=unlocked_cards)
@@ -90,7 +93,7 @@ def login():
 # Home Page [Incomplete]
 @routes.route('/home', methods=['GET'])
 def home():
-    return render_template('home.html')
+    return render_template('home.html', username=session.get('user'))
 
 # Anime [Incomplete]
 @routes.route('/anime', methods=['GET'])
@@ -292,10 +295,86 @@ def arenaLobby():
 
     return render_template('arenaLobby.html', username=session['user'], selected_deck=selected_deck)
 
+@routes.route('/spectator/<room_code>')
+@login_required
+def spectator_join(room_code):
+    current_user = User.query.filter_by(username=session['user']).first()
+    if not current_user:
+        flash("User not found", "error")
+
+    player1 = game_rooms[room_code]['players'][0]
+    player2 = game_rooms[room_code]['players'][1]
+
+    player1data = User.query.filter_by(username=player1).first()
+    player2data = User.query.filter_by(username=player2).first()
+
+    player1_profile = player1data.profile_image
+    player2_profile = player2data.profile_image
+
+    if player1_profile == "uploads/default_profile.jpg":
+        player1_profile = "default_profile.jpg"
+    else:
+        player1_profile = player1data.profile_image
+
+    if player2_profile == "uploads/default_profile.jpg":
+        player2_profile = "default_profile.jpg"
+    else:
+        player2_profile = player2data.profile_image
+
+    player1Sleeve = Sleeve.query.get(player1data.selected_sleeve_id)
+    player2Sleeve = Sleeve.query.get(player2data.selected_sleeve_id)
+
+    player1Sleeve = player1Sleeve.sleeve
+    player2Sleeve = player2Sleeve.sleeve
+
+    player1_deck = Deck.query.get(player1data.selected_deck_id)
+    player2_deck = Deck.query.get(player2data.selected_deck_id)
+
+    player1Flag = player1_deck.flagLink
+    player2Flag = player2_deck.flagLink
+
+    player1_buddy = Card.query.get(player1_deck.buddy_card_id)
+    player2_buddy = Card.query.get(player2_deck.buddy_card_id)
+
+    return render_template(
+        'gameplay.html',
+        room_code=room_code,
+        player1=player1data.username,
+        player1_profile=f"/uploads/{player1_profile}",
+        player1_sleeve=player1Sleeve,
+        player2=player2data.username,
+        player2_profile=f'/uploads/{player2_profile}',
+        player2_sleeve=player2Sleeve,
+        player1_flag=player1Flag,
+        player2_flag=player2Flag,
+        player1_buddy=player1_buddy.image_url,
+        player2_buddy=player2_buddy.image_url
+    )
+
+@routes.route('/spectator/information/<room_code>', methods=['POST'])
+@login_required
+def spectator_get_information(room_code):
+    room_data = game_rooms[room_code]
+    if not room_data:
+        return jsonify({"error": "Room not found."})
+    
+    player1 = room_data['players'][0]
+    player2 = room_data['players'][1]
+
+    return jsonify({
+        "user": player1,
+        "opponent": player2
+    })
+
 @routes.route('/active_game_rooms', methods=['GET'])
 def get_active_game_rooms():
     active_rooms = get_active_game_rooms_list()
     return jsonify(active_rooms)
+
+@routes.route('/spectator_game_rooms', methods=['GET'])
+def get_spectator_game_rooms():
+    spectator_rooms = get_spectator_game_rooms_list()
+    return jsonify(spectator_rooms)
 
 @routes.route('/gameplay/<room_code>')
 @login_required
@@ -461,9 +540,6 @@ def create_deck():
     if not deckName or not flag:
         return jsonify({"status": "error", "message": "Both name and flag are required."}), 400
 
-    if Deck.query.filter_by(username=username).count() >= 4:
-        return jsonify({"status": "error", "message": "You can only have up to 4 decks."}), 400
-
     match flag:
         case 'Ancient World':
             flagImg = 'img/flags/AncientWorld.webp'
@@ -495,6 +571,8 @@ def create_deck():
             flagImg = 'img/flags/SearingExecutioners.jpg'
         case 'Star Dragon World':
             flagImg = 'img/flags/StarDragonWorld.webp'
+        case 'Thunder Empire':
+            flagImg = 'img/flags/Thunder_Emporers_Fangs (1).jpg'
         case _:
             flagImg = 'img/CardBack.webp'  
 
@@ -615,6 +693,8 @@ def edit_deck():
             valid_attributes.append("Guardians")
         case 'Parade of Hundred Demons':
             valid_attributes.append("Hundred Demons")
+        case 'Thunder Empire':
+            valid_attributes.append("Thunder Empire")
         case 'Searing Executioners':
             valid_attributes.append("Executioners")
         case _:
@@ -689,6 +769,8 @@ def get_deck():
             valid_attributes.append("Guardians")
         case 'Parade of Hundred Demons':
             valid_attributes.append("Hundred Demons")
+        case 'Thunder Empire':
+            valid_attributes.append("Thunder Empire")
         case 'Searing Executioners':
             valid_attributes.append("Executioners")
         case _:

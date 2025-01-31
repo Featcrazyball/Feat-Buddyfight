@@ -13,7 +13,8 @@ const flagToCSS = {
     "Parade of Hundred Demons": "ParadeOfHundredDemons",
     "Legend World": "LegendWorld",
     "Searing Executioners": "SearingExecutioners",
-    "Divine Guardians": "DivineGuardians"
+    "Divine Guardians": "DivineGuardians",
+    "Thunder Empire": "ThunderEmpire",
 };
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -44,6 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const innerBanner = selectedDeck.querySelector(".inner-banner");
         const borderFill = selectedDeck.querySelector(".inner-banner-border-fill");
+        const deckName = selectedDeck.querySelector(".deck-name");
 
         if (innerBanner) {
             innerBanner.classList.add("selected");
@@ -52,6 +54,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (borderFill) {
             borderFill.classList.add("selected");
             borderFill.style.backgroundColor = `var(--${cssFlag})`;
+        }
+
+        if (deckFlag === 'Thunder Empire') {
+            deckName.style.color = 'black';
         }
 
         document.documentElement.style.setProperty("--dynamic-color", `var(--${cssFlag})`);

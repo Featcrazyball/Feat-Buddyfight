@@ -62,6 +62,7 @@
     justify-content: center;
     font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
     border-bottom: 3px solid blue;
+    cursor: pointer;
 }
 
 .rooms-container{
@@ -69,6 +70,10 @@
     max-height: 50vh;
     overflow-y: auto;
     min-height: 50vh;
+}
+
+.hidden{
+    display: none;
 }
 
 .no-rooms{
@@ -127,7 +132,7 @@
     font-weight: bold;
 }
 
-.join {
+.join, .spect-btn {
     height: 100px;
     width: 50px;
     background-color: rgba(122, 201, 67, 1);

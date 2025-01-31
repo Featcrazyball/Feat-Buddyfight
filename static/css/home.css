@@ -4,3 +4,158 @@
     height: 100vh;
     background-size: cover;
 }
+
+* {
+    margin: 0; 
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #101020; 
+    overflow-x: hidden;
+    color: #fff;
+    font-family: Impact, sans-serif;
+    user-select: none;
+    position: relative;
+}
+
+.animated-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw; 
+    height: 100vh;
+    background: linear-gradient(45deg, #2600ff, #ff005d, #f7de00);
+    background-size: 600% 600%;
+    z-index: -999;
+    animation: gradientShift 8s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.title {
+    text-align: center;
+    margin-top: 50px;
+    font-size: 6rem;
+    letter-spacing: 0.1em;
+    text-shadow: 0px 0px 10px #ff00ff, 0px 0px 20px #ff00ff;
+    animation: blink 2s infinite alternate;
+}
+
+@keyframes blink {
+    0%   { color: #fff; text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; }
+    50%  { color: #ff00ff; text-shadow: 0 0 20px #ff00ff, 0 0 40px #ffffff; }
+    100% { color: #fff; text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; }
+}
+
+.sparkle-container {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; 
+    overflow: hidden;
+}
+
+.sparkle {
+    position: absolute;
+    bottom: -20px;
+    width: 10px; height: 10px;
+    background: radial-gradient(#ff0, #f00);
+    border-radius: 50%;
+    animation: rise 5s linear infinite;
+    opacity: 0.8;
+    filter: blur(1px);
+}
+
+@keyframes rise {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 0.8;
+    }
+    80% {
+        transform: translateY(-120vh) scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-150vh) scale(0.5);
+        opacity: 0;
+    }
+}
+
+/* 4) Spinning Card-like Element */
+.card-spin {
+    width: 200px;
+    height: 280px;
+    border-radius: 5px;
+    margin: 2rem auto;
+    background-image: url('img/Cardback.webp'); 
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 0 15px rgba(255,255,255,0.8);
+    animation: spinCard 4s linear infinite;
+}
+
+@keyframes spinCard {
+    0%   { transform: rotateY(0deg)  }
+    50%  { transform: rotateY(180deg) }
+    100% { transform: rotateY(360deg) }
+}
+
+/* 5) Pulsating "Enter" Button */
+.enter-btn {
+    display: inline-block;
+    margin: 2rem auto;
+    padding: 1rem 2rem;
+    font-size: 1.5rem;
+    background: linear-gradient(45deg, #ff005d, #f7de00);
+    border: 3px solid #ff005d;
+    cursor: pointer;
+    text-transform: uppercase;
+    border-radius: 50px;
+    transition: 0.4s;
+    animation: pulse 1.8s ease-in-out infinite alternate;
+}
+
+.enter-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px #ff005d;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.05); }
+}
+
+/* 6) Additional Glow on Hover */
+.enter-btn:active {
+    box-shadow: 0 0 30px #ffffff;
+    transform: scale(0.95);
+}
+
+/* Helper container for alignment */
+.content {
+    margin-top: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* For smaller screens */
+@media(max-width: 768px) {
+    .title {
+        font-size: 3rem;
+    }
+    .card-spin {
+        width: 150px;
+        height: 210px;
+    }
+    .enter-btn {
+        font-size: 1.2rem;
+    }
+}

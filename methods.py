@@ -24,6 +24,19 @@ def login_required(func):
         return func(*args, **kwargs) 
     return wrapper
 
+def in_game(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if 'user' not in session:
+            flash("Please log in first.", "error")
+            return redirect(url_for('routes.login'))
+        user_in_room = any(session['user'] in room['players'] for room in game_rooms.values())
+        if not user_in_room:
+            flash("You are not in a game room.", "error")
+            return redirect(url_for('routes.lobby'))
+        return func(*args, **kwargs)
+    return wrapper
+
 # Some useful methods so i dont need to keep copy and pasting
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -52,6 +65,17 @@ def get_active_game_rooms_list():
         }
         for room_code, room_data in game_rooms.items()
         if len(room_data["players"]) < 2  # Exclude full rooms
+    ]
+
+def get_spectator_game_rooms_list():
+    return [
+        {
+            "room_code": room_code,
+            "creator_username": room_data["creator_username"],
+            "creator_profile_picture": room_data["creator_profile_picture"],
+        }
+        for room_code, room_data in game_rooms.items()
+        if len(room_data["players"]) == 2  # Exclude full rooms
     ]
 
 def add_message_to_room(room, username, message):

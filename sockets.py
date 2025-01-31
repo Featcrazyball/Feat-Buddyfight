@@ -4,7 +4,7 @@ import gevent
 # Personal Libraries
 from models import db, User, Deck
 from cardExtractor import *
-from methods import login_required, opponent_checker, get_active_game_rooms_list, add_message_to_room, generate_room_code, shuffle_deck, draw_cards, get_card_data, remove_card_from_zone, place_card_in_zone, english_checker
+from methods import login_required, in_game, opponent_checker, get_active_game_rooms_list, add_message_to_room, generate_room_code, shuffle_deck, draw_cards, get_card_data, remove_card_from_zone, place_card_in_zone, english_checker
 from globals import chat_rooms, game_rooms, user_rooms
 
 class Main:
@@ -99,13 +99,27 @@ class LobbyCreation(Namespace):
         def socket_active_game_rooms():
             active_rooms = [
                 {
+                    "room_code": room_code,
+                    "creator_username": room_data["creator_username"],
+                    "creator_profile_picture": room_data["creator_profile_picture"],
+                }
+                for room_code, room_data in game_rooms.items()
+                if len(room_data["players"]) < 2  # Exclude full rooms
+            ]
+
+            spectator_rooms = [
+                {
                     "room_code": room,
                     "creator_username": game_rooms[room]["creator_username"],
                     "creator_profile_picture": game_rooms[room]["creator_profile_picture"],
                 }
-                for room in game_rooms
+                for room in game_rooms if len(game_rooms[room]["players"]) == 2
             ]
-            emit("active_game_rooms", active_rooms)
+
+            emit("update_active_game_rooms", {
+                'active_rooms': active_rooms,
+                'spectator_rooms': spectator_rooms
+            }, broadcast=True)
 
         @self.socketio.on("create_game_room")
         @login_required
@@ -284,6 +298,8 @@ class LobbyCreation(Namespace):
                     "redirect_url": url_for('routes.gameplay', room_code=room_code),
                 }, room=room_code)
 
+                emit("active_game_rooms", {}, broadcast=True)
+
         @self.socketio.on('leave_created_game_room')
         def leave_created_game_room(data):
             room_code = data.get('room')
@@ -335,6 +351,25 @@ class LobbyCreation(Namespace):
 
             else:
                 emit('error', {"message": "You are not in that room.", "status": "error"}, room=request.sid)
+            
+            emit("active_game_rooms", {}, broadcast=True)
+
+        @self.socketio.on('spectate_game')
+        @login_required
+        def spectate_game(data):
+            room_code = data.get('room')
+            username = session['user']
+
+            if room_code not in game_rooms:
+                emit('error', {"message": "Room does not exist.", "status": "error"}, room=request.sid)
+                return
+
+            join_room(room_code)
+
+            emit('spectate_game', {
+                'room_code': room_code,
+                'room_data': game_rooms[room_code],
+            }, room=request.sid)
 
 class ArenaGameplay(Namespace):
     def __init__(self, socketio, game_rooms, user_rooms):
@@ -352,6 +387,7 @@ class ArenaGameplay(Namespace):
 
         # Phase Updater [Complete]
         @self.socketio.on('phase_update')
+        @in_game
         def phase_update(data):
             room_code = data.get('room')
             phase = data.get('phase')
@@ -370,6 +406,7 @@ class ArenaGameplay(Namespace):
 
         # Life Counter [Complete]
         @self.socketio.on('life_increase')
+        @in_game
         def life_increase(data):
             room_code = data.get('room')
             username = session['user']
@@ -378,6 +415,7 @@ class ArenaGameplay(Namespace):
             emit('life_update', {'current_life': current_life}, room=room_code, include_self=False)
 
         @self.socketio.on('life_decrease')
+        @in_game
         def life_decrease(data):
             room_code = data.get('room')
             username = session['user']
@@ -387,6 +425,7 @@ class ArenaGameplay(Namespace):
 
         # Card Draw [Complete]
         @self.socketio.on('draw_card')
+        @in_game
         def draw_card(data):
             room_code = data.get('room')
             cards_drawn = data.get('cards_drawn')
@@ -434,6 +473,7 @@ class ArenaGameplay(Namespace):
 
         # Gauge Update [Complete]
         @self.socketio.on('gauge_update')
+        @in_game
         def gauge_update(data):
             room_code = data.get('room')
             gauge_change = data.get('gauge_change')
@@ -487,6 +527,7 @@ class ArenaGameplay(Namespace):
 
         # Card call [Complete]
         @self.socketio.on('card_move')
+        @in_game
         def card_moved(data):
             room_code = data.get("room")
             username = session['user']
@@ -520,6 +561,7 @@ class ArenaGameplay(Namespace):
             }, room=room_code)
 
         @self.socketio.on("highlight_card")
+        @in_game
         def handle_highlight_card(data):
             room_code = data.get("room")
             username = session.get("user")
@@ -542,6 +584,7 @@ class ArenaGameplay(Namespace):
             emit("update_game_information", {}, room=room_code)
 
         @self.socketio.on("card_rest_toggle")
+        @in_game
         def handle_card_rest_toggle(data):
             room_code = data["room"]
             username = session["user"]
@@ -568,6 +611,7 @@ class ArenaGameplay(Namespace):
                 }, room=room_code)
 
         @self.socketio.on("buddy_call")
+        @in_game
         def buddy_call(data):
             room_code = data["room"]
             username = session["user"]
@@ -588,6 +632,7 @@ class ArenaGameplay(Namespace):
             emit("update_game_information", {}, room=room_code)
 
         @self.socketio.on('search_deck_open')
+        @in_game
         def search_open(data):
             room_code = data.get('room')
             username = session['user']
@@ -600,6 +645,7 @@ class ArenaGameplay(Namespace):
             emit('update_game_information', {}, room=request.sid)
 
         @self.socketio.on('search_deck_close')
+        @in_game
         def search_close(data):
             room_code = data.get('room')
             username = session['user']
@@ -612,6 +658,7 @@ class ArenaGameplay(Namespace):
             emit('update_game_information', {}, room=request.sid)
 
         @self.socketio.on('search_dropzone_open')
+        @in_game
         def search_dropzone_open(data):
             room_code = data.get('room')
             username = session['user']
@@ -622,6 +669,7 @@ class ArenaGameplay(Namespace):
                 }, room=room_code)
             
         @self.socketio.on('search_dropzone_close')
+        @in_game
         def search_dropzone_close(data):
             room_code = data.get('room')
             username = session['user']
@@ -632,6 +680,7 @@ class ArenaGameplay(Namespace):
                 }, room=room_code)
             
         @self.socketio.on('search_opponent_dropzone_open')
+        @in_game
         def search_opponent_dropzone_open(data):
             room_code = data.get('room')
             username = session['user']
@@ -642,6 +691,7 @@ class ArenaGameplay(Namespace):
                 }, room=room_code)
             
         @self.socketio.on('search_opponent_dropzone_close')
+        @in_game
         def search_opponent_dropzone_close(data):
             room_code = data.get('room')
             username = session['user']
@@ -653,6 +703,7 @@ class ArenaGameplay(Namespace):
 
         # Shuffle Deck [Complete]
         @self.socketio.on('shuffle_deck')
+        @in_game
         def handle_shuffle_deck(data):
             room_code = data.get('room')
             username = session['user']
@@ -670,6 +721,7 @@ class ArenaGameplay(Namespace):
 
         # Drop Top Deck to Dropzone [Complete]
         @self.socketio.on('top_deck_to_dropzone')
+        @in_game
         def top_deck_to_dropzone(data):
             room_code = data.get('room')
             username = session['user']
@@ -706,6 +758,7 @@ class ArenaGameplay(Namespace):
 
         #  Top Deck to Soul 
         @self.socketio.on('top_deck_to_soul')
+        @in_game
         def top_deck_to_soul(data):
             room_code = data.get('room')
             username = session['user']
@@ -765,6 +818,7 @@ class ArenaGameplay(Namespace):
 
         # Look at top Deck
         @self.socketio.on('look_top_deck')
+        @in_game
         def look_top_deck(data):
             room_code = data.get('room')
             username = session['user']
@@ -802,6 +856,7 @@ class ArenaGameplay(Namespace):
 
         # Mini Chat [Complete]
         @self.socketio.on("mini_chat_send")
+        @in_game
         @login_required
         def mini_chat_send(data):
             room_code = data.get("room")
@@ -814,6 +869,7 @@ class ArenaGameplay(Namespace):
 
         # Game End [Complete]
         @self.socketio.on("game_end")
+        @in_game
         @login_required
         def handle_game_end(data):
             room_code = data.get("room")

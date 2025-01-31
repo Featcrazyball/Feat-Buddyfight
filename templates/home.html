@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ username }}</title>
+    <title>Home</title>
     <link rel="website icon" type="png" href="img/Logo.webp">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
@@ -17,13 +17,31 @@
     {% include 'includes/_sound-effects.html' %}
     {% endblock %}
 
-    <div class="back">
-        <div class="logo"></div>
+    <div class="animated-bg"></div>
+
+    <!-- 2) Floating sparkles container -->
+    <div class="sparkle-container" id="sparkle-container"></div>
+  
+    <!-- Main content -->
+    <div class="content">
+      <h1 class="title">Buddyfight</h1>
+      <!-- Spinning card -->
+      <div class="card-spin"></div>
+      <!-- Enter button -->
+      <a href="/arenaLobby" class="enter-btn">Enter Battle!</a>
     </div>
 
-    <h2>Welcome, {{ username }}!</h2>
-    <p>You are now logged in.</p>
-    <a href="{{ url_for('routes.logout') }}">Logout</a>
+    <script>
+        const sparkleContainer = document.getElementById('sparkle-container');
+        const totalSparkles = 100; // number of sparkles
     
+        for (let i = 0; i < totalSparkles; i++) {
+          const sparkle = document.createElement('div');
+          sparkle.classList.add('sparkle');
+          sparkle.style.left = Math.random() * 100 + '%'; 
+          sparkle.style.animationDelay = Math.random() * 5 + 's';
+          sparkleContainer.appendChild(sparkle);
+        }
+    </script>
 </body>
 </html>
