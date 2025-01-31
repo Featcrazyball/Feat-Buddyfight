@@ -4,7 +4,6 @@ import gevent.monkey
 gevent.monkey.patch_all()
 from flask import Flask
 from flask_socketio import SocketIO
-from waitress import serve
 import os, sys
 # Personal Libraries
 from models import db
