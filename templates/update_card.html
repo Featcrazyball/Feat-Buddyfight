@@ -88,7 +88,7 @@
                 <input type="text" id="detail_url" name="detail_url" value="{{ card.detail_url if card else '' }}">
             </div>
             <button type="button" onclick="showConfirmationModal()" class="btn btn-submit">Update Card</button>
-            <a href="{{ url_for('routes.list') }}" class="btn btn-secondary">Cancel</a>
+            <a href="{{ url_for('routes.card_list') }}" class="btn btn-secondary">Cancel</a>
         </form>
 
         <!-- Image Section -->

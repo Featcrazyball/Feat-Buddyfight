@@ -22,6 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
         showModal(data.message, data.status);
     });
 
+    socket.on('redirect', () => {
+        window.location.href = "/arenaLobby";
+    });
+
     let zonesBound = false;
 
     function attachHandCardListeners() {
@@ -129,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 cardImage.innerHTML = "";
                 cardDescription.innerHTML = "";
-                cardDescription.scrollTop = 0;
                 cardDescription.style.overflow = 'auto';
                 cardDescription.style.fontSize = '1.8vh';
                 const img = document.createElement('img');

@@ -53,7 +53,7 @@ lobbySocket = LobbyCreation(socketio, game_rooms, user_rooms)
 arenagameplaySocket = ArenaGameplay(socketio, game_rooms, user_rooms)
 
 # Error handling
-# app.register_error_handler(Exception, handle_error)
+app.register_error_handler(Exception, handle_error)
 
 if __name__ == '__main__':
     with app.app_context():

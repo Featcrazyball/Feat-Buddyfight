@@ -104,7 +104,7 @@ def anime():
 # Card List [Complete]
 @routes.route('/list', methods=['GET'])
 @login_required
-def list():
+def card_list():
     action = 'delete'
     object = 'card'
     search_query = request.args.get('search', '')
@@ -176,7 +176,7 @@ def update_card(card_id):
 
         db.session.commit()
         flash("Card updated successfully!", "success")
-        return redirect(url_for('routes.list'))
+        return redirect(url_for('routes.card_list'))
 
     return render_template('update_card.html', card=card, action=action, object=object) 
 
@@ -187,7 +187,7 @@ def delete_card(card_id):
     db.session.delete(card)
     db.session.commit()
     flash("Card deleted successfully!", "success")
-    return redirect(url_for('routes.list'))
+    return redirect(url_for('routes.card_list'))
 
 # Shops [Incomplete]
 @routes.route('/shops', methods=['GET', 'POST'])
@@ -302,8 +302,10 @@ def spectator_join(room_code):
     if not current_user:
         flash("User not found", "error")
 
-    player1 = game_rooms[room_code]['players'][0]
-    player2 = game_rooms[room_code]['players'][1]
+    room_data = game_rooms[room_code]
+    players_list = list(room_data['players'].keys())
+    player1 = players_list[0]
+    player2 = players_list[1]
 
     player1data = User.query.filter_by(username=player1).first()
     player2data = User.query.filter_by(username=player2).first()
@@ -345,8 +347,8 @@ def spectator_join(room_code):
         player2=player2data.username,
         player2_profile=f'/uploads/{player2_profile}',
         player2_sleeve=player2Sleeve,
-        player1_flag=player1Flag,
-        player2_flag=player2Flag,
+        player1_flag=f'/{player1Flag}',
+        player2_flag=f'/{player2Flag}',
         player1_buddy=player1_buddy.image_url,
         player2_buddy=player2_buddy.image_url
     )
@@ -358,12 +360,16 @@ def spectator_get_information(room_code):
     if not room_data:
         return jsonify({"error": "Room not found."})
     
-    player1 = room_data['players'][0]
-    player2 = room_data['players'][1]
+    players_list = list(room_data['players'].keys())
+    player1 = players_list[0]
+    player2 = players_list[1]
+
+    user = room_data['players'][player1]
+    opponent = room_data['players'][player2]
 
     return jsonify({
-        "user": player1,
-        "opponent": player2
+        "user": user,
+        "opponent": opponent
     })
 
 @routes.route('/active_game_rooms', methods=['GET'])

@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io('/', { transports: ['websocket'] });
 
+    const miniChatMessages = document.getElementById("mini-chat-messages");
+
     socket.on('connect', () => {
         console.log('Connected to server');
         socket.emit('game_room_joined', { room: ROOM_CODE });
@@ -8,6 +10,33 @@ document.addEventListener('DOMContentLoaded', () => {
         get_game_information();
     });
     
+    socket.on("mini_chat_message", (data) => {
+        const { sender, message } = data;
+        if (!message) {
+            return;
+        }
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("message");
+        if (sender === "System") {
+            msgDiv.style.color = "red";
+            msgDiv.style.fontStyle = "italic";
+            msgDiv.style.fontWeight = "bold";
+            msgDiv.style.border = "1px solid red";
+            msgDiv.style.borderRadius = "5px";
+            msgDiv.style.padding = "5px";
+            msgDiv.style.textAlign = "center";
+            msgDiv.style.backgroundColor = 'black';
+            msgDiv.style.fontSize = '1.8vh';
+        }
+        msgDiv.textContent = `${sender}: ${message}`;
+        miniChatMessages.appendChild(msgDiv);
+        miniChatMessages.scrollTop = miniChatMessages.scrollHeight;
+    });
+
+    document.getElementById('leave-room-btn').addEventListener('click', () => {
+        window.location.href = '/arenaLobby';
+    });
+
     socket.on('error', (data) => {
         console.error('Error event received:', data);
         const message = data.message || 'An unknown error occurred';
@@ -59,6 +88,77 @@ document.addEventListener('DOMContentLoaded', () => {
         } 
     }
     
+    function showModalWrapper() {
+        document.getElementById('user-zones-modal-wrapper').style.display = 'flex';
+    }
+    function hideModalWrapper() {
+        document.getElementById('user-zones-modal-wrapper').style.display = 'none';
+    }
+
+    const userSearchDropModal = document.getElementById("user-search-drop-modal");
+    document.getElementById('player-drop-zone').addEventListener('click', () => {
+        console.log('Player Drop Zone');
+        showModalWrapper();
+        userSearchDropModal.style.display = 'flex';
+    });
+
+    const exitButtons = document.querySelectorAll('.exit-button');
+    exitButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            if (button.closest('#user-search-deck-modal')) {
+                userSearchDeckModal.style.display = 'none';
+                socket.emit('search_deck_close', { room: ROOM_CODE });
+            } else if (button.closest('#user-search-drop-modal')) {
+                userSearchDropModal.style.display = 'none';
+                socket.emit('search_dropzone_close', { room: ROOM_CODE });
+            } else if (button.closest('#user-search-soul-modal')) {
+                document.getElementById('user-search-soul-modal').style.display = 'none';
+            } else if (button.closest('#spell-modal')) {
+                document.getElementById('spell-modal').style.display = 'none';
+            }
+            if (userSearchDeckModal.style.display === 'none' 
+                && userSearchDropModal.style.display === 'none' 
+                && document.getElementById('spell-modal').style.display === 'none' 
+                && document.getElementById('user-search-soul-modal').style.display === 'none') {
+                hideModalWrapper();
+            }
+        });
+    });
+
+    const oppoDrop = document.getElementById("opponent-search-drop-modal")
+    document.getElementById('opponent-drop-zone').addEventListener("click", (e) => {
+        console.log('Opponent Drop Zone');
+        oppoDrop.style.display = "flex";
+        document.getElementById('opponent-deck-modal-wrapper').style.display = 'flex';
+    });
+
+    oppoDrop.addEventListener("click", (e) => {
+        if (e.target === oppoDrop) {
+            oppoDrop.style.display = "none";
+            document.getElementById('opponent-deck-modal-wrapper').style.display = 'flex';
+        }
+    });
+
+    socket.on('phase_updated', (data) => {
+        console.log('Phase Updated:', data.phase);
+        socket.emit('spectator_phase_update', { room: ROOM_CODE });
+    });
+
+    socket.on('spectator_phase_updated', (data) => {
+        console.log('Spectator Phase Updated:', data.phase);
+        document.getElementById('opponent-game-phase-content').textContent = data.phase2;
+        document.getElementById('user-game-phase-content').textContent = data.phase1;
+    });
+
+    socket.on('life_update', (data) => {
+        socket.emit('spectator_life_update', { room: ROOM_CODE });
+    });
+
+    socket.on('spectator_life_updated', (data) => {
+        document.getElementById('player-life-total').textContent = data.life1;
+        document.getElementById('opponent-life-total').textContent = data.life2;
+    });
+
     function attachHandCardListeners() {
         const allCards = document.querySelectorAll(".hand-card");
         allCards.forEach((oldElem) => {
@@ -85,7 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 cardImage.innerHTML = "";
                 cardDescription.innerHTML = "";
-                cardDescription.scrollTop = 0;
                 cardDescription.style.overflow = 'auto';
                 cardDescription.style.fontSize = '1.8vh';
                 const img = document.createElement('img');
@@ -160,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         soulCardDiv.classList.add('hand-card');
                         soulCardDiv.dataset.cardObj = JSON.stringify(soulCard);
                         soulCardDiv.dataset.fromZone = fromZoneForSoul;
-                        soulCardDiv.draggable = true;
+                        soulCardDiv.draggable = false;
                         if (impactChecker(soulCard)) {
                             soulCardDiv.innerHTML = `
                             <img src="${soulCard.image_url}"
@@ -258,6 +357,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const userSpellZone = document.getElementById("player-spell-zone");
+    const opponentSpellZone = document.getElementById("opponent-spell-zone");
+
+    opponentSpellZone.addEventListener("click", (e) => {
+        console.log('Opponent Spell Zone');
+        const opponentSpellsModal = document.getElementById('opponent-spells-modal');
+        opponentSpellsModal.style.display = 'flex';
+        opponentSpellsModal.classList.add('active');
+    });
+
+    const oppoSpell = document.getElementById("opponent-spells-modal");
+    oppoSpell.addEventListener("click", (e) => {
+        if (e.target === oppoSpell) {
+            oppoSpell.style.display = "none";
+        }
+    });
+
+    userSpellZone.addEventListener("click", (e) => {
+        console.log('User Spell Zone');
+        showModalWrapper() 
+        document.getElementById('spell-modal').style.display = 'flex';
+    });
+
     function renderCards(data) {
         console.log('Rendering Cards')
         console.log(data);
@@ -326,8 +448,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cardDiv.classList.add("hand-card");
             const card = userDropzone[userDropzone.length - 1];
 
-            cardDiv.style.cursor = 'none';
-
             if (impactChecker(userDropzone[userDropzone.length - 1])) {
                 cardDiv.innerHTML = `
                     <img src="${card.image_url}" alt="${card.name}" 
@@ -350,7 +470,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const cardDiv = document.createElement("div");
             cardDiv.classList.add("hand-card");
             const card = opponentDropzone[opponentDropzone.length - 1];
-            cardDiv.style.cursor = 'none';
 
             if (impactChecker(opponentDropzone[opponentDropzone.length - 1])) {
                 cardDiv.innerHTML = `
@@ -374,7 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cardDiv.dataset.cardObj = JSON.stringify(card);
             cardDiv.classList.add("hand-card");
             cardDiv.dataset.fromZone = "dropzone";
-            cardDiv.draggable = true;
+            cardDiv.draggable = false;
             if (impactChecker(card)) {
                 cardDiv.innerHTML = `
                     <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="true">
@@ -520,7 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cardDiv.dataset.cardObj = JSON.stringify(card);
             cardDiv.classList.add("hand-card");
             cardDiv.dataset.fromZone = "spells";
-            cardDiv.draggable = true;
+            cardDiv.draggable = false;
             cardDiv.style.height = '10vh';
             if (impactChecker(card)) {
                 cardDiv.innerHTML = `
@@ -567,7 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cardDiv.innerHTML = `
                 <img src="/${PLAYER1_SLEEVE}" draggable="false" class="normal-card" >
             `;
-            opponentHandDiv.appendChild(cardDiv);
+            userHandDiv.appendChild(cardDiv);
         };
     
         const opponentHandDiv = document.getElementById("opponent-hand-cards");
@@ -615,7 +734,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cardDiv.dataset.cardObj = JSON.stringify(userLeftCard);
             cardDiv.dataset.fromZone = "left";
             cardDiv.classList.add("hand-card");
-            cardDiv.draggable = true;
+            cardDiv.draggable = false;
             if (impactChecker(userLeftCard)) {
                 cardDiv.innerHTML = `
                     <img src="${userLeftCard.image_url}" alt="${userLeftCard.name}" 
@@ -664,7 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cardDiv.dataset.cardObj = JSON.stringify(userCenterCard);
             cardDiv.dataset.fromZone = "center";
             cardDiv.classList.add("hand-card");
-            cardDiv.draggable = true;
+            cardDiv.draggable = false;
             if (impactChecker(userCenterCard)) {
                 cardDiv.innerHTML = `
                     <img src="${userCenterCard.image_url}" alt="${userCenterCard.name}" 
@@ -711,7 +830,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cardDiv.dataset.cardObj = JSON.stringify(userRightCard);
             cardDiv.classList.add("hand-card");
             cardDiv.dataset.fromZone = "right";
-            cardDiv.draggable = true;
+            cardDiv.draggable = false;
             if (impactChecker(userRightCard)) {
                 cardDiv.innerHTML = `
                     <img src="${userRightCard.image_url}" alt="${userRightCard.name}" 
@@ -758,7 +877,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cardDiv.dataset.cardObj = JSON.stringify(userItemCard);
             cardDiv.classList.add("hand-card");
             cardDiv.dataset.fromZone = "item";
-            cardDiv.draggable = true;
+            cardDiv.draggable = false;
 
             cardDiv.style.position = "relative";
             cardDiv.style.zIndex = "2";
@@ -1030,10 +1149,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('user-search-soul-modal').style.display = 'none';
 
         attachHandCardListeners();
-        if (!zonesBound) {
-            bindZoneListeners();
-            zonesBound = true;
-        }
     }
 });
 

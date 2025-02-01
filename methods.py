@@ -3,7 +3,7 @@ from functools import wraps
 from flask_socketio import emit
 import random, string, re, uuid
 # Personal
-from globals import ALLOWED_EXTENSIONS, game_rooms, chat_rooms
+from globals import ALLOWED_EXTENSIONS, game_rooms, chat_rooms, user_rooms
 from models import db, Card, User, Report, Deck, Sleeve, PaymentHistory, Item
 
 # Role-based access control decorators for Admin required
@@ -27,13 +27,10 @@ def login_required(func):
 def in_game(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if 'user' not in session:
-            flash("Please log in first.", "error")
-            return redirect(url_for('routes.login'))
-        user_in_room = any(session['user'] in room['players'] for room in game_rooms.values())
-        if not user_in_room:
-            flash("You are not in a game room.", "error")
-            return redirect(url_for('routes.lobby'))
+        username = session.get('user')
+        if not username in user_rooms:
+            emit('redirect', room=request.sid)
+            return
         return func(*args, **kwargs)
     return wrapper
 

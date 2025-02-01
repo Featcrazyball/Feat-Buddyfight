@@ -1,4 +1,4 @@
-from flask import request, url_for, session
+from flask import request, url_for, session, redirect
 from flask_socketio import SocketIO, join_room, leave_room, emit, send, rooms, close_room, Namespace
 import gevent
 # Personal Libraries
@@ -403,6 +403,23 @@ class ArenaGameplay(Namespace):
                 'sender': 'System',
                 'message': f"{username} has entered the {phase}."
                 }, room=room_code)
+            
+        @self.socketio.on('spectator_phase_update')
+        def spectator_phase_update(data):
+            room_code = data.get('room')
+            
+            room_data = game_rooms[room_code]
+            players_list = list(room_data['players'].keys())
+            player1 = players_list[0]
+            player2 = players_list[1]
+            
+            phase1 = room_data['players'][player1]['current_phase']
+            phase2 = room_data['players'][player2]['current_phase']
+
+            emit('spectator_phase_updated', {
+                'phase1': phase1,
+                'phase2': phase2
+            }, room=room_code)  
 
         # Life Counter [Complete]
         @self.socketio.on('life_increase')
@@ -422,6 +439,22 @@ class ArenaGameplay(Namespace):
             game_rooms[room_code]['players'][username]['current_life'] -= 1
             current_life = game_rooms[room_code]['players'][username]['current_life']
             emit('life_update', {'current_life': current_life}, room=room_code, include_self=False)
+
+        @self.socketio.on('spectator_life_update')
+        def spectator_life_update(data):
+            room_code = data.get('room')
+            room_data = game_rooms[room_code]
+            players_list = list(room_data['players'].keys())
+            player1 = players_list[0]
+            player2 = players_list[1]
+
+            life1 = room_data['players'][player1]['current_life']
+            life2 = room_data['players'][player2]['current_life']
+
+            emit('spectator_life_updated', {
+                'life1': life1,
+                'life2': life2
+            }, room=room_code)
 
         # Card Draw [Complete]
         @self.socketio.on('draw_card')
@@ -537,7 +570,7 @@ class ArenaGameplay(Namespace):
             spell_id = data.get("spell_id")  
 
             if room_code not in game_rooms:
-                return
+                return redirect(url_for('routes.arenaLobby'))
 
             if from_zone == to_zone:
                 return
