@@ -9,39 +9,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 </head>
 <body>
+    {% block music %}
+    {% include 'includes/_sound-effects.html' %}
+    {% endblock %}
     {% block navbar %}
     {% include 'includes/_navbar.html' %}
     {% endblock %}
 
-    {% block music %}
-    {% include 'includes/_sound-effects.html' %}
-    {% endblock %}
-
-    <div class="animated-bg"></div>
-
-    <!-- 2) Floating sparkles container -->
-    <div class="sparkle-container" id="sparkle-container"></div>
-  
-    <!-- Main content -->
-    <div class="content">
-      <h1 class="title">Buddyfight</h1>
-      <!-- Spinning card -->
-      <div class="card-spin"></div>
-      <!-- Enter button -->
-      <a href="/arenaLobby" class="enter-btn">Enter Battle!</a>
+    <div class="back">
+        <div class="header">Buddyfight</div>
     </div>
-
-    <script>
-        const sparkleContainer = document.getElementById('sparkle-container');
-        const totalSparkles = 100; // number of sparkles
-    
-        for (let i = 0; i < totalSparkles; i++) {
-          const sparkle = document.createElement('div');
-          sparkle.classList.add('sparkle');
-          sparkle.style.left = Math.random() * 100 + '%'; 
-          sparkle.style.animationDelay = Math.random() * 5 + 's';
-          sparkleContainer.appendChild(sparkle);
-        }
-    </script>
 </body>
 </html>

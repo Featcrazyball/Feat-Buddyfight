@@ -20,4 +20,9 @@ function showModal(message, status) {
             modal.style.display = "none";
         }
     });
+
+    closeButton.addEventListener("click", () => {
+        console.log("close button clicked");
+        modal.style.display = "none";
+    });
 }
