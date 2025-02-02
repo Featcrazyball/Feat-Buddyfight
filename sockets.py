@@ -283,7 +283,7 @@ class LobbyCreation(Namespace):
             }
 
             if len(room_data["players"]) == 2:
-                gevent.sleep(0.2)
+                gevent.sleep(1)
                 emit('joining_game_player', {
                     'opponent': opponent
                 }, room=request.sid)
@@ -549,7 +549,7 @@ class ArenaGameplay(Namespace):
                     game_rooms[room_code]['players'][username]['current_gauge_size'] -= 1
 
                     emit('update_game_information', {}, room=room_code)
-                    gevent.sleep(0.1)
+                    gevent.sleep(1)
 
             english_checker = 'gained' if gauge_change > 0 else 'paid'
 

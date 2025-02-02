@@ -1,7 +1,4 @@
 # Importing necessary libraries
-import gevent
-import gevent.monkey
-gevent.monkey.patch_all()
 from flask import Flask
 from flask_socketio import SocketIO
 import os, sys
@@ -49,7 +46,9 @@ os.environ['GEVENT_SUPPORT'] = 'True'
 default = Main(socketio)
 chatoomSocket = ChatRooms(socketio, chat_rooms)
 socketio.on_namespace(chatoomSocket)
+
 lobbySocket = LobbyCreation(socketio, game_rooms, user_rooms)
+
 arenagameplaySocket = ArenaGameplay(socketio, game_rooms, user_rooms)
 
 # Error handling
@@ -62,4 +61,4 @@ if __name__ == '__main__':
         db.create_all(bind_key='users')
         db.create_all(bind_key='reports')
     port = int(os.environ.get("PORT", 8080))
-    socketio.run(app, host='0.0.0.0', port=port, debug=True)
+    socketio.run(app, host='0.0.0.0', port=port, debug=False)
