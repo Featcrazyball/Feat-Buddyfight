@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const socket = io('/', { transports: ['websocket'] });
 
     const miniChatMessages = document.getElementById("mini-chat-messages");
+    const miniChatSend = document.getElementById("mini-chat-send");
+    const miniChatInput = document.getElementById("mini-chat-input");
 
     socket.on('connect', () => {
         console.log('Connected to server');
@@ -31,6 +33,19 @@ document.addEventListener('DOMContentLoaded', () => {
         msgDiv.textContent = `${sender}: ${message}`;
         miniChatMessages.appendChild(msgDiv);
         miniChatMessages.scrollTop = miniChatMessages.scrollHeight;
+    });
+
+    miniChatSend.addEventListener("click", () => {
+        const msg = miniChatInput.value.trim();
+        if (!msg) return;
+        socket.emit("mini_chat_send", { room: ROOM_CODE, message: msg });
+        miniChatInput.value = "";
+    });
+
+    miniChatInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            miniChatSend.click();
+        }
     });
 
     document.getElementById('leave-room-btn').addEventListener('click', () => {

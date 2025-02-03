@@ -949,7 +949,6 @@ class ArenaGameplay(Namespace):
 
         # Mini Chat [Complete]
         @self.socketio.on("mini_chat_send")
-        @in_game
         @login_required
         def mini_chat_send(data):
             room_code = data.get("room")
