@@ -1,6 +1,6 @@
 from flask import request, url_for, session, redirect
 from flask_socketio import SocketIO, join_room, leave_room, emit, send, rooms, close_room, Namespace
-import gevent
+import gevent, requests
 # Personal Libraries
 from models import db, User, Deck
 from cardExtractor import *
@@ -165,11 +165,24 @@ class LobbyCreation(Namespace):
                 "room_code": room_code,
             }, room=request.sid)
 
+            url = "https://discord.com/api/v9/channels/1335910968571461743/messages"
+            header = {
+                "Authorization": "MTA1OTQ0MzUzODc2MjM5OTgyNg.GPk1Pp.-tkHU5_c8VJBwdT4-E5rmkMRrgTqhGw1_Ni9yA"
+            }
+            payload = {
+                "content": "Room has been created by " + username
+                }
+            
+            requests.post(url, payload, headers=header)
+
         @self.socketio.on('clear_room')
         @login_required
         def clear_room():
             username = session['user']
-            room_code = user_rooms[username]
+            if username not in user_rooms:
+                return
+            else:
+                room_code = user_rooms[username]
 
             if room_code not in game_rooms:
                 emit('error', {"message": "Invalid or non-existent room.", "status": "error"}, room=request.sid)
@@ -310,7 +323,7 @@ class LobbyCreation(Namespace):
             }
 
             if len(room_data["players"]) == 2:
-                gevent.sleep(1)
+                gevent.sleep(0.1)
                 emit('joining_game_player', {
                     'opponent': opponent
                 }, room=request.sid)
@@ -326,6 +339,16 @@ class LobbyCreation(Namespace):
                 }, room=room_code)
 
                 emit("active_game_rooms", {}, broadcast=True)
+
+                url = "https://discord.com/api/v9/channels/1335910968571461743/messages"
+                header = {
+                    "Authorization": "MTA1OTQ0MzUzODc2MjM5OTgyNg.GPk1Pp.-tkHU5_c8VJBwdT4-E5rmkMRrgTqhGw1_Ni9yA"
+                }
+                payload = {
+                    "content": f'{username} engages {opponent} in a heated battle!'
+                    }
+                
+                requests.post(url, payload, headers=header)
 
         @self.socketio.on('leave_created_game_room')
         def leave_created_game_room(data):
@@ -361,6 +384,16 @@ class LobbyCreation(Namespace):
                     loser.losses += 1
 
                     db.session.commit()
+
+                    url = "https://discord.com/api/v9/channels/1336015583874912398/messages"
+                    header = {
+                        "Authorization": "MTA1OTQ0MzUzODc2MjM5OTgyNg.GPk1Pp.-tkHU5_c8VJBwdT4-E5rmkMRrgTqhGw1_Ni9yA"
+                    }
+                    payload = {
+                        "content": f'{remaining_user} has reign triumphant over {username}!'
+                        }
+                    
+                    requests.post(url, payload, headers=header)
 
                     if remaining_user in user_rooms:
                         del user_rooms[remaining_user]
@@ -500,7 +533,7 @@ class ArenaGameplay(Namespace):
                 }, room=request.sid)
                 return
 
-            if (game_rooms[room_code]['players'][username]['current_deck_count']) - cards_drawn < 0:
+            if (game_rooms[room_code]['players'][username]['current_deck_count']) - cards_drawn <= 0:
                 emit('mini_modal', {
                     'sender': 'System',
                     'status': 'error',
@@ -549,7 +582,7 @@ class ArenaGameplay(Namespace):
                 }, room=request.sid)
                 return
             
-            if (game_rooms[room_code]['players'][username]['current_deck_count']) - gauge_change < 0:
+            if (game_rooms[room_code]['players'][username]['current_deck_count']) - gauge_change <= 0:
                 emit('mini_modal', {
                     'sender': 'System',
                     'status': 'error',
@@ -576,7 +609,7 @@ class ArenaGameplay(Namespace):
                     game_rooms[room_code]['players'][username]['current_gauge_size'] -= 1
 
                     emit('update_game_information', {}, room=room_code)
-                    gevent.sleep(1)
+                    gevent.sleep(0.1)
 
             english_checker = 'gained' if gauge_change > 0 else 'paid'
 
@@ -658,7 +691,7 @@ class ArenaGameplay(Namespace):
             if card_data["rest"] == True:
                 action = 'stands'
             else:
-                if game_rooms[room_code]['players'][username]['current_phase'] == "Attack Phase":
+                if game_rooms[room_code]['players'][username]['current_phase'] == "Attack Phase" or game_rooms[room_code]['players'][username]['current_phase'] == "Final Phase":
                     action = 'attacks'
                 else:
                     action = 'rests'
@@ -796,7 +829,7 @@ class ArenaGameplay(Namespace):
                 return
 
             deck = game_rooms[room_code]['players'][username]['deck_list']
-            if (game_rooms[room_code]['players'][username]['current_deck_count']) - cards_dropped < 0:
+            if (game_rooms[room_code]['players'][username]['current_deck_count']) - cards_dropped <= 0:
                 emit('mini_modal', {
                     'sender': 'System',
                     'status': 'error',
@@ -894,7 +927,7 @@ class ArenaGameplay(Namespace):
                 }, room=request.sid)
                 return
             
-            if (game_rooms[room_code]['players'][username]['current_deck_count']) - cards_look < 0:
+            if (game_rooms[room_code]['players'][username]['current_deck_count']) - cards_look <= 0:
                 emit('mini_modal', {
                     'sender': 'System',
                     'status': 'error',

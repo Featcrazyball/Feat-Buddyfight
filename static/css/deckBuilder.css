@@ -5,9 +5,8 @@ body {
     background: linear-gradient(to bottom, rgb(0, 119, 255),rgb(0, 8, 255), #290099);
     position: relative;
     overflow-x: hidden;
-    padding: 15vh 0 0 0;
+    padding: 15vh 0 calc(15%-20vh) 0;
     user-select: none;
-    padding-bottom: 15%; /* enough to absorb the -10vh margin */
 }
 
 .no-decks {
@@ -238,6 +237,8 @@ input:focus {
     flex-wrap: wrap;
     justify-content: space-around; 
     gap: 2rem;
+    padding-bottom: 20vh;
+    padding-top: 15vh;
 }
 
 .no-deck-message-container{
@@ -269,12 +270,12 @@ input:focus {
     justify-content: center;
     align-items: center;
     transition: all 0.3s ease;
-    margin-bottom: -10vh;
 }
 
 .deck-item:hover{
     box-shadow: 4px 6px 15px rgb(0, 0, 0);
     transform: translateY(-20px);
+    filter: drop-shadow(0 0 10px rgba(0,0,0));
 }
 
 .deck-item:nth-child(n+5) {
