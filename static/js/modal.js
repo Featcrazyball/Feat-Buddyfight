@@ -2,7 +2,7 @@ function showModal(message, status) {
     const modal = document.getElementById("modal");
     const modalMessage = document.getElementById("modal-message");
     const modalContent = document.querySelector(".modal-content");
-    const closeButton = document.querySelector(".close-button");
+    // const closeButton = document.querySelector(".close-button");
 
     modalMessage.innerHTML = `<span class="${status}">${message}</span>`;
     modal.style.display = "block";
@@ -21,8 +21,8 @@ function showModal(message, status) {
         }
     });
 
-    closeButton.addEventListener("click", () => {
-        console.log("close button clicked");
-        modal.style.display = "none";
-    });
+    // closeButton.addEventListener("click", () => {
+    //     console.log("close button clicked");
+    //     modal.style.display = "none";
+    // });
 }

@@ -71,13 +71,15 @@
     {% block navbar %}
     {% include 'includes/_navbar.html' %}
     {% endblock %}
+
     <div class="lines"></div>
+
     <img src="{{ url_for('static', filename='img/Logo.webp') }}" alt="Buddyfight" class="deck-logo">
 
     <div class="container">
         {% if decks|length == 0 %}
             <div class="no-deck-message-container">
-                <p class="no-deck-message" style="margin-top: 20vh;">No Existing Decks</p>
+                <p class="no-deck-message">No Existing Decks</p>
             </div>
         {% endif %}
         {% for deck in decks %}

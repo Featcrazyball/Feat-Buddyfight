@@ -155,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
             roomsContainer.appendChild(roomDiv);
             roomDiv.querySelector('.fight-btn').addEventListener('click', () => {
+                socket.emit('clear_room');
                 console.log(`Attempting to join room: ${room.room_code}`);
                 socket.emit('join_game_room', { room: room.room_code });
                 currentRoomCode = room.room_code; 

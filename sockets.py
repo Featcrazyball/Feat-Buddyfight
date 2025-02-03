@@ -165,6 +165,33 @@ class LobbyCreation(Namespace):
                 "room_code": room_code,
             }, room=request.sid)
 
+        @self.socketio.on('clear_room')
+        @login_required
+        def clear_room():
+            username = session['user']
+            room_code = user_rooms[username]
+
+            if room_code not in game_rooms:
+                emit('error', {"message": "Invalid or non-existent room.", "status": "error"}, room=request.sid)
+                return
+            
+            players = game_rooms[room_code]["players"]
+            if username in players:
+                del players[username]
+                leave_room(room_code)
+
+                if username in user_rooms:
+                    del user_rooms[username]
+
+                if len(players) == 0:
+                    del game_rooms[room_code]
+
+                self.socketio.emit('update_active_game_rooms', get_active_game_rooms_list())
+                emit('room_closed', {
+                    "message": "You have left the room.",
+                    "redirect_url": url_for('routes.arenaLobby'),
+                }, room=request.sid)
+
         @self.socketio.on('join_game_room')
         @login_required
         def join_game_room(data):

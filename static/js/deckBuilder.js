@@ -285,6 +285,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(() => showModal("An unexpected error occurred. Please try again.", "error"))
             .finally(() => {
                 confirmationModal.classList.remove("visible");
+                window.location.href = window.location.href
             });
     });
 

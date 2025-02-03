@@ -152,6 +152,7 @@ body {
 }
 
 .payment-modal-content form input[type="tel"],
+.payment-modal-content form input[type="month"],
 .payment-modal-content form input[type="text"] {
     width: 100%;
     padding: 10px;
