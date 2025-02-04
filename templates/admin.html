@@ -134,8 +134,10 @@
         <div class="tabs">
             <button class="tablinks active first" onclick="openTab(event, 'Dashboard')">Dashboard</button>
             <button class="tablinks" onclick="openTab(event, 'Users')">Users</button>
+            <button class="tablinks" onclick="openTab(event, 'Anime')">Anime</button>
             <button class="tablinks" onclick="openTab(event, 'List')">Sleeves</button>
-            <button class="tablinks" onclick="openTab(event, 'Shop')">Shop</button>
+            <button class="tablinks" onclick="openTab(event, 'Ticket')">Ticket Shop</button>
+            <button class="tablinks" onclick="openTab(event, 'Payments')">Payments</button>
             <button class="tablinks" onclick="openTab(event, 'Reports')">Reports</button>
         </div>
     </nav>
@@ -168,6 +170,10 @@
             </table>
         </div>
 
+        <div id="Anime" class="tabcontent">
+            <h3>Anime Episodes</h3>
+        </div>
+
         <div id="List" class="tabcontent">
             <h3>Sleeves</h3>
             <form method="GET" action="javascript:void(0);" onsubmit="fetchAndRenderSleeves()">
@@ -179,10 +185,44 @@
             </div>        
         </div>
 
-        <div id="Shop" class="tabcontent">
+        <div id="Payments" class="tabcontent">
             <h3>Payments</h3>
-            <table class="user-table">
+            <a href="#" class="filter-btn" onclick="togglePaymentFilter()" style="text-decoration: none;">Filter</a>
 
+            <div id="payment-filter-panel" class="filter-panel" style="display: none;">
+                <form method="GET" action="javascript:void(0);" onsubmit="fetchAndRenderPayments()">
+                    <label for="user-payment">User:</label>
+                    <input type="text" id="user-payment" name="user-payment" placeholder="Enter User" list="user-options" value="{{ user_payment_filter }}">
+                    <datalist id="user-options">
+                        {% for user in users %}
+                            <option value="{{ user.username }}">{{ user.username }}</option>
+                        {% endfor %}
+                    </datalist>
+
+                    <label for="payment-amount">Price:</label>
+                    <input type="number" id="payment-amount" name="payment-amount" placeholder="Enter Amount" value="{{ payment_amount_filter }}">
+
+                    <label for="item-count">Count:</label>
+                    <input type="number" id="item-count" name="item-count" placeholder="Enter Amount" value="{{ payment_amount_filter }}">
+
+                    <button type="submit" class="btn-primary">Apply Filter</button>
+                    <button type="button" class="btn-secondary" style="padding: 8px 15px; font-weight: bold; font-size: 14px;" onclick="resetPaymentFilter()">Reset</button>
+
+                </form>
+            </div>
+
+            <table class="user-table" id="payments-table">
+                <thead>
+                    <tr>
+                        <th class="payment">Payment ID</th>
+                        <th class="payment">User</th>
+                        <th class="payment">Amount</th>
+                        <th class="payment">Price</th>
+                        <th class="payment">Date</th>
+                    </tr>
+                </thead>
+                <tbody id="payments-table-body">
+                </tbody>
             </table>
         </div>
 
@@ -219,8 +259,7 @@
                 </form>
             </div>
 
-                {% if reports %}
-                    <table class="user-table">
+                    <table class="user-table" id="reports-table">
                         <thead>
                             <tr>
                                 <th class="report">Report ID</th>
@@ -232,21 +271,6 @@
                             </tr>
                         </thead>
                         <tbody id="reports-table-body">
-                        {% for report in reports %}
-                            <tr>
-                                <td class="user">{{ report.id }}</td>
-                                <td class="user">{{ report.user_reporting }}</td>
-                                <td class="user">{{ report.user_being_reported }}</td>
-                                <td class="user" >{{ report.report_type }}</td>
-                                <td class="user">{{ report.detail }}</td>
-                                <td class="user"> 
-                                    <button class="btn-danger user" onclick="confirmDeleteReport('{{ report.id }}')">Delete</button>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        {% else %}
-                                <h1>No Such Report</h1>
-                        {% endif %}
                         </tbody>
                     </table>
         </div>

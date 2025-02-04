@@ -550,14 +550,7 @@ class ArenaGameplay(Namespace):
             english_checker = 'card' if cards_drawn == 1 else 'cards'
             english_checker_2 = 'a' if cards_drawn == 1 else cards_drawn
 
-            emit('card_drawn', {
-                'hand': game_rooms[room_code]['players'][username]['current_hand'],
-                'hand_size': game_rooms[room_code]['players'][username]['current_hand_size'],
-                'deck_count': len(remaining_deck),
-                'cards_drawn': cards_drawn
-            }, room=room_code, include_self=False)
-
-            emit('update_game_information', {}, room=request.sid)
+            emit('update_game_information', {}, room=room_code)
 
             emit('mini_chat_message', {
                 'sender': 'System',

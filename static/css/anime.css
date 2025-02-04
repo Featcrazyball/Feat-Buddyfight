@@ -1,0 +1,325 @@
+/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    background-color: #121212;
+    color: #fff;
+    transition: background 0.3s ease-in-out;
+  }
+  
+  body.dark-mode {
+    background-color: #f4f4f4;
+    color: #000;
+  }
+  
+  :root {
+    --scrollbar-width: 16px;
+    --scrollbar-track-color: blue;
+    --scrollbar-thumb-color: linear-gradient(135deg, #ff69b4, #00ffff);
+    --transition-speed: 0.3s;
+}
+
+::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+    background: var(--scrollbar-track-color);
+}
+
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-color);
+    border-radius: 5px;
+    border: 1px solid #00ffff;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-color);
+    border-radius: 10px;
+    border: 2px solid #fff;
+    animation: cosmicPulse 2s ease-in-out infinite alternate;
+}
+
+  /* Header */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: #181818;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+.logo {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: rgb(0, 68, 255);
+    box-shadow: #ffffff94;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.logo:hover {
+    color: rgb(0, 183, 255);
+    box-shadow: #ffffff;
+}
+  
+  /* Search Bar */
+  .search-container {
+    display: flex;
+    align-items: center;
+    background: #222;
+    border-radius: 30px;
+    padding: 8px 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+    width: 300px;
+  }
+  
+  .search-container:hover {
+    background: #2d2d2d;
+  }
+  
+  .search-container input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #fff;
+    font-size: 14px;
+    padding-left: 10px;
+  }
+  
+  .search-container input::placeholder {
+    color: #777;
+  }
+  
+  .search-container button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  .search-container button:hover {
+    transform: scale(1.1);
+  }
+  
+  .search-container button img {
+    width: 20px;
+    height: 20px;
+    filter: invert(70%);
+  }
+  
+  .search-container {
+        display: flex;
+        align-items: center;
+        background-color: #1e1e1e; /* Darker gray for the search bar */
+        border-radius: 30px;
+        padding: 10px 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+        width: 400px;
+        position: absolute; /* For the error message */
+        right: 1em;
+        top:1em;
+      }
+   .search-container input.error {
+        border: 2px solid red;
+        border-radius: 30px; /* Keep the rounded edges */
+      }
+  
+  .error-message {
+        color: red;
+        font-size: 12px;
+        position: absolute;
+        bottom: -20px;
+        left: 10px;
+        display: none;
+      }
+  
+      .error-message.active {
+        display: block;
+      }
+  
+  
+  
+  /* Video Section */
+  .video-section {
+    text-align: center;
+    margin: 20px 0;
+  }
+  
+  iframe {
+    width: 55%;
+    height: 450px;
+    border: 3px solid blue;
+    border-radius: 4px;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  iframe:hover {
+    transform: scale(1.02);
+  }
+  
+  /* Episode Grid */
+  .episode-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 15px;
+    margin: 20px;
+    text-align: center;
+  }
+  
+  .episode-grid button {
+    padding: 12px;
+    font-size: 14px;
+    background: #303030;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .episode-grid button:hover {
+    background: blue;
+    transform: scale(1.1);
+  }
+  
+  /* Theme Toggle */
+  #themeToggle {
+    margin: 20px auto;
+    display: block;
+    padding: 12px 20px;
+    color: #fff;
+    background-color: #000;
+    box-shadow: 0 4px 15px white;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  #themeToggle:hover {
+    transform: scale(1.1);
+  }
+  
+  /* Related Section */
+  .related-section {
+    margin-top: 20px;
+    background: #1e1e1e;
+    color: #fff;
+    padding: 15px;
+    border-radius: 12px;
+  }
+  
+  .related-section h2 {
+    text-align: center;
+    font-size: 1.5em;
+  }
+  
+  .movie-list-container {
+    padding: 0 20px;
+  }
+  
+  .movie-list-wrapper {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .movie-list {
+    display: flex;
+    align-items: center;
+    height: 300px;
+    transform: translateX(0);
+    transition: all 1s ease-in-out;
+  }
+  
+  .movie-list-item {
+    margin-right: 30px;
+    position: relative;
+  }
+  
+  .movie-list-item:hover .movie-list-item-img {
+    transform: scale(1.2);
+    margin: 0 30px;
+    opacity: 0.5;
+  }
+  
+  .movie-list-item:hover .movie-list-item-title,
+  .movie-list-item:hover .movie-list-item-desc,
+  .movie-list-item:hover .movie-list-item-button {
+    opacity: 1;
+  }
+  
+  .movie-list-item-img {
+    transition: all 1s ease-in-out;
+    width: 350px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 20px;
+  }
+  
+  .movie-list-item-title {
+  
+    padding: 0 10px;
+    font-size: 32px;
+    font-weight: bold;
+    position: absolute;
+    top: 10%;
+    left: 50px;
+    opacity: 0;
+    transition: 1s all ease-in-out;
+  }
+  
+  .movie-list-item-desc {
+  
+    padding: 10px;
+    font-size: 14px;
+    position: absolute;
+    top: 30%;
+    left: 50px;
+    width: 230px;
+    opacity: 0;
+    transition: 1s all ease-in-out;
+  }
+  
+  .movie-list-item-button {
+    padding: 10px;
+    background-color: blue;
+    color: white;
+    border-radius: 10px;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    position: absolute;
+    bottom: 20px;
+    left: 50px;
+    opacity: 0;
+    transition: 1s all ease-in-out;
+  }
+  
+  .movie-list-title.active {
+    color: black;
+  }
+  
+  .arrow {
+    font-size: 120px;
+    position: absolute;
+    top: 90px;
+    right: 0;
+    color: lightgray;
+    opacity: 0.5;
+    cursor: pointer;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .search-container {
+      width: 100%;
+    }
+  
+    iframe {
+      width: 90%;
+      height: 250px;
+    }
+  
+  }

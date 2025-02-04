@@ -20,6 +20,7 @@ app.config['SQLALCHEMY_BINDS'] = {
     'cards': 'sqlite:///buddyfight_cards.db',
     'reports': 'sqlite:///reports.db',
     'item': 'sqlite:///items.db',
+    'episodes': 'sqlite:///episodes.db',
 }
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"pool_pre_ping": True, "pool_recycle": 300}
@@ -60,5 +61,6 @@ if __name__ == '__main__':
         db.create_all(bind_key='item')
         db.create_all(bind_key='users')
         db.create_all(bind_key='reports')
+        db.create_all(bind_key='episodes')
     port = int(os.environ.get("PORT", 8080))
     socketio.run(app, host='0.0.0.0', port=port, debug=False)

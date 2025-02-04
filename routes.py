@@ -6,7 +6,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm.attributes import flag_modified
 import os, random, json, string, uuid
 # Personal Libraries
-from models import db, Card, User, Report, Deck, Sleeve, PaymentHistory, Item
+from models import db, Card, User, Report, Deck, Sleeve, PaymentHistory, Item, Episode
 from cardExtractor import *
 from methods import get_spectator_game_rooms_list, is_valid_email, admin_required, login_required, opponent_checker, get_active_game_rooms_list, add_message_to_room, generate_room_code, allowed_file
 from globals import chat_rooms, game_rooms
@@ -58,8 +58,8 @@ def register():
         ).all()
         unlocked_cards = [card.id for card in trial_deck_cards]  # Extract card numbers
 
-        god_cards = Card.query.all()
-        unlocked_cards = [card.id for card in god_cards]
+        # god_cards = Card.query.all()
+        # unlocked_cards = [card.id for card in god_cards]
 
         # Create new user
         hashed_password = generate_password_hash(password)
@@ -100,6 +100,17 @@ def home():
 @login_required
 def anime():
     return render_template('anime.html', username=session['user'])
+
+@routes.route('/api/season/<int:season_id>', methods=['GET'])
+def get_season_episodes(season_id):
+    episodes = Episode.query.filter_by(season=season_id).all()
+    episode_data = [{'id': ep.id, 'title': ep.title, 'video_url': ep.video_url, 'season': ep.season} for ep in episodes]
+    return jsonify(episode_data)
+
+@routes.route('/watch/<int:season_id>', methods=['GET', 'POST'])
+@login_required
+def season_episodes(season_id):
+    return render_template('anime_watch.html')
 
 # Card List [Complete]
 @routes.route('/list', methods=['GET'])
@@ -1134,50 +1145,51 @@ def update_profile_picture():
 @login_required
 @admin_required
 def admin():
-    # For User Filtering
-    search_query = request.args.get('search', '')
-    query = User.query
-    if search_query:
-        query = query.filter(
-            User.username.ilike(f"%{search_query}%") |
-            User.email.ilike(f"%{search_query}%")
-        )
-    users = query.all()
-
-    # For Report Filtering
-    report_query = Report.query
-    user_reporting_filter = request.args.get('user-reporting', '')
-    reported_user_filter = request.args.get('reported-user', '')
-    report_type_filter = request.args.get('report-type', '')
-
-    if user_reporting_filter:
-        report_query = report_query.filter(Report.user_reporting.ilike(f"%{user_reporting_filter}%"))
-    if reported_user_filter:
-        report_query = report_query.filter(Report.user_being_reported.ilike(f"%{reported_user_filter}%"))
-    if report_type_filter:
-        report_query = report_query.filter(Report.report_type.ilike(f"%{report_type_filter}%"))
-
-    reports = report_query.all()
-
-    sleeves_query = Sleeve.query
-
-    sleeve_search = request.args.get('search_sleeve')
-    if sleeve_search:
-        sleeves_query = sleeves_query.filter(Sleeve.sleeve_type.ilike(f"%{sleeve_search}%"))
-
-    sleeves = sleeves_query.all()
-
+    users = User.query.all()
     return render_template(
         'admin.html',
         username=session['user'],
-        users=users,
-        search_query=search_query,
-        user_reporting_filter = user_reporting_filter,
-        reported_user_filter=reported_user_filter,
-        report_type_filter=report_type_filter,
-        reports=reports,
-        sleeves = sleeves
+        users=users
     )
+
+@routes.route('/admin/get_payment', methods=['GET'])
+@admin_required
+def get_payments():
+    payments = PaymentHistory.query
+
+    user_query = request.args.get('user-payment', '')
+    if user_query:
+        payments = payments.filter(PaymentHistory.username.ilike(f"%{user_query}%"))
+
+    price_query = request.args.get('payment-amount', '')
+    if price_query:
+        payments = payments.filter(PaymentHistory.item_price == price_query)
+
+    count_query = request.args.get('item-count', '')
+    if count_query:
+        count_query = int(count_query)
+        item = Item.query.filter_by(id=count_query).first()
+        item_id = item.id if item else count_query
+        payments = payments.filter(PaymentHistory.item_id == item_id)
+
+    payments = payments.all()
+
+    payment_data = [
+        {
+            "id": payment.id,
+            "username": payment.username,
+            "item_id": payment.item_id,
+            "item_price": payment.item_price,
+            "date": payment.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        for payment in payments
+    ]
+
+    for payment in payment_data:
+        item = Item.query.filter_by(id=payment['item_id']).first()
+        payment['item_id'] = item.count
+
+    return jsonify({"payments": payment_data})
 
 @routes.route('/admin/get_users', methods=['GET'])
 @admin_required

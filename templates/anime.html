@@ -1,22 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anime</title>
-    <link rel="stylesheet" href="css/style.css">
-</head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BuddyWatch</title>
+  <link rel="stylesheet" href="{{url_for('static',filename='css/anime_home.css')}}">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css">
+   <link rel="website icon" href="{{ url_for('static', filename='img/Logo.webp') }}">
 <body>
-    {% block music %}
-    {% include 'includes/_sound-effects.html' %}
-    {% endblock %}
 
     {% block navbar %}
     {% include 'includes/_navbar.html' %}
     {% endblock %}
 
-    <h2>Welcome, {{ username }}!</h2>
-    <p>You are now logged in.</p>
-    <a href="{{ url_for('routes.logout') }}">Logout</a>
+    <div class="container">
+        <div class="content-container">
+            <div class="featured-content">
+
+               <img class="featured-title" src="{{ url_for('static', filename='img/anime/bg.jpg') }}" alt="">
+                <p class="featured-desc">An adaptation of the Future Card Buddyfight card game. Future Card Buddyfight takes place in a
+                     more futuristic version of today. The card game connects to a parallel universe through special cards
+                     (Buddy Rare Cards) that act as portals. They bring monsters to Earth in order for them to become buddies with
+                      humans. Through friendship and courage, they take on and fight challenges, known as Buddyfights, where people of
+                       all ages have friendly non-hurtful competitions. The main character, Gao Mikado has just started Buddyfighting.
+                        As the story progresses, Buddyfights are seeming to become a little too real....</p>
+                <a href="/watch/1"><button class="featured-button">WATCH</button></a>
+            </div>
+            <div class="movie-list-container" id="movie-list-title">
+                <h1 class="movie-list-title">Buddyfight Seasons </h1>
+                <div class="movie-list-wrapper">
+                    <div class="movie-list">
+                        <div class="movie-list-item">
+                            <a href="watch/1"><img class="movie-list-item-img" src="{{ url_for('static', filename='img/anime/s1.jpg') }}" alt=""></a>
+                            <span class="movie-list-item-title">Season 1</span>
+                            <p class="movie-list-item-desc">Future Card Buddyfight</p>
+                            <a href="watch/1"><button class="movie-list-item-button">Watch</button></a>
+                        </div>
+                        <div class="movie-list-item">
+                            <a href="watch/2"> <img class="movie-list-item-img" src="{{ url_for('static', filename='img/anime/s2.jpeg') }}" alt=""></a>
+                            <span class="movie-list-item-title">Season 2</span>
+                            <p class="movie-list-item-desc">Future Card Buddyfight 100</p>
+                            <a href="watch/2"><button class="movie-list-item-button">Watch</button></a>
+                        </div>
+                        <div class="movie-list-item">
+                            <a href="watch/3"><img class="movie-list-item-img" src="{{ url_for('static', filename='img/anime/s3.jpeg') }}" alt=""></a>
+                            <span class="movie-list-item-title">Season 3</span>
+                            <p class="movie-list-item-desc">Future Card Buddyfight DDD</p>
+                            <a href="watch/3"><button class="movie-list-item-button">Watch</button></a>
+                        </div>
+                        <div class="movie-list-item">
+                            <a href="watch/4"><img class="movie-list-item-img" src="{{ url_for('static', filename='img/anime/s4.jpg') }}" alt=""></a>
+                            <span class="movie-list-item-title">Season 4</span>
+                            <p class="movie-list-item-desc">Future Card Buddyfight X</p>
+                            <a href="watch/4"><button class="movie-list-item-button">Watch</button></a>
+                        </div>
+                        <div class="movie-list-item">
+                            <a href="watch/5"><img class="movie-list-item-img" src="{{ url_for('static', filename='img/anime/s5.jpeg') }}" alt=""></a>
+                            <span class="movie-list-item-title">Season 5</span>
+                            <p class="movie-list-item-desc">Future Card Buddyfight Ace</p>
+                            <a href="watch/5"><button class="movie-list-item-button">Watch</button></a>
+                        </div>
+
+                    </div>
+                    <i class="fas fa-chevron-right arrow"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/anime_home.js') }}"></script>
 </body>
 </html>

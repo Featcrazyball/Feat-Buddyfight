@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAndRenderUsers();
     fetchAndRenderReports();
     fetchAndRenderSleeves();
+    fetchAndRenderPayments()
 });
 
 function fetchAndRenderUsers() {
@@ -83,9 +84,16 @@ function fetchAndRenderReports() {
                 reportsTableBody.appendChild(tr);
             });
             if (data.reports.length === 0) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td colspan="6">No Reports found</td>`;
-                reportsTableBody.appendChild(tr);
+                const reportTable = document.getElementById('reports-table');
+                reportsTableBody.innerHTML = '';
+                if (reportTable) {
+                    const tr = document.createElement('h1');
+                    tr.style.height = '100%';
+                    tr.style.textAlign = 'center';
+                    tr.style.width = '100%';
+                    tr.textContent = 'No reports found';
+                    reportsTableBody.appendChild(tr);
+                }
             }
         })
         .catch(err => console.error('Error fetching reports:', err));
@@ -341,3 +349,61 @@ function updateFileName() {
     const fileName = input.files.length > 0 ? input.files[0].name : 'No file chosen';
     document.getElementById('file-name').textContent = fileName;
 }
+
+function togglePaymentFilter() {
+    const filterPanel = document.getElementById('payment-filter-panel');
+    if (filterPanel.style.display === 'none' || filterPanel.style.display === '') {
+        filterPanel.style.display = 'block';
+    } else {
+        filterPanel.style.display = 'none';
+    }
+}
+
+function resetPaymentFilter() {
+    document.getElementById('user-payment').value = '';
+    document.getElementById('payment-amount').value = '';
+    document.getElementById('item-count').value = '';
+}
+
+function fetchAndRenderPayments() {
+    const userPaying = document.getElementById('user-payment').value;
+    const paymentAmount = document.getElementById('payment-amount').value;
+    const itemCount = document.getElementById('item-count').value;
+
+    const url = new URL('/admin/get_payment', window.location.origin);
+    if (userPaying) url.searchParams.append('user-payment', userPaying);
+    if (paymentAmount) url.searchParams.append('payment-amount', paymentAmount);
+    if (itemCount) url.searchParams.append('item-count', itemCount);
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const paymentsTableBody = document.getElementById('payments-table-body');
+            if (!paymentsTableBody) return;
+            paymentsTableBody.innerHTML = '';
+
+            data.payments.forEach(payment => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${payment.id}</td>
+                    <td>${payment.username}</td>
+                    <td>${payment.item_id}</td>
+                    <td>${payment.item_price}</td>
+                    <td>${payment.date}</td>
+                `;
+                paymentsTableBody.appendChild(tr);
+            });
+
+            if (data.payments.length === 0) {
+                const paymentsTable = document.getElementById('payments-table');
+                paymentsTableBody.innerHTML = '';
+                if (paymentsTable) {
+                    const tr = document.createElement('h1');
+                    tr.style.height = '100%';
+                    tr.style.textAlign = 'center';
+                    tr.style.width = '100%';
+                    tr.textContent = 'No Payments Found';
+                    paymentsTableBody.appendChild(tr);
+                }
+            }
+})}

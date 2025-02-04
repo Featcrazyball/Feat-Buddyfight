@@ -165,3 +165,10 @@ class Report(db.Model):
             "report_type": self.report_type,
             "detail": self.detail,
         }
+    
+class Episode(db.Model):
+    __bind_key__ = 'episodes'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    video_url = db.Column(db.String(300), nullable=False)
+    season = db.Column(db.Integer, nullable=True)

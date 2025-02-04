@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BuddyWatch</title>
+  <link rel="stylesheet" href="{{url_for('static',filename='css/anime.css')}}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css">
+  <link rel="website icon" href="{{ url_for('static', filename='img/Logo.webp') }}">
+</head>
+<body>
+  <header>
+    <a href="/anime" style="text-decoration:none"><div class="logo">BuddyWatch</div></a>
+
+  </header>
+  <main>
+    <section class="video-section">
+      <iframe id="videoPlayer" src="https://www.youtube.com/embed/uTEOIkIWsqI?si=qq9RTY4HXI9QrDgp" frameborder="0" allowfullscreen></iframe>
+    </section>
+    <section class="controls">
+        <div class="episode-grid">
+            {% for episode in episodes %}
+            <button id="episode-{{ episode.id }}" onclick="playEpisode('{{ episode.video_url }}')">
+                {{ episode.title }}
+            </button>
+            {% endfor %}
+        </div>
+
+      <button id="themeToggle">Dark Mode</button>
+    </section>
+    <!--- -->
+    <section class="related-section">
+  <h2>Other Seasons</h2>
+  <div class="movie-list-wrapper">
+                    <div class="movie-list">
+                        <div class="movie-list-item">
+                          <a href="/watch/1"> <img class="movie-list-item-img" src="{{ url_for('static', filename='img/anime/s1.jpg') }}" alt=""></a>
+                          <span class="movie-list-item-title">Season 1</span>
+                          <p class="movie-list-item-desc">Future Card Buddyfight</p>
+                          <a href="/watch/1"><button class="movie-list-item-button">Watch</button></a>
+                        </div>
+                        <div class="movie-list-item">
+                            <a href="/watch/2"> <img class="movie-list-item-img" src="{{ url_for('static', filename='img/anime/s2.jpeg') }}" alt=""></a>
+                            <span class="movie-list-item-title">Season 2</span>
+                            <p class="movie-list-item-desc">Future Card Buddyfight 100</p>
+                            <a href="/watch/2"><button class="movie-list-item-button">Watch</button></a>
+                        </div>
+                        <div class="movie-list-item">
+                            <a href="/watch/3"><img class="movie-list-item-img" src="{{ url_for('static', filename='img/anime/s3.jpeg') }}" alt=""></a>
+                            <span class="movie-list-item-title">Season 3</span>
+                            <p class="movie-list-item-desc">Future Card Buddyfight DDD</p>
+                            <a href="/watch/3"><button class="movie-list-item-button">Watch</button></a>
+                        </div>
+                        <div class="movie-list-item">
+                            <a href="/watch/4"><img class="movie-list-item-img" src="{{ url_for('static', filename='img/anime/s4.jpg') }}" alt=""></a>
+                            <span class="movie-list-item-title">Season 4</span>
+                            <p class="movie-list-item-desc">Future Card Buddyfight X</p>
+                            <a href="/watch/4"><button class="movie-list-item-button">Watch</button></a>
+                        </div>
+                        <div class="movie-list-item">
+                            <a href="/watch/5"><img class="movie-list-item-img" src="{{ url_for('static', filename='img/anime/s5.jpeg') }}" alt=""></a>
+                            <span class="movie-list-item-title">Season 5</span>
+                            <p class="movie-list-item-desc">Future Card Buddyfight Ace</p>
+                            <a href="/watch/5"><button class="movie-list-item-button">Watch</button></a>
+                        </div>
+
+                    </div>
+                    <i class="fas fa-chevron-right arrow"></i>
+                </div>
+
+</section>
+
+  </main>
+  <script src="{{ url_for('static', filename='js/anime.js') }}"></script>
+
+</body>
+</html>
