@@ -1,6 +1,6 @@
 from flask import request, url_for, session, redirect
 from flask_socketio import SocketIO, join_room, leave_room, emit, send, rooms, close_room, Namespace
-import gevent, requests
+import gevent, requests, random
 # Personal Libraries
 from models import db, User, Deck
 from cardExtractor import *
@@ -280,6 +280,14 @@ class LobbyCreation(Namespace):
             user_deck_count = len(user_remaining_deck)
             opponent_deck_count = len(opponent_remaining_deck)
 
+            random_boolean = random.choice([True, False])
+            if random_boolean == False:
+                userPhase = 'Draw Phase'
+                opponentPhase = 'End Turn'
+            else:
+                userPhase = 'End Turn'
+                opponentPhase = 'Draw Phase'
+
             game_rooms[room_code]['players'][username] = {
                     'current_life': user_deck.initial_life,
                     'current_gauge_size': user_deck.initial_gauge,
@@ -296,7 +304,7 @@ class LobbyCreation(Namespace):
                     'dropzone': [],
                     'buddy_rest': False,
                     'selector': None,
-                    'current_phase': 'Draw Phase',
+                    'current_phase': userPhase,
                     'highlighter': None,
                     'look': []
                 }
@@ -317,7 +325,7 @@ class LobbyCreation(Namespace):
                 'dropzone': [],
                 'buddy_rest': False,
                 'selector': None,
-                'current_phase': 'End Turn',
+                'current_phase': opponentPhase,
                 'highlighter': None,
                 'look': []
             }
