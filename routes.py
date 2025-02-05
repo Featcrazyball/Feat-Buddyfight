@@ -613,6 +613,10 @@ def create_deck():
         initial_life = 8
         initial_gauge = 4
         initial_hand_size = 6
+    elif flag == 'Thunder Empire':
+        initial_life = 11
+        initial_gauge = 1
+        initial_hand_size = 7
 
     try:
         new_deck = Deck(
@@ -693,7 +697,7 @@ def edit_deck():
         flash("Selected deck not found.", "error")
         return redirect(url_for('routes.deck_builder'))
 
-    valid_flags = ["Generic"]
+    valid_flags = ["Generic", 'All']
     valid_attributes = []
     exclude_types = []
     exclude_worlds = ['Lost World']
@@ -769,7 +773,7 @@ def get_deck():
     if not selected_deck:
         return jsonify({"status": "error", "message": "Deck not found"}), 404
 
-    valid_flags = ["Generic"]
+    valid_flags = ["Generic", 'All']
     valid_attributes = []
     exclude_types = []
     exclude_worlds = ['Lost World']

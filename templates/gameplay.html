@@ -137,7 +137,7 @@
                             <p class="spell-zone-display">Spells</p>
                         </div>
                         <div class="mini-zone-circle " style="margin-top: -16vh;" >
-                            <img src="{% if user_flag %}{{ url_for('static', filename=user_flag) }}{% else %}{{ player2_flag }}{% endif %}" alt="User's flag" class="card actual-flag" id="opponent-flag" style="user-select: none; position:absolute; pointer-events: none; z-index: index 1;" draggable="false" >
+                            <img src="{% if user_flag %}{{ url_for('static', filename=user_flag) }}{% else %}{{ player1_flag }}{% endif %}" alt="User's flag" class="card actual-flag" id="opponent-flag" style="user-select: none; position:absolute; pointer-events: none; z-index: index 1;" draggable="false" >
                             <div class="mini-zone-circle player-mini-zone" id="player-flag-zone" data-zone="item" style="border: 0;" data-allow-append="true"></div>
                         </div>
                         <div class="mini-zone-circle" id="player-buddy-zone" style="margin-top: -13vh;" >

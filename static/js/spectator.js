@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const miniChatSend = document.getElementById("mini-chat-send");
     const miniChatInput = document.getElementById("mini-chat-input");
 
+    
+
     socket.on('connect', () => {
         console.log('Connected to server');
         socket.emit('game_room_joined', { room: ROOM_CODE });
@@ -511,12 +513,12 @@ document.addEventListener('DOMContentLoaded', () => {
             cardDiv.draggable = false;
             if (impactChecker(card)) {
                 cardDiv.innerHTML = `
-                    <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="true">
+                    <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="false">
                 `;
                 userDropDiv.appendChild(cardDiv);
             } else {
                 cardDiv.innerHTML = `
-                    <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="true">
+                    <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="false">
                 `;
                 userDropDiv.appendChild(cardDiv); 
             }
@@ -531,12 +533,12 @@ document.addEventListener('DOMContentLoaded', () => {
             cardDiv.draggable = false;
             if (impactChecker(card)) {
                 cardDiv.innerHTML = `
-                    <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="true">
+                    <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="false">
                 `;
                 opponentDropDiv.appendChild(cardDiv);
             } else {
                 cardDiv.innerHTML = `
-                    <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="true">
+                    <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="false">
                 `;
                 opponentDropDiv.appendChild(cardDiv); 
             }
@@ -583,12 +585,12 @@ document.addEventListener('DOMContentLoaded', () => {
             cardDiv.classList.add("hand-card");
             if (impactChecker(card)) {
                 cardDiv.innerHTML = `
-                    <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="true">
+                    <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="false">
                 `;
                 opponentSpellDiv.appendChild(cardDiv);
             } else {
                 cardDiv.innerHTML = `
-                    <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="true">
+                    <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="false">
                 `;
                 opponentSpellDiv.appendChild(cardDiv);
             }
@@ -658,12 +660,12 @@ document.addEventListener('DOMContentLoaded', () => {
             cardDiv.style.height = '10vh';
             if (impactChecker(card)) {
                 cardDiv.innerHTML = `
-                    <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="true">
+                    <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="false">
                 `;
                 userSpellDiv.appendChild(cardDiv);
             } else {
                 cardDiv.innerHTML = `
-                    <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="true">
+                    <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="false">
                 `;
                 userSpellDiv.appendChild(cardDiv);
             }
@@ -753,12 +755,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (impactChecker(userLeftCard)) {
                 cardDiv.innerHTML = `
                     <img src="${userLeftCard.image_url}" alt="${userLeftCard.name}" 
-                    class="impact-card" draggable="true" style="pointer-events: auto;">
+                    class="impact-card" draggable="false" style="pointer-events: auto;">
                 `;
             } else {
                 cardDiv.innerHTML = `
                     <img src="${userLeftCard.image_url}" alt="${userLeftCard.name}" 
-                    class="normal-card" draggable="true" style="pointer-events: auto;">
+                    class="normal-card" draggable="false" style="pointer-events: auto;">
                 `;
             }
 
@@ -802,13 +804,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (impactChecker(userCenterCard)) {
                 cardDiv.innerHTML = `
                     <img src="${userCenterCard.image_url}" alt="${userCenterCard.name}" 
-                    class="impact-card" draggable="true" style="pointer-events: none;">
+                    class="impact-card" draggable="false" style="pointer-events: none;">
                 `;
                 userCenterSlot.appendChild(cardDiv);
             } else {
                 cardDiv.innerHTML = `
                     <img src="${userCenterCard.image_url}" alt="${userCenterCard.name}" 
-                    class="normal-card" draggable="true" style="pointer-events: none;">
+                    class="normal-card" draggable="false" style="pointer-events: none;">
                 `;
                 userCenterSlot.appendChild(cardDiv);
             }
@@ -849,13 +851,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (impactChecker(userRightCard)) {
                 cardDiv.innerHTML = `
                     <img src="${userRightCard.image_url}" alt="${userRightCard.name}" 
-                    class="impact-card" draggable="true" style="pointer-events: none;">
+                    class="impact-card" draggable="false" style="pointer-events: none;">
                 `;
                 userRightSlot.appendChild(cardDiv);
             } else {
                 cardDiv.innerHTML = `
                     <img src="${userRightCard.image_url}" alt="${userRightCard.name}" 
-                    class="normal-card" draggable="true" style="pointer-events: none;">
+                    class="normal-card" draggable="false" style="pointer-events: none;">
                 `;
                 userRightSlot.appendChild(cardDiv);
             }

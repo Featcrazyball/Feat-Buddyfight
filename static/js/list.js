@@ -23,6 +23,7 @@ function openModal(cardId) {
         document.getElementById('modal-title').innerText = card.name;
         document.getElementById('modal-card-no').innerText = card.card_no;
         document.getElementById('modal-rarity').innerText = card.rarity;
+        document.getElementById('modal-attribute').innerText = card.attribute;
         document.getElementById('modal-world').innerText = card.world;
         document.getElementById('modal-size').innerText = card.size;
         document.getElementById('modal-power').innerText = card.power;
