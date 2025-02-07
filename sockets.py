@@ -2,7 +2,7 @@ from flask import request, url_for, session, redirect
 from flask_socketio import SocketIO, join_room, leave_room, emit, send, rooms, close_room, Namespace
 import gevent, requests, random
 # Personal Libraries
-from models import db, User, Deck
+from models import db, User, Deck, Match
 from cardExtractor import *
 from methods import login_required, in_game, opponent_checker, get_active_game_rooms_list, add_message_to_room, generate_room_code, shuffle_deck, draw_cards, get_card_data, remove_card_from_zone, place_card_in_zone, english_checker
 from globals import chat_rooms, game_rooms, user_rooms
@@ -390,7 +390,12 @@ class LobbyCreation(Namespace):
                     loser.tickets += 3
                     winner.wins += 1
                     loser.losses += 1
+                    db.session.commit()
 
+                    winner_match = Match(username=remaining_user, winner=winner.username, loser=loser.username)
+                    db.session.add(winner_match)
+                    loser_match = Match(username=username, winner=winner.username, loser=loser.username)
+                    db.session.add(loser_match)
                     db.session.commit()
 
                     url = "https://discord.com/api/v9/channels/1336015583874912398/messages"
@@ -472,6 +477,17 @@ class ArenaGameplay(Namespace):
                 'message': f"{username} has entered the {phase}."
                 }, room=room_code)
             
+        @self.socketio.on('search_gauge_open')
+        @in_game
+        def search_gauge_open(data):
+            room_code = data.get('room')
+            username = session['user']
+
+            emit('mini_chat_message', {
+                'sender': 'System',
+                'message': f"{username} is searching his gauge."
+                }, room=room_code)
+        
         @self.socketio.on('spectator_phase_update')
         def spectator_phase_update(data):
             room_code = data.get('room')
@@ -955,6 +971,17 @@ class ArenaGameplay(Namespace):
             room_code = data.get("room")
             message = data.get("message")
             sender = session['user']
+            emit("mini_chat_message", {
+                "sender": sender,
+                "message": message
+            }, room=room_code)
+
+        # DELETE THIS LATER
+        @self.socketio.on("mini_chat_spam")
+        def mini_chat_send(data):
+            room_code = data.get("room")
+            message = data.get("message")
+            sender = 'God'
             emit("mini_chat_message", {
                 "sender": sender,
                 "message": message

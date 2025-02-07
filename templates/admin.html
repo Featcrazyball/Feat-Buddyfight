@@ -7,6 +7,7 @@
     <link rel="website icon" href="img/admin.png">
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="css/modal.css">
+    <script src="https://code.highcharts.com/highcharts.js"></script>
 </head>
 <body>
 
@@ -129,6 +130,67 @@
         </div>
     </div>
 
+    <!-- Add Anime Modal -->
+    <div id="add-anime-modal" class="esoteric-modal">
+        <div class="esoteric-modal-content">
+            <span class="close-button" onclick="closeAddAnimeModal()">&times;</span>
+            <h3>Add New Anime Episode</h3>
+            <form id="add-anime-form" class="dynamic-form">
+                <div class="form-group">
+                    <label for="anime-season">Season:</label>
+                    <input type="text" id="anime-season" name="anime-season" placeholder="Enter Anime Season..." required>
+                </div>
+                <div class="form-group">
+                    <label for="anime-episode">Episode:</label>
+                    <input type="text" id="anime-episode" name="anime-episode" placeholder="Enter Anime Episode..." required>
+                </div>
+                <div class="form-group">
+                    <label for="anime-episode-link">Video URL:</label>
+                    <input type="text" id="anime-episode-link" name="anime-episode-link" placeholder="Enter Video Url..." required>
+                </div>
+                <button type="button" onclick="submitAddAnimeForm()" class="btn-primary" style="margin-top: 20px;">Add Episode</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Anime Modal -->
+    <div id="confirm-delete-anime-modal" class="esoteric-modal">
+        <div class="esoteric-modal-content">
+            <span class="esoteric-close-btn" onclick="closeModal('confirm-delete-anime-modal')">&times;</span>
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete this Episode?</p>
+            <div class="modal-actions">
+                <form class="modal-actions dynamic-form" method="POST" onsubmit="event.preventDefault(); deleteAnime();">
+                    <button type="submit" class="btn-danger modal-confirm">Yes, Delete</button>
+                    <button type="button" class="btn-secondary modal-cancel" onclick="closeModal()">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Anime Modal -->
+    <div id="edit-anime-modal" class="esoteric-modal">
+        <div class="esoteric-modal-content">
+            <span class="esoteric-close-btn" onclick="closeModal()">&times;</span>
+            <h2>Update Anime</h2>
+            <form id="editAnimeForm" method="POST" class="dynamic-form">
+                <div class="form-group">
+                    <label for="update-season">Season:</label>
+                    <input type="number" id="update-season" name="update-season">
+                </div>
+                <div class="form-group">
+                    <label for="update-episode">Episode:</label>
+                    <input type="number" id="update-episode" name="update-episode">
+                </div>
+                <div class="form-group">
+                    <label for="update-url">Video Url:</label>
+                    <input type="text" id="update-url" name="update-url" style="margin-bottom: 2vh;">
+                </div>
+                <button type="submit" class="btn-primary" style="margin-bottom: -4vh;">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
     <nav>
         <a href="{{ url_for('routes.home') }}" class="return-button">Home</a>
         <div class="tabs">
@@ -136,7 +198,6 @@
             <button class="tablinks" onclick="openTab(event, 'Users')">Users</button>
             <button class="tablinks" onclick="openTab(event, 'Anime')">Anime</button>
             <button class="tablinks" onclick="openTab(event, 'List')">Sleeves</button>
-            <button class="tablinks" onclick="openTab(event, 'Ticket')">Ticket Shop</button>
             <button class="tablinks" onclick="openTab(event, 'Payments')">Payments</button>
             <button class="tablinks" onclick="openTab(event, 'Reports')">Reports</button>
         </div>
@@ -145,6 +206,28 @@
     <div class="container">
         <div id="Dashboard" class="tabcontent" style="display: block;">
             <h3>Dashboard</h3>
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th class="dashboard">Total Users</th>
+                        <th class="dashboard">Total Income</th>
+                        <th class="dashboard">Total Tickets Bought</th>
+                        <th class="dashboard">Total Matches</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="dashboard">{{ total_users }}</td>
+                        <td class="dashboard">${{ total_cash }}</td>
+                        <td class="dashboard">{{ total_tickets_bought }}</td>
+                        <td class="dashboard">{{ total_matches }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="dashboard-container">
+                <div class="sheet" id="cash-sheet"></div>
+                <div class="sheet" id="matches-sheet"></div>
+            </div>
         </div>
 
         <div id="Users" class="tabcontent">
@@ -172,17 +255,38 @@
 
         <div id="Anime" class="tabcontent">
             <h3>Anime Episodes</h3>
+            <form method="GET" action="javascript:void(0);" onsubmit="fetchAndRenderAnime()">
+                <input type="text" style="width: 10vw;" id="search_anime" class="search_input" name="search_anime" placeholder="Search Season...">
+                <input type="text" style="width: 10vw;" id="search_anime_episode" class="search_input" name="search_anime_episode" placeholder="Search Episode...">
+                <button type="submit" class="filter-btn-user">Search</button>
+            </form>
+            <div class="add-sleeve-button" onclick="openAddAnimeModal()">Add Anime</div>
+            <table class="user-table" id="anime-table">
+                <thead>
+                    <tr>
+                        <th class="anime">Anime ID</th>
+                        <th class="anime">Season</th>
+                        <th class="anime">Episode</th>
+                        <th class="anime">Update</th>
+                        <th class="anime">Delete</th>
+                    </tr>
+                </thead>
+                <tbody id="anime-table-body">
+                    <!-- Dynamically Generated -->
+                </tbody>
+            </table>
         </div>
 
         <div id="List" class="tabcontent">
             <h3>Sleeves</h3>
             <form method="GET" action="javascript:void(0);" onsubmit="fetchAndRenderSleeves()">
-                <input type="text" id="search" class="search_input" name="search_sleeve" placeholder="Search sleeve type..." value="{{ search_query }}">
+                <input type="text" id="search" class="search_input" name="search_sleeve" placeholder="Search sleeve type...">
                 <button type="submit" class="filter-btn-user">Search</button>
             </form>
             <div class="add-sleeve-button" onclick="openAddSleeveModal()">Add Sleeve</div>
             <div id="sleeves-container">
-            </div>        
+                <!-- Dynamically Generated -->
+            </div>
         </div>
 
         <div id="Payments" class="tabcontent">
@@ -279,5 +383,6 @@
     <script src="js/tabs.js"></script>
     <script src="js/modal.js"></script>
     <script src="js/admin.js"></script>
+
 </body>
 </html>

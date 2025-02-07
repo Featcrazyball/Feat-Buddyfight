@@ -21,6 +21,7 @@ app.config['SQLALCHEMY_BINDS'] = {
     'reports': 'sqlite:///reports.db',
     'item': 'sqlite:///items.db',
     'episodes': 'sqlite:///episodes.db',
+    'matches': 'sqlite:///matches.db'
 }
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"pool_pre_ping": True, "pool_recycle": 300}
@@ -53,7 +54,7 @@ lobbySocket = LobbyCreation(socketio, game_rooms, user_rooms)
 arenagameplaySocket = ArenaGameplay(socketio, game_rooms, user_rooms)
 
 # Error handling
-app.register_error_handler(Exception, handle_error)
+# app.register_error_handler(Exception, handle_error)
 
 if __name__ == '__main__':
     with app.app_context():
@@ -62,5 +63,6 @@ if __name__ == '__main__':
         db.create_all(bind_key='users')
         db.create_all(bind_key='reports')
         db.create_all(bind_key='episodes')
+        db.create_all(bind_key='matches')
     port = int(os.environ.get("PORT", 8080))
     socketio.run(app, host='0.0.0.0', port=port, debug=False)

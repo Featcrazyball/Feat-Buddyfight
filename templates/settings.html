@@ -32,7 +32,6 @@
         <a href="javascript:void(0);" onclick="updateSessionAndGoBack()" class="return-button">Return</a>
         <div class="tabs">
             <button class="tablinks active first" onclick="openTab(event, 'User')">User Profile</button>
-            <button class="tablinks" onclick="openTab(event, 'General')">General Settings</button>
             <button class="tablinks" onclick="openTab(event, 'Payment')">Payment History</button>
             <button class="tablinks" onclick="openTab(event, 'Match')">Match History</button>
             <button class="tablinks" onclick="openTab(event, 'Report')">User Reports</button>
@@ -107,10 +106,6 @@
             </div>
         </div>
 
-        <div id="General" class="tabcontent">
-            <h3>General Settings</h3>
-        </div>
-
         <div id="Payment" class="tabcontent">
             <h3>Payment History</h3>
             <table class="payment_history">
@@ -127,7 +122,7 @@
                         <tr>
                             <td>{{ payment.id }}</td>
                             <td>{{ payment.tickets }}</td>
-                            <td>{{ payment.price }}</td>
+                            <td>${{ payment.price }}</td>
                             <td>{{ payment.date }}</td>
                         </tr>
                     {% else %}
@@ -141,6 +136,28 @@
 
         <div id="Match" class="tabcontent">
             <h3>Match History</h3>
+            <table class="payment_history">
+                <thead>
+                    <tr>
+                        <th class="match_healder">Winner</th>
+                        <th class="match_healder">Loser</th>
+                        <th class="match_healder">Date and Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for match in matches %}
+                        <tr>
+                            <td>{{ match.winner }}</td>
+                            <td>{{ match.loser }}</td>
+                            <td>{{ match.date }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="font-weight: bolder;" class="payment-none">No Matches found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
 
         <div id="Report" class="tabcontent">

@@ -89,7 +89,7 @@
                 <div class="user-cards-space">
                     <div class="user-cards-space-content">
                         <div class="spells-zone mini-zone-circle opponent-cards" id="opponent-spell-zone" style="margin-top: -12vh;">
-                            <img class="opponent-spell-zone-display" src="{{ url_for('static', filename='img/circle.png') }}" alt="Circle Image">
+                            <img class="opponent-spell-zone-display" draggable="false" src="{{ url_for('static', filename='img/circle.png') }}" alt="Circle Image">
                             <p class="opponent-spell-zone-display">Spells</p>
                         </div>
                         <div class="mini-zone-circle" style="margin-top: -15vh;">
@@ -133,7 +133,7 @@
                 <div class="user-cards-space">
                     <div class="user-cards-space-content">
                         <div class="mini-zone-circle spells-zone player-mini-zone" data-zone="spells" data-allow-append="false" id="player-spell-zone" style="margin-top: -13vh;">
-                            <img class="spell-zone-display" src="{{ url_for('static', filename='img/circle.png') }}" alt="Circle Image">
+                            <img class="spell-zone-display" src="{{ url_for('static', filename='img/circle.png') }}" alt="Circle Image" draggable="false">
                             <p class="spell-zone-display">Spells</p>
                         </div>
                         <div class="mini-zone-circle " style="margin-top: -16vh;" >
@@ -186,11 +186,11 @@
                     <button class="action-button" id="draw-card">Draw</button>
                     <button class="action-button" id="top-deck-gauge">Gauge</button>
                     <button class="action-button" id="search-deck">Search Deck</button>
-                    <button class="action-button" id="search-drop-zone">Search Drop Zone</button>
                     <button class="action-button" id="shuffle-deck">Shuffle Deck</button>
                     <button class="action-button" id="top-deck-to-soul">Top Deck to Soul</button>
                     <button class="action-button" id="top-deck-drop">Drop Top Deck</button>
                     <button class="action-button" id="top-deck-look">Look at Top</button>
+                    <button class="action-button" id="search-gauge-zone">Search Gauge</button>
                 </div>
             </div>
         </div>
@@ -263,6 +263,16 @@
                 <button class="exit-button">Exit</button>
             </div>
             <div class="deck-modal-content player-deck-modal-content" id="user-dropzone-content" data-zone="dropzone">
+                <!-- Dynamically Generated -->
+            </div>
+        </div>
+
+        <div class="deck-modal-container" id="user-search-gauge-modal">
+            <div class="deck-modal-header">
+                <h1 class="deck-modal-title">Your Gauge</h1>
+                <button class="exit-button">Exit</button>
+            </div>
+            <div class="deck-modal-content player-deck-modal-content" id="user-gauge-content" data-zone="gauge">
                 <!-- Dynamically Generated -->
             </div>
         </div>

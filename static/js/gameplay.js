@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let userLife, opponentLife,
         userGuageSize, opponentGuageSize,
-        userGuage, opponentGuage,
+        userGauge, opponentGauge,
         userHandSize, opponentHandSize,
         userHand, opponentHand,
         userDeckList, opponentDeckList,
@@ -450,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const drawCardBtn = document.getElementById("draw-card");  
     const gaugeBtn = document.getElementById("top-deck-gauge");
     const shuffleBtn = document.getElementById("shuffle-deck");
-    const searchDropBtn = document.getElementById("search-drop-zone");
+    const searchGaugeBtn = document.getElementById("search-gauge-zone");
     const searchDeckBtn = document.getElementById("search-deck");
     const topDeckSoulBtn = document.getElementById("top-deck-to-soul");
     const topDeckDropBtn = document.getElementById("top-deck-drop");
@@ -558,10 +558,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Show Dropzone Modal
-    searchDropBtn.addEventListener('click', function() {
+    const searchGaugeModal = document.getElementById("user-search-gauge-modal");
+    searchGaugeBtn.addEventListener('click', function() {
         showModalWrapper();
-        userSearchDropModal.style.display = 'flex';
-        socket.emit("search_dropzone_open", { room: ROOM_CODE });
+        searchGaugeModal.style.display = 'flex';
+        socket.emit("search_gauge_open", { room: ROOM_CODE });
     });
 
     const exitButtons = document.querySelectorAll('.exit-button');
@@ -575,13 +576,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 socket.emit('search_dropzone_close', { room: ROOM_CODE });
             } else if (button.closest('#user-search-soul-modal')) {
                 document.getElementById('user-search-soul-modal').style.display = 'none';
+            } else if (button.closest('#user-search-gauge-modal')) {
+                document.getElementById('user-search-gauge-modal').style.display = 'none';
             } else if (button.closest('#spell-modal')) {
                 document.getElementById('spell-modal').style.display = 'none';
             }
             if (userSearchDeckModal.style.display === 'none' 
                 && userSearchDropModal.style.display === 'none' 
                 && document.getElementById('spell-modal').style.display === 'none' 
-                && document.getElementById('user-search-soul-modal').style.display === 'none') {
+                && document.getElementById('user-search-soul-modal').style.display === 'none'
+                && document.getElementById('user-search-gauge-modal').style.display === 'none') {
                 hideModalWrapper();
             }
         });
@@ -789,7 +793,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         userLife = userState.current_life;
         userGuageSize = userState.current_gauge_size;
-        userGuage = userState.current_gauge;
+        userGauge = userState.current_gauge;
         userHandSize = userState.current_hand_size;
         userHand = userState.current_hand;
         userDeckList = userState.deck_list;
@@ -1009,7 +1013,6 @@ document.addEventListener('DOMContentLoaded', () => {
             opponentSpellArea.appendChild(spellImg);
         } else {
             opponentSpellArea.innerHTML = `
-
                 <img class="opponent-spell-zone-display" src="/img/circle.png" alt="Circle Image">
                 <p class="opponent-spell-zone-display">Spells</p>
             `;
@@ -1131,6 +1134,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        const userGaugeContent = document.getElementById("user-gauge-content");
+        userGaugeContent.innerHTML = '';
+        userGauge.forEach((card) => {
+            const cardDiv = document.createElement("div");
+            cardDiv.dataset.cardObj = JSON.stringify(card);
+            cardDiv.dataset.fromZone = "gauge";
+            cardDiv.classList.add("hand-card");
+            cardDiv.draggable = true;
+            if (impactChecker(card)) {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" class="impact-card" draggable="true">
+                `;
+                userGaugeContent.appendChild(cardDiv);
+            } else {
+                cardDiv.innerHTML = `
+                    <img src="${card.image_url}" alt="${card.name}" class="normal-card" draggable="true">
+                `;
+                userGaugeContent.appendChild(cardDiv);
+            }
+        });
+
         const userHandDiv = document.getElementById("user-hand-cards");
         userHandDiv.innerHTML = ''; 
         userHand.forEach((card) => {
@@ -1168,7 +1192,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const userGuageDiv = document.getElementById("user-gauge-space");
         userGuageDiv.innerHTML = '';
-        userGuage.forEach((card) => {
+        userGauge.forEach((card) => {
             const cardDiv = document.createElement("div");
             cardDiv.dataset.cardId = card;
             cardDiv.classList.add("gauge-card");

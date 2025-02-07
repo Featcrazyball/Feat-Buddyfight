@@ -118,6 +118,23 @@ class PaymentHistory(db.Model):
             "timestamp": self.timestamp.isoformat(),
             "item_name": self.item.name if self.item else None
         }
+    
+class Match(db.Model):
+    __bind_key__ = 'matches'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), nullable=False)
+    winner = db.Column(db.String(150), nullable=True)
+    loser = db.Column(db.String(150), nullable=True)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone("Asia/Singapore")))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "winner": self.winner,
+            "loser": self.loser,
+            "timestamp": self.timestamp.isoformat()
+        }
 
 class User(db.Model):
     __bind_key__ = 'users'

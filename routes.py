@@ -2,11 +2,12 @@ from flask import Blueprint, current_app,render_template, request, redirect, url
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.utils import secure_filename, redirect
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from sqlalchemy.orm.attributes import flag_modified
+from pytube import Playlist
 import os, random, json, string, uuid
 # Personal Libraries
-from models import db, Card, User, Report, Deck, Sleeve, PaymentHistory, Item, Episode
+from models import db, Card, User, Report, Deck, Sleeve, PaymentHistory, Item, Episode, Match
 from cardExtractor import *
 from methods import get_spectator_game_rooms_list, is_valid_email, admin_required, login_required, opponent_checker, get_active_game_rooms_list, add_message_to_room, generate_room_code, allowed_file
 from globals import chat_rooms, game_rooms
@@ -238,30 +239,6 @@ def make_payment():
         db.session.rollback()
         current_app.logger.error(f"Error processing payment: {e}")
         return jsonify({"status": "error", "message": 'Failed to process payment'}), 500
-
-@routes.route('/shops/manual', methods=['GET','POST'])
-def add_shops():
-    items_to_add = [
-        {"count": 1, "price": 2.50},
-        {"count": 3, "price": 6.00},
-        {"count": 10, "price": 17.50},
-        {"count": 30, "price": 50.00},
-        {"count": 100, "price": 150.00},
-        {"count": 1000, "price": 1000.00}
-    ]
-
-    for item_data in items_to_add:
-        existing_item = Item.query.filter_by(count=item_data['count']).first()
-        if not existing_item:
-            new_item = Item(count=item_data['count'], price=item_data['price'])
-            db.session.add(new_item)
-
-    try:
-        db.session.commit()
-        return jsonify({"message": "Items added successfully!"}), 200
-    except Exception as e:
-        current_app.logger.error(f"Error seeding item: {e}")
-        return jsonify({"error": "Failed to add items", "message": str(e)}), 500
     
 # Chat Rooms [Completed]
 @routes.route('/chat', methods=['GET'])
@@ -966,16 +943,27 @@ def settings():
             payment_detail = {
                 "id": payment.id,
                 "tickets": item.count,
-                "price": payment.item_price,
+                "price": f"{payment.item_price:.2f}",
                 "date": payment.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             }
         payment_data.append(payment_detail)
+
+    matches = Match.query.filter_by(username=session['user']).all()
+    match_data = [
+        {
+            "username": match.username,
+            "winner": match.winner,
+            "loser": match.loser,
+            'date': match.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        } for match in matches
+    ]
 
     return render_template(
         'settings.html',
         username=username,
         email=email,
-        payments=payment_data
+        payments=payment_data,
+        matches=match_data
     )
 
 @routes.route('/update_username', methods=['POST'])
@@ -1150,11 +1138,57 @@ def update_profile_picture():
 @admin_required
 def admin():
     users = User.query.all()
+    payments = PaymentHistory.query.all()
+    total_tickets_bought = 0
+    user_count = len(users)
+
+    # find total income from Payments
+    total_income = db.session.query(func.sum(PaymentHistory.item_price)).scalar()
+    total_income = total_income if total_income else 0
+
+    # find total tickets bought from payments
+    for payment in payments:
+        tickets_bought = Item.query.filter_by(id=payment.item_id).first()
+        if tickets_bought:
+            total_tickets_bought += tickets_bought.count
+
+    # find total number of matches played
+    total_matches = db.session.query(func.count(Match.id)).scalar()
+    total_matches = total_matches // 2 if total_matches else 0
+
     return render_template(
         'admin.html',
         username=session['user'],
-        users=users
+        users=users,
+        total_users=user_count,
+        total_cash=f"{total_income:.2f}",
+        total_tickets_bought=total_tickets_bought,
+        total_matches=total_matches
     )
+
+@routes.route('/admin/payment_history', methods=['GET'])
+@login_required
+def get_payment_history():
+    all_history = PaymentHistory.query.all()
+    chart_data = []
+    for record in all_history:
+        x_value = int(record.timestamp.timestamp() * 1000)
+        y_value = record.item_price
+        chart_data.append({"x": x_value, "y": y_value})
+
+    return jsonify({"payment_data": chart_data})
+
+@routes.route('/admin/match_history', methods=['GET'])
+@login_required
+def get_match_history():
+    all_matches = Match.query.all()
+    chart_data = []
+    for match in all_matches:
+        x_value = int(match.timestamp.timestamp() * 1000)
+        y_value = 1
+        chart_data.append({"x": x_value, "y": y_value})
+
+    return jsonify({"match_data": chart_data})
 
 @routes.route('/admin/get_payment', methods=['GET'])
 @admin_required
@@ -1265,6 +1299,77 @@ def get_sleeves():
         for sleeve in sleeves
     ]
     return jsonify({"sleeves": sleeve_data})
+
+@routes.route('/admin/get_anime', methods=['GET'])
+@admin_required
+def get_anime():
+    anime_query = Episode.query
+
+    anime_search = request.args.get('search_anime')
+    if anime_search:
+        anime_query = anime_query.filter(Episode.season.ilike(f"%{anime_search}%"))
+    episode_search = request.args.get('search_anime_episode')
+    if episode_search:
+        anime_query = anime_query.filter(func.lower(Episode.title) == episode_search.lower())
+
+
+    animes = anime_query.all()
+    anime_data = [
+        {
+            "id": anime.id,
+            "ep_number": anime.title,
+            "anime_season": anime.season
+        }
+        for anime in animes
+    ]
+    return jsonify({"animes": anime_data})
+
+@routes.route('/admin/add_anime', methods=['POST'])
+@admin_required
+def add_anime():
+    episode = request.form.get('anime-episode')
+    video = request.form.get('anime-episode-link')
+    season = request.form.get('anime-season')
+
+    new_anime = Episode(title=episode, video_url=video, season=season)
+    db.session.add(new_anime)
+    db.session.commit()
+
+    return jsonify({"status": "success", "message": "Anime added successfully!"}), 200
+
+@routes.route('/admin/delete_anime/<id>', methods=['POST'])
+@admin_required
+def delete_anime(id):
+    anime = Episode.query.filter_by(id=id).first()
+
+    if not anime:
+        return jsonify({"status": "error", "message": "Anime not found"}), 404
+
+    db.session.delete(anime)
+    db.session.commit()
+    return jsonify({"status": "success", "message": "Anime deleted successfully!"}), 200
+
+@routes.route('/admin/update_anime/<id>', methods=['POST'])
+@admin_required
+def update_anime(id):
+    anime = Episode.query.filter_by(id=id).first()
+
+    if not anime:
+        return jsonify({"status": "error", "message": "Anime not found"}), 404
+
+    episode = request.form.get('update-episode')
+    video = request.form.get('update-url')
+    season = request.form.get('update-season')
+
+    if episode:
+        anime.title = episode
+    if video:
+        anime.video_url = video
+    if season:
+        anime.season = season
+
+    db.session.commit()
+    return jsonify({"status": "success", "message": "Anime updated successfully!"}), 200
 
 @routes.route('/admin/delete_report/<id>', methods=['DELETE'])
 @admin_required
@@ -1394,169 +1499,6 @@ def manage_sleeves():
             return jsonify({"message": "Sleeve added successfully!", "sleeve": new_sleeve.to_dict()})
 
         return jsonify({"error": "Invalid data"}), 400
-
-@routes.route('/testingsleeve')
-@admin_required
-def delete_all_sleeves():
-    try:
-        for sleeve in Sleeve.query.all():
-            db.session.delete(sleeve)
-        db.session.commit()
-        return jsonify({"status": "success", "message": "All sleeves deleted successfully."}), 200
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f"Failed to delete all sleeves: {e}")
-        return jsonify({"status": "error", "message": "An error occurred while deleting all sleeves."}), 500
-
-@routes.route('/admin/sleeves/manualCardback')
-@admin_required
-def add_cardback():
-    def seed_sleeves():
-        default_sleeves = [
-            'img/sleeves/1CardBack.webp',
-            'img/sleeves/2CardBack.webp',
-            'img/sleeves/3CardBack.webp',
-            'img/sleeves/4CardBack.webp',
-            'img/sleeves/5CardBack.jpg',
-            'img/sleeves/6CardBack.webp',
-            'img/sleeves/7CardBack.webp',
-            'img/sleeves/8CardBack.webp',
-            'img/sleeves/9CardBack.webp',
-        ]
-
-        for sleeve_path in default_sleeves:
-            if not Sleeve.query.filter_by(sleeve=sleeve_path).first():
-                db.session.add(Sleeve(sleeve=sleeve_path, sleeve_type='Buddyfight'))
-
-        db.session.commit()
-        print("Default sleeves added to the database.")
-
-    try:
-        with current_app.app_context(): 
-            seed_sleeves()
-        return jsonify({"message": "Sleeves added successfully!"}), 200
-    except Exception as e:
-        current_app.logger.error(f"Error seeding sleeves: {e}")
-        return jsonify({"error": "Failed to add sleeves", "message": str(e)}), 500
-
-@routes.route('/admin/sleeves/manualVanguard')
-@admin_required
-def add_sleeves():
-    def seed_sleeves():
-        default_sleeves = [
-            'img/sleeves/_Sleeve51.png',
-            'img/sleeves/_Sleeve52.jpg',
-            'img/sleeves/_Sleeve53.jpg',
-            'img/sleeves/_Sleeve54.webp',
-            'img/sleeves/_Sleeve55.webp',
-            'img/sleeves/_Sleeve56.webp',
-            'img/sleeves/_Sleeve57.webp',
-            'img/sleeves/_Sleeve58.webp',
-            'img/sleeves/_Sleeve68',
-            'img/sleeves/_Sleeve69',
-        ]
-
-        for sleeve_path in default_sleeves:
-            if not Sleeve.query.filter_by(sleeve=sleeve_path).first():
-                db.session.add(Sleeve(sleeve=sleeve_path, sleeve_type='Vanguard'))
-
-        db.session.commit()
-        print("Default sleeves added to the database.")
-    
-
-    try:
-        with current_app.app_context(): 
-            seed_sleeves()
-        return jsonify({"message": "Sleeves added successfully!"}), 200
-    except Exception as e:
-        current_app.logger.error(f"Error seeding sleeves: {e}")
-        return jsonify({"error": "Failed to add sleeves", "message": str(e)}), 500
-
-@routes.route('/admin/sleeves/manualSleeves')
-@admin_required
-def add_sleevesBuddy():
-    def seed_sleeves():
-        default_sleeves = [
-            'img/sleeves/_Sleeve (1).webp',
-            'img/sleeves/_Sleeve (2).webp',
-            'img/sleeves/_Sleeve (3).webp',
-            'img/sleeves/_Sleeve (4).webp',
-            'img/sleeves/_Sleeve (5).webp',
-            'img/sleeves/_Sleeve (6).webp',
-            'img/sleeves/_Sleeve (7).webp',
-            'img/sleeves/_Sleeve (8).webp',
-            'img/sleeves/_Sleeve (9).webp',
-            'img/sleeves/_Sleeve (10).webp',
-            'img/sleeves/_Sleeve (11).webp',
-            'img/sleeves/_Sleeve (12).webp',
-            'img/sleeves/_Sleeve (13).webp',
-            'img/sleeves/_Sleeve (14).webp',
-            'img/sleeves/_Sleeve (15).webp',
-            'img/sleeves/_Sleeve (16).webp',
-            'img/sleeves/_Sleeve (17).webp',
-            'img/sleeves/_Sleeve (18).webp',
-            'img/sleeves/_Sleeve (19).webp',
-            'img/sleeves/_Sleeve (20).webp',
-            'img/sleeves/_Sleeve (21).webp',
-            'img/sleeves/_Sleeve (22).webp',
-            'img/sleeves/_Sleeve (23).webp',
-            'img/sleeves/_Sleeve (24).webp',
-            'img/sleeves/_Sleeve (24).webp',
-            'img/sleeves/_Sleeve (25).webp',
-            'img/sleeves/_Sleeve (26).webp',
-            'img/sleeves/_Sleeve (27).webp',
-            'img/sleeves/_Sleeve (28).webp',
-            'img/sleeves/_Sleeve (29).webp',
-            'img/sleeves/_Sleeve (30).webp',
-            'img/sleeves/_Sleeve (31).webp',
-            'img/sleeves/_Sleeve (32).webp',
-            'img/sleeves/_Sleeve (33).webp',
-            'img/sleeves/_Sleeve (34).webp',
-            'img/sleeves/_Sleeve (35).webp',
-            'img/sleeves/_Sleeve (36).webp',
-            'img/sleeves/_Sleeve (37).webp',
-            'img/sleeves/_Sleeve (38).webp',
-            'img/sleeves/_Sleeve (39).webp',
-            'img/sleeves/_Sleeve (40).webp',
-            'img/sleeves/_Sleeve (41).webp',
-            'img/sleeves/_Sleeve (42).webp',
-            'img/sleeves/_Sleeve (43).webp',
-            'img/sleeves/_Sleeve (44).webp',
-            'img/sleeves/_Sleeve (45).webp',
-            'img/sleeves/_Sleeve (46).webp',
-            'img/sleeves/_Sleeve (47).webp',
-            'img/sleeves/_Sleeve (48).webp',
-            'img/sleeves/_Sleeve (49).webp',
-            'img/sleeves/_Sleeve (50).webp',
-            'img/sleeves/_Sleeve (51).webp',
-            'img/sleeves/_Sleeve (52).webp',
-            'img/sleeves/_Sleeve (53).webp',
-            'img/sleeves/_Sleeve (54).webp',
-            'img/sleeves/_Sleeve (55).webp',
-            'img/sleeves/_Sleeve (56).webp',
-            'img/sleeves/_Sleeve (57).webp',
-            'img/sleeves/_Sleeve (58).webp',
-            'img/sleeves/_Sleeve (59).webp',
-            'img/sleeves/_Sleeve (60).webp',
-            'img/sleeves/_Sleeve (61).webp',
-            'img/sleeves/_Sleeve (62).webp',
-        ]
-
-        for sleeve_path in default_sleeves:
-            if not Sleeve.query.filter_by(sleeve=sleeve_path).first():
-                db.session.add(Sleeve(sleeve=sleeve_path, sleeve_type='Buddyfight'))
-
-        db.session.commit()
-        print("Default sleeves added to the database.")
-    
-
-    try:
-        with current_app.app_context(): 
-            seed_sleeves()
-        return jsonify({"message": "Sleeves added successfully!"}), 200
-    except Exception as e:
-        current_app.logger.error(f"Error seeding sleeves: {e}")
-        return jsonify({"error": "Failed to add sleeves", "message": str(e)}), 500
 
 @routes.route('/admin/sleeves/delete/<int:sleeve_id>', methods=['POST'])
 @login_required

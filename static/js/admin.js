@@ -9,12 +9,26 @@ function openEditModal(username, email, role, wins, losses, tickets) {
     openModal('edit-user-modal');
 }
 
+function openUpdateAnimeModal(id, ep_number, anime_season) {
+    document.getElementById('update-url').value = id;
+    document.getElementById('update-episode').value = ep_number;
+    document.getElementById('update-season').value = anime_season;
+
+    const updateModal = document.getElementById('edit-anime-modal');
+    updateModal.dataset.id = id; 
+
+    openModal('edit-anime-modal');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Replace or complement the server-side data
     fetchAndRenderUsers();
     fetchAndRenderReports();
     fetchAndRenderSleeves();
-    fetchAndRenderPayments()
+    fetchAndRenderPayments();
+    drawMatchGraph();
+    drawPaymentsGraph();
+    fetchAndRenderAnime()
 });
 
 function fetchAndRenderUsers() {
@@ -236,7 +250,6 @@ function deleteReport() {
     .finally(() => closeModal('confirm-delete-report-modal'));
 }
 
-
 const editUserForm = document.getElementById('editUserForm');
 editUserForm.addEventListener('submit', function (event) {
     event.preventDefault();
@@ -382,17 +395,46 @@ function fetchAndRenderPayments() {
             if (!paymentsTableBody) return;
             paymentsTableBody.innerHTML = '';
 
-            data.payments.forEach(payment => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${payment.id}</td>
-                    <td>${payment.username}</td>
-                    <td>${payment.item_id}</td>
-                    <td>${payment.item_price}</td>
-                    <td>${payment.date}</td>
+            let totalAmount = 0;
+            let NoTickets = 0;
+            let distinctUsers = 0;
+            let dateRanger;
+
+            if (data.payments.length != 0) {
+                data.payments.forEach(payment => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${payment.id}</td>
+                        <td>${payment.username}</td>
+                        <td>${payment.item_id}</td>
+                        <td>$${payment.item_price.toFixed(2)}</td>
+                        <td>${payment.date}</td>
+                    `;
+                    paymentsTableBody.appendChild(tr);
+                    totalAmount += payment.item_price;
+                    NoTickets += payment.item_id;
+                    // Count distinct users
+                    if (payment.username !== data.payments[data.payments.length - 1].username) {
+                        distinctUsers++;
+                    }
+                    // Get date range 
+                    if (!dateRanger) {
+                        dateRanger = payment.date;
+                    } else {
+                        dateRanger = `${data.payments[0].date} - ${data.payments[data.payments.length - 1].date}`;
+                    }
+                    
+                });
+                const end = document.createElement('tr');
+                end.innerHTML = `
+                    <td>${data.payments.length} Payments Total</td>
+                    <td>${distinctUsers} Users</td>
+                    <td>${NoTickets}</td>
+                    <td>$${totalAmount.toFixed(2)}</td>
+                    <td>${dateRanger}</td>
                 `;
-                paymentsTableBody.appendChild(tr);
-            });
+                paymentsTableBody.appendChild(end);
+            } else
 
             if (data.payments.length === 0) {
                 const paymentsTable = document.getElementById('payments-table');
@@ -406,4 +448,207 @@ function fetchAndRenderPayments() {
                     paymentsTableBody.appendChild(tr);
                 }
             }
-})}
+        })
+        .catch(err => console.error('Error fetching payments:', err));
+}
+
+function drawPaymentsGraph() {
+    fetch('/admin/payment_history')
+    .then(response => response.json())
+    .then(data => {
+        if (typeof Highcharts !== 'undefined') {
+            Highcharts.chart('cash-sheet', {
+                chart: {
+                    type: 'line'
+                },
+                title: { text: 'No. of Tickets Bought' },
+                xAxis: { type: 'datetime' },
+                series: [{
+                    name: 'Tickets Bought',
+                    data: data.payment_data
+                }]
+            });
+        } else {
+            console.error('Highcharts library is not loaded.');
+        }
+    })
+    .catch(err => console.error('Error fetching payment history:', err));
+}
+
+function drawMatchGraph() {
+    fetch('/admin/match_history')
+    .then(response => response.json())
+    .then(data => {
+        if (typeof Highcharts !== 'undefined') {
+            Highcharts.chart('matches-sheet', {
+                chart: {
+                    type: 'line'
+                },
+                title: { text: 'No. of Matches Played' },
+                xAxis: { type: 'datetime' },
+                series: [{
+                    name: 'Matches',
+                    data: data.match_data
+                }]
+            });
+        } else {
+            console.error('Highcharts library is not loaded.');
+        }
+    })
+    .catch(err => console.error('Error fetching match history:', err));
+}
+
+function fetchAndRenderAnime() {
+    const searchAnimeElement = document.getElementById('search_anime');
+    const animeEpisodeElement = document.getElementById('search_anime_episode');
+    const animeEpisode = animeEpisodeElement ? animeEpisodeElement.value : '';
+    const animeName = searchAnimeElement ? searchAnimeElement.value : '';
+
+    const url = new URL('/admin/get_anime', window.location.origin);
+    if (animeName) url.searchParams.append('search_anime', animeName);
+    if (animeEpisode) url.searchParams.append('search_anime_episode', animeEpisode);
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const animeTableBody = document.getElementById('anime-table-body');
+            if (!animeTableBody) return;
+            animeTableBody.innerHTML = '';
+
+            data.animes.forEach(anime => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${anime.id}</td>
+                    <td>${anime.anime_season}</td>
+                    <td>${anime.ep_number}</td>
+                    <td>
+                        <button class="btn-primary user" onclick="openUpdateAnimeModal('${anime.id}', '${anime.ep_number}', '${anime.anime_season}')">Update</button>
+                    </td>
+                    <td>
+                        <button class="btn-danger user" onclick="confirmDeleteAnimeModal('${anime.id}')">Delete</button>
+                    </td>
+                `;
+                animeTableBody.appendChild(tr);
+            }
+        );
+        if (data.animes.length === 0) {
+            const animeTable = document.getElementById('anime-table-body');
+            animeTableBody.innerHTML = '';
+            if (animeTable) {
+                const tr = document.createElement('h1');
+                tr.style.height = '100%';
+                tr.style.textAlign = 'center';
+                tr.style.width = '100%';
+                tr.textContent = 'No anime found';
+                animeTableBody.appendChild(tr);
+            }
+        }
+        console.log('hi');
+    })
+    .catch(err => console.error('Error fetching anime:', err));
+}
+
+function openAddAnimeModal() {
+    document.getElementById("add-anime-modal").style.display = "block";
+}
+
+function closeAddAnimeModal() {
+    document.getElementById("add-anime-modal").style.display = "none";
+}
+
+function submitAddAnimeForm() {
+    const form = document.getElementById("add-anime-form");
+    const formData = new FormData(form);
+
+    fetch("/admin/add_anime", {
+        method: "POST",
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            showModal(data.message, "success");
+            fetchAndRenderAnime();
+            closeAddAnimeModal();
+        } else if (data.error) {
+            showModal(data.error, "error");
+        } else {
+            showModal("An unknown error occurred.", "error");
+        }
+    })
+    .catch(error => {
+        console.error("Error adding anime:", error);
+        showModal("Error adding anime", "error");
+    });
+}
+
+function confirmDeleteAnimeModal(id) {
+    const deleteModal = document.getElementById('confirm-delete-anime-modal');
+    deleteModal.dataset.id = id; 
+    openModal('confirm-delete-anime-modal');
+}
+
+function deleteAnime() {
+    const animeId = document.getElementById('confirm-delete-anime-modal').dataset.id;
+
+    fetch(`/admin/delete_anime/${animeId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message && !data.error) {
+            showModal(data.message, 'success');
+            fetchAndRenderAnime();
+        } else {
+            const msg = data.message || data.error || "An error occurred deleting anime.";
+            showModal(msg, 'error');
+        }
+    })
+    .catch(() => showModal('An unexpected error occurred. Please try again later.', 'error'))
+    .finally(() => closeModal('confirm-delete-anime-modal'));
+}
+
+const modals = document.getElementsByClassName('esoteric-modal');
+Array.from(modals).forEach(modal => {
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+});
+
+function updateAnime() {
+    const animeId = document.getElementById('edit-anime-modal').dataset.id;
+    const form = document.getElementById('editAnimeForm');
+    const formData = new FormData(form);
+
+    fetch(`/admin/update_anime/${animeId}`, {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            showModal(data.message, 'success');
+            fetchAndRenderAnime();
+            closeModal('edit-anime-modal');
+        } else if (data.error) {
+            showModal(data.error, 'error');
+        } else {
+            showModal('An unknown error occurred.', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating anime:', error);
+        showModal('Error updating anime', 'error');
+    });
+}
+
+const editAnimeForm = document.getElementById('editAnimeForm');
+editAnimeForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    updateAnime();
+});
