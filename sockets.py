@@ -165,16 +165,6 @@ class LobbyCreation(Namespace):
                 "room_code": room_code,
             }, room=request.sid)
 
-            url = "https://discord.com/api/v9/channels/1335910968571461743/messages"
-            header = {
-                "Authorization": "MTA1OTQ0MzUzODc2MjM5OTgyNg.GPk1Pp.-tkHU5_c8VJBwdT4-E5rmkMRrgTqhGw1_Ni9yA"
-            }
-            payload = {
-                "content": "Room has been created by " + username
-                }
-            
-            requests.post(url, payload, headers=header)
-
         @self.socketio.on('clear_room')
         @login_required
         def clear_room():
@@ -348,16 +338,6 @@ class LobbyCreation(Namespace):
 
                 emit("active_game_rooms", {}, broadcast=True)
 
-                url = "https://discord.com/api/v9/channels/1335910968571461743/messages"
-                header = {
-                    "Authorization": "MTA1OTQ0MzUzODc2MjM5OTgyNg.GPk1Pp.-tkHU5_c8VJBwdT4-E5rmkMRrgTqhGw1_Ni9yA"
-                }
-                payload = {
-                    "content": f'{username} engages {opponent} in a heated battle!'
-                    }
-                
-                requests.post(url, payload, headers=header)
-
         @self.socketio.on('leave_created_game_room')
         def leave_created_game_room(data):
             room_code = data.get('room')
@@ -397,16 +377,6 @@ class LobbyCreation(Namespace):
                     loser_match = Match(username=username, winner=winner.username, loser=loser.username)
                     db.session.add(loser_match)
                     db.session.commit()
-
-                    url = "https://discord.com/api/v9/channels/1336015583874912398/messages"
-                    header = {
-                        "Authorization": "MTA1OTQ0MzUzODc2MjM5OTgyNg.GPk1Pp.-tkHU5_c8VJBwdT4-E5rmkMRrgTqhGw1_Ni9yA"
-                    }
-                    payload = {
-                        "content": f'{remaining_user} has reign triumphant over {username}!'
-                        }
-                    
-                    requests.post(url, payload, headers=header)
 
                     if remaining_user in user_rooms:
                         del user_rooms[remaining_user]
