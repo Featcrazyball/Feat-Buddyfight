@@ -137,3 +137,9 @@ body {
     background-color: white; 
     color: #FF00FF; 
 }
+
+@media screen and (max-width: 1000px) {
+    .main-content {
+        display: none;
+    }
+}
