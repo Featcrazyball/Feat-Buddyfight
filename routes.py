@@ -1318,7 +1318,8 @@ def get_anime():
         {
             "id": anime.id,
             "ep_number": anime.title,
-            "anime_season": anime.season
+            "anime_season": anime.season,
+            "video_url": anime.video_url
         }
         for anime in animes
     ]

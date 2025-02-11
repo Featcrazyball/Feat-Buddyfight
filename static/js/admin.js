@@ -9,10 +9,10 @@ function openEditModal(username, email, role, wins, losses, tickets) {
     openModal('edit-user-modal');
 }
 
-function openUpdateAnimeModal(id, ep_number, anime_season) {
-    document.getElementById('update-url').value = id;
+function openUpdateAnimeModal(id, ep_number, anime_season, urlVideo) {
     document.getElementById('update-episode').value = ep_number;
     document.getElementById('update-season').value = anime_season;
+    document.getElementById('update-url').value = urlVideo;
 
     const updateModal = document.getElementById('edit-anime-modal');
     updateModal.dataset.id = id; 
@@ -522,7 +522,7 @@ function fetchAndRenderAnime() {
                     <td>${anime.anime_season}</td>
                     <td>${anime.ep_number}</td>
                     <td>
-                        <button class="btn-primary user" onclick="openUpdateAnimeModal('${anime.id}', '${anime.ep_number}', '${anime.anime_season}')">Update</button>
+                        <button class="btn-primary user" onclick="openUpdateAnimeModal('${anime.id}', '${anime.ep_number}', '${anime.anime_season}', '${anime.video_url}')">Update</button>
                     </td>
                     <td>
                         <button class="btn-danger user" onclick="confirmDeleteAnimeModal('${anime.id}')">Delete</button>
