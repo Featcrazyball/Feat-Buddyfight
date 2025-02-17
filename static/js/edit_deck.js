@@ -64,12 +64,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const cardItem = document.createElement("div");
         cardItem.classList.add(card.is_horizontal ? "card-horizontal-vertical" : "card-item");
         cardItem.dataset.cardId = card.id;
+        cardItem.draggable = false;
 
         const cardImage = document.createElement("img");
         cardImage.src = card.image_url;
         cardImage.alt = card.name;
         cardImage.classList.add(card.is_horizontal ? "card-image-horizontal" : "card-image");
         cardItem.appendChild(cardImage);
+        cardImage.draggable = false;
 
         if (count > 0) {
             const cardCount = document.createElement("div");

@@ -59,9 +59,6 @@ def register():
         ).all()
         unlocked_cards = [card.id for card in trial_deck_cards]  # Extract card numbers
 
-        # god_cards = Card.query.all()
-        # unlocked_cards = [card.id for card in god_cards]
-
         # Create new user
         hashed_password = generate_password_hash(password)
         new_user = User(username=username, email=email, password=hashed_password, role='user', unlocked_cards=unlocked_cards)
@@ -702,8 +699,8 @@ def edit_deck():
         'https://s3-ap-northeast-1.amazonaws.com/en.fc-buddyfight.com/wordpress/wp-content/images/cardlist/s/bf_h00.png',
     ]
 
-    all_unlocked_cards = Card.query.filter(Card.id.in_(user.unlocked_cards)).all()
     all_unlocked_cards = Card.query.filter(
+        Card.id.in_(user.unlocked_cards),
         ~Card.image_url.in_(excluded_urls),
         ~Card.world.in_(exclude_worlds)
     ).all()
@@ -732,10 +729,12 @@ def edit_deck():
             else:
                 filtered_cards.append(c)
 
+    unlocked_cards_data = [card.to_dict() for card in filtered_cards]
+
     return render_template(
         'edit_deck.html',
         deck=selected_deck,
-        unlocked_cards=filtered_cards, 
+        unlocked_cards=unlocked_cards_data, 
         search_query=search_query
     )
 
@@ -778,8 +777,8 @@ def get_deck():
         'https://s3-ap-northeast-1.amazonaws.com/en.fc-buddyfight.com/wordpress/wp-content/images/cardlist/s/bf_h00.png',
     ]
 
-    all_unlocked_cards = Card.query.filter(Card.id.in_(user.unlocked_cards)).all()
     all_unlocked_cards = Card.query.filter(
+        Card.id.in_(user.unlocked_cards),
         ~Card.image_url.in_(excluded_urls),
         ~Card.world.in_(exclude_worlds)
     ).all()

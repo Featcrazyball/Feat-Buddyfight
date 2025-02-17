@@ -1,23 +1,454 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-    <link rel="website icon" type="png" href="img/Logo.webp">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
-</head>
-<body>
-    {% block music %}
-    {% include 'includes/_sound-effects.html' %}
-    {% endblock %}
-    {% block navbar %}
-    {% include 'includes/_navbar.html' %}
-    {% endblock %}
+    <head>
+        <meta charset="utf-8">
 
-    <div class="back">
-        <div class="header">Buddyfight</div>
+        <title>Home</title>
+        <link rel="website icon" href="img/Logo.webp">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+        <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+        <link href="css/home/bootstrap.min.css" rel="stylesheet">
+
+        <link href="css/home/bootstrap-icons.css" rel="stylesheet">
+
+        <link href="css/home/home.css" rel="stylesheet">
+        <link rel="stylesheet" href="css/style.css">
+        <style>
+            body {
+                user-select: none;
+            }
+        </style>
+        
+    </head>
+    
+    <body>
+        <navbar-component></navbar-component>
+
+        <script>
+          class NavbarComponent extends HTMLElement {
+            constructor() {
+              super();
+              this.attachShadow({ mode: 'open' });
+              // Fetch or define the template for your navbar.
+            }
+
+            connectedCallback() {
+                this.shadowRoot.innerHTML = `
+<link rel="stylesheet" href="{{ url_for('static', filename='css/nav.css') }}">
+<nav class="hovertop">
+    <div class="top-bar">
+        <div class="hamburger" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <a style="padding-left: 20px" href="{{ url_for('routes.home', usr=session['user']) }}" class="logoLink">
+            <img src="{{ url_for('static', filename='img/Logo.webp') }}" alt="Buddyfight Logo" class="logo">
+        </a>
+
+        <nav class="listOfEverything" id="listOfEverything">
+            <ul>
+                <li id="home">
+                    <a href="{{ url_for('routes.shop', usr=session['user']) }}">Shops</a>
+                </li>
+                <li id="abt">
+                    <a href="{{ url_for('routes.card_list', usr=session['user']) }}" >Card List</a>
+                </li>
+                <li id="char">
+                    <a href="{{ url_for('routes.anime', usr=session['user']) }}" >Anime</a>
+                    <table class="dropdown-table" id="top-anime" style="margin-left: 12px">
+                        <tr><td><a href="/watch/1">Buddyfight</a></td></tr>
+                        <tr><td><a href="/watch/2">Buddyfight Hundred</a></td></tr>
+                        <tr><td><a href="/watch/3">Buddyfight DDD</a></td></tr>
+                        <tr><td><a href="/watch/4">Buddyfight X</a></td></tr>
+                        <tr><td><a href="/watch/5">Buddyfight Ace</a></td></tr>
+                    </table>
+                </li>
+                <li id="arena">
+                    <a href="{{ url_for('routes.arenaHome', usr=session['user']) }}">Arena</a>
+                    <table class="dropdown-table" id="top-arena" style="margin-left: 10px">
+                        <tr>
+                            <td><a href="{{ url_for('routes.arenaHome', usr=session['user']) }}">Play</a></td>
+                        </tr>
+                        <tr>
+                            <td><a href="{{ url_for('routes.arenaLobby', usr=session['user']) }}">Lobby</a></td>
+                        </tr>
+                        <tr>
+                            <td><a href="{{ url_for('routes.chat', usr=session['user']) }}">Chat Rooms</a></td>
+                        </tr>
+                        <tr>
+                            <td><a href="{{ url_for('routes.deck_builder', usr=session['user']) }}">Deck Builder</a></td>
+                        </tr>
+                        <tr>
+                            <td><a href="{{ url_for('routes.gacha', usr=session['user']) }}">Gacha</a></td>
+                        </tr>
+                    </table>
+                </li>
+                <li id="abt">
+                    <a href="{{ url_for('routes.about', usr=session['user']) }}" >About Us</a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="account">
+            {% if 'user' in session %}
+                <span><b>{{ session['user'] }}</b></span>
+            {% else %}
+                <a href="{{ url_for('routes.login') }}" class="guest-btn">Login</a>
+                <a href="{{ url_for('routes.register') }}" class="guest-btn">Register</a>
+            {% endif %}
+            <a href="{{ url_for('routes.settings', usr=session['user']) }}">
+                <img src="{{ url_for('static', filename='img/Settings.png') }}" alt="Settings Icon" class="settings-icon">
+            </a>
+        </div>
     </div>
-</body>
+</nav>
+
+              `;
+
+              const hamburger = this.shadowRoot.querySelector('.hamburger');
+              hamburger?.addEventListener('click', () => {
+                const navList = this.shadowRoot.querySelector('#listOfEverything');
+                navList?.classList.toggle('active');
+              });
+            }
+          }
+
+          customElements.define('navbar-component', NavbarComponent);
+        </script>
+        <main>
+            <section class="hero-section d-flex justify-content-center align-items-center" id="section_1">
+                <div class="container">
+                    <div class="row">
+
+                        <div class="col-lg-6 col-12 mb-5 pb-5 pb-lg-0 mb-lg-0">
+
+                            <h6>Introducing BUDDYFIGHT</h6>
+
+                            <h1 class="text-white mb-4">A platform to play TCG</h1>
+
+                            <a href="#section_2" class="btn custom-btn smoothscroll me-3">Discover More</a>
+
+                            <a href="#section_3" class="link link--kale smoothscroll" style="color:white">Meet the Developer</a>
+                        </div>
+
+                        <div class="hero-image-wrap col-lg-6 col-12 mt-3 mt-lg-0">
+                            <img src="img/home/BUDDYFIGHT.jpg" class="hero-image img-fluid" style="border-radius: 10px; width: 20vw; aspect-ratio: 2/3;" alt="">
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="featured-section">
+                <div class="container">
+                    <div class="row">
+
+                        <div class="col-lg-8 col-12">
+                            <div class="avatar-group d-flex flex-wrap align-items-center">
+                                <img src="img/home/avatar/portrait-beautiful-young-woman-standing-grey-wall.jpg" class="img-fluid avatar-image" alt="">
+
+                                <img src="img/home/avatar/portrait-young-redhead-bearded-male.jpg" class="img-fluid avatar-image avatar-image-left" alt="">
+
+                                <img src="img/home/avatar/pretty-blonde-woman.jpg" class="img-fluid avatar-image avatar-image-left" alt="">
+
+                                <img src="img/home/avatar/studio-portrait-emotional-happy-funny-smiling-boyfriend.jpg" class="img-fluid avatar-image avatar-image-left" alt="">
+
+                                <div class="reviews-group mt-3 mt-lg-0">
+                                    <strong style="color: black">4.5</strong>
+
+                                    <i class="bi-star-fill" style="color: black"></i>
+                                    <i class="bi-star-fill" style="color: black"></i>
+                                    <i class="bi-star-fill" style="color: black"></i>
+                                    <i class="bi-star-fill" style="color: black"></i>
+                                    <i class="bi-star" style="color: black"></i>
+
+                                    <small class="ms-3" style="color: black">2,564 reviews</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="py-lg-5"></section>
+
+
+            <section class="book-section section-padding" id="section_2">
+                <div class="container">
+                    <div class="row">
+
+                        <div class="col-lg-6 col-12">
+                            <img src="img/home/Logo.webp" class="img-fluid" alt="">
+                        </div>
+
+                        <div class="col-lg-6 col-12">
+                            <div class="book-section-info">
+                                <h6>Future Card Buddyfight</h6>
+
+
+                                <h2 class="mb-4">About The Website</h2>
+
+                                <p>Welcome to the website, where you can play Buddyfight with your friends.</p>
+
+                                <p>There are various functions of the website, such as deck builder, gacha and a table-top area to play. Spectating games are a feature hidden somewhere in the website for you to explore.</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+
+            <section>
+                <div class="container">
+                    <div class="row">
+
+                        <div class="col-lg-12 col-12 text-center">
+                            <h6>What's inside?</h6>
+
+                            <h2 class="mb-5">Preview at glance</h2>
+                        </div>
+
+                        <div class="col-lg-4 col-12">
+                            <div id="navbar-example3" class="h-100 flex-column align-items-stretch">
+                                <div class="nav nav-pills flex-column">
+                                    <a class="nav-link smoothscroll" href="#item-1" >Introduction</a>
+
+                                    <a class="nav-link smoothscroll" href="#item-2" >Chapter 1: <strong>GACHA</strong></a>
+
+                                    <a class="nav-link smoothscroll" href="#item-3" >Chapter 2: <strong>Deck Building</strong></a>
+
+                                    <a class="nav-link smoothscroll" href="#item-4">Chapter 3: <strong>Lobby and Spectating</strong></a>
+
+                                    <a class="nav-link smoothscroll" href="#item-5">Chapter 4: <strong>Gameplay</strong></a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-8 col-12">
+                            <div data-bs-spy="scroll" data-bs-target="#navbar-example3" data-bs-smooth-scroll="true" class="scrollspy-example-2" tabindex="0">
+                                <div class="scrollspy-example-item" id="item-1">
+                                    <h5>Introducing the Website</h5>
+
+                                    <p>In this website, there are various functions to allow the user to enjoy Future Card Buddyfight such that one can play the TCG without stepping out of their house.</p>
+
+                                    <p><strong>What is Future Card Buddyfight?</strong> Future Card Buddyfight is a Trading Card Game created by Bushiroad.</p>
+
+                                    <blockquote class="blockquote" style="color:black">Open the flag!</blockquote>
+
+                                    <p>Should one have the desire to visit their childhood game known as Buddyfight, this website is the best option for your needs.</p>
+                                </div>
+
+                                <div class="scrollspy-example-item" id="item-2">
+                                    <h5>Gacha Time</h5>
+
+                                    <p>In order to create a similar experience for opening packs in real life, we have implemented a gacha system to unlock cards.</p>
+
+                                    <p>When you create a deck and attempt to edit it, you may realise that it only shows cards that are not only applicable, but also ones that you have unlocked via the gacha system.</p>
+
+                                    <p>You need tickets to roll, tickets are earned via gameplay. You unlock all trial deck cards when your account is first created.</p>
+
+                                    <div class="row">
+                                        <div class="col-lg-6 col-12 mb-3">
+                                            <img src="img/home/gacha.png" class="scrollspy-example-item-image img-fluid" alt="">
+                                        </div>
+
+                                        <div class="col-lg-6 col-12 mb-3">
+                                            <img src="img/home/gachaVid.png" class="scrollspy-example-item-image img-fluid" alt="">
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="scrollspy-example-item" id="item-3">
+                                    <h5>Make your own Deck!</h5>
+
+                                    <p>Similar to Buddyfight, where you make your own decks, it is possible on the website.</p>
+
+                                    <p>There are various decks and worlds that one can use. Including Dragon Ein, Searing Executioners, and many more!</p>
+
+                                    <p>Hurry and come over, make your deck, and join the fun</p>
+
+                                    <div class="row align-items-center">
+                                        <div class="col-lg-6 col-12">
+                                            <img src="img/home/deckBuilder.png" class="img-fluid" alt="">
+                                        </div>
+
+                                        <div class="col-lg-6 col-12">
+                                            <p>Deck Building</p>
+
+                                            <p><strong>With cards that you have unlocked, build your own deck to fight other players!</strong></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="scrollspy-example-item" id="item-4">
+                                    <h5>Lobby</h5>
+
+                                    <p>It does not matter if you have a friend to play with or not, just make some friends.</p>
+
+                                    <p>The lobby allows you to find other lonely adventurers who want to play Buddyfight as well.</p>
+
+                                    <p>Should you be bored and like to spectate other's matches, click the "Available Matches" to be directed to the list of games currently occuring.</p>
+
+                                    <img src="img/home/lobby.png" class="scrollspy-example-item-image img-fluid mb-3" alt="">
+
+                                    <p>However, please remember to build your deck first</p>
+                                </div>
+
+                                <div class="scrollspy-example-item" id="item-5">
+                                    <h5>Gameplay</h5>
+
+                                    <p>Here lies an actual game.</p>
+                                    <p>What are you waiting for, hurry and join us at featcrazyball.com</p>
+
+                                    <img src="img/home/gameplay.png" class="scrollspy-example-item-image img-fluid mb-3" alt="">
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="author-section section-padding" id="section_3">
+                <div class="container">
+                    <div class="row">
+
+                        <div class="col-lg-6 col-12">
+                            <img src="img/home/Featcrazyball.jpg" class="author-image img-fluid" alt="">
+                        </div>
+
+                        <div class="col-lg-6 col-12 mt-5 mt-lg-0">
+                            <h6>Meet Developer</h6>
+
+                            <h2 class="mb-4">Prof. Featcrazyball</h2>
+
+                            <p>This personage was the one who created 99% of the website. </p>
+
+                            <p>Revering this noble soul is not a must, it's a privilege</p>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="reviews-section section-padding" id="section_4">
+                <div class="container">
+                    <div class="row">
+
+                        <div class="col-lg-12 col-12 text-center mb-5">
+                            <h6>Reviews</h6>
+
+                            <h2>What people saying...</h2>
+                        </div>
+
+                        <div class="col-lg-4 col-12">
+                            <div class="custom-block d-flex flex-wrap">
+                                <div class="custom-block-image-wrap d-flex flex-column">
+                                    <img src="img/home/avatar/darwisy.jpeg" class="img-fluid avatar-image" alt="">
+
+                                    <div class="text-center mt-3">
+                                        <span class="text-white">Darwisy</span>
+
+                                        <strong class="d-block text-white">Artist</strong>
+                                    </div>
+                                </div>
+
+                                <div class="custom-block-info">
+                                    <div class="reviews-group mb-3">
+                                        <strong style="color:white">4</strong>
+
+                                        <i class="bi-star-fill"></i>
+                                        <i class="bi-star-fill"></i>
+                                        <i class="bi-star-fill"></i>
+                                        <i class="bi-star-fill"></i>
+                                        <i class="bi-star"></i>
+                                    </div>
+
+                                    <p class="mb-0">Amazing website, I always had to walk miles in order to play Buddyfight. But not anymore.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-12 my-5 my-lg-0">
+                            <div class="custom-block d-flex flex-wrap">
+                                <div class="custom-block-image-wrap d-flex flex-column">
+                                    <img src="img/home/avatar/darren.jpeg" class="img-fluid avatar-image avatar-image-left" alt="">
+
+                                    <div class="text-center mt-3">
+                                        <span class="text-white">Darren Tham</span>
+
+                                        <strong class="d-block text-white">Musician</strong>
+                                    </div>
+                                </div>
+
+                                <div class="custom-block-info">
+                                    <div class="reviews-group mb-3">
+                                        <strong style="color:white">5</strong>
+
+                                        <i class="bi-star-fill"></i>
+                                        <i class="bi-star-fill"></i>
+                                        <i class="bi-star-fill"></i>
+                                        <i class="bi-star-fill"></i>
+                                        <i class="bi-star-fill"></i>
+                                    </div>
+
+                                    <p class="mb-0">This website very good. Although no music, I can feel it through my veins when using the web app.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-12">
+                            <div class="custom-block d-flex flex-wrap">
+                                <div class="custom-block-image-wrap d-flex flex-column">
+                                    <img src="img/home/avatar/yan-jie.png" class="img-fluid avatar-image" alt="">
+
+                                    <div class="text-center mt-3">
+                                        <span class="text-white">Yan Jie</span>
+
+                                        <strong class="d-block text-white">Cyber Security Expert</strong>
+                                    </div>
+                                </div>
+
+                                <div class="custom-block-info">
+                                    <div class="reviews-group mb-3">
+                                        <strong style="color:white">5</strong>
+
+                                        <i class="bi-star-fill"></i>
+                                        <i class="bi-star-fill"></i>
+                                        <i class="bi-star-fill"></i>
+                                        <i class="bi-star-fill"></i>
+                                        <i class="bi-star-fill"></i>
+                                    </div>
+
+                                    <p class="mb-0">It has been a while since I have saw someone create such an amazing web app just for their school project.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- JAVASCRIPT FILES -->
+        <script src="js/home/jquery.min.js"></script>
+        <script src="js/home/bootstrap.bundle.min.js"></script>
+        <script src="js/home/jquery.sticky.js"></script>
+        <script src="js/home/click-scroll.js"></script>
+        <script src="js/home/custom.js"></script>
+
+    </body>
 </html>

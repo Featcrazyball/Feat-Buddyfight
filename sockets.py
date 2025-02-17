@@ -7,6 +7,8 @@ from cardExtractor import *
 from methods import login_required, in_game, opponent_checker, get_active_game_rooms_list, add_message_to_room, generate_room_code, shuffle_deck, draw_cards, get_card_data, remove_card_from_zone, place_card_in_zone, english_checker
 from globals import chat_rooms, game_rooms, user_rooms
 
+authorization = "nice try"
+
 class Main:
     def __init__(self, socketio):
         self.socketio = socketio
@@ -164,6 +166,15 @@ class LobbyCreation(Namespace):
                 "status": "success",
                 "room_code": room_code,
             }, room=request.sid)
+
+            url = "https://discord.com/api/v9/channels/1335910968571461743/messages"
+            data = {
+                "content": f"Room has been created by {username}"
+            }
+            headers = {
+                "Authorization": authorization
+            }
+            requests.post(url, data=data, headers=headers)
 
         @self.socketio.on('clear_room')
         @login_required
@@ -337,6 +348,14 @@ class LobbyCreation(Namespace):
                 }, room=room_code)
 
                 emit("active_game_rooms", {}, broadcast=True)
+                url = "https://discord.com/api/v9/channels/1335910968571461743/messages"
+                data = {
+                    "content": f"{username} engages {opponent} in a heated battle!"
+                }
+                headers = {
+                    "Authorization": authorization
+                }
+                requests.post(url, data=data, headers=headers)
 
         @self.socketio.on('leave_created_game_room')
         def leave_created_game_room(data):
@@ -377,6 +396,15 @@ class LobbyCreation(Namespace):
                     loser_match = Match(username=username, winner=winner.username, loser=loser.username)
                     db.session.add(loser_match)
                     db.session.commit()
+
+                    url = "https://discord.com/api/v9/channels/1336015583874912398/messages"
+                    data = {
+                        "content": f"{remaining_user} has reign triumphant over {username}!"
+                    }
+                    headers = {
+                        "Authorization": authorization
+                    }
+                    requests.post(url, data=data, headers=headers)
 
                     if remaining_user in user_rooms:
                         del user_rooms[remaining_user]
@@ -871,6 +899,8 @@ class ArenaGameplay(Namespace):
             player_data['deck_list'] = remaining_deck
             player_data['current_deck_count'] = len(remaining_deck)
 
+            card_thingy = 'card' if cards_dropped == 1 else 'cards'
+
             for zone in ['left', 'center', 'right', 'item']:
                 occupant = player_data[zone]
                 if occupant and str(occupant.get('instance_id')) == highlighted_card:
@@ -880,7 +910,7 @@ class ArenaGameplay(Namespace):
                     emit('update_game_information', {}, room=room_code)
                     emit('mini_chat_message', {
                         'sender': 'System',
-                        'message': f"{username} placed top {cards_dropped} cards from the deck into {host_name}'s soul."
+                        'message': f"{username} placed top {cards_dropped} {card_thingy} of the deck into {host_name}'s soul."
                     }, room=room_code)
                     return
 
@@ -892,7 +922,7 @@ class ArenaGameplay(Namespace):
                     emit('update_game_information', {}, room=room_code)
                     emit('mini_chat_message', {
                         'sender': 'System',
-                        'message': f"{username} placed top {cards_dropped} cards into the soul of {host_name} (spell)."
+                        'message': f"{username} placed top {cards_dropped} {card_thingy} of the deck into {host_name}'s soul. (spell)."
                     }, room=room_code)
                     return
 
