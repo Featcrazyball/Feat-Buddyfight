@@ -7,6 +7,9 @@ requests
 Werkzeug==3.0.1
 pytz==2023.3.post1
 gunicorn==20.1.0
-gevent==22.10.2
-gevent-websocket==0.10.1
+gevent>=24.2.0
+gevent-websocket>=0.10.1
 waitress
+pytube
+
+redis>=4.5.1

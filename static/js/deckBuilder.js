@@ -15,6 +15,7 @@ const flagToCSS = {
     "Searing Executioners": "SearingExecutioners",
     "Divine Guardians": "DivineGuardians",
     "Thunder Empire": "ThunderEmpire",
+    "Sword Art Online": "SwordArtOnline",
 };
 
 document.addEventListener("DOMContentLoaded", function () {

@@ -85,6 +85,7 @@
                     <label for="edit-role">Role:</label>
                     <select id="edit-role" name="role">
                         <option value="user">User</option>
+                        <option value="vip">VIP</option>
                         <option value="admin">Admin</option>
                     </select>
                 </div>
@@ -101,6 +102,7 @@
                     <input type="number" id="edit-tickets" name="tickets" style="margin-bottom: 2vh;">
                 </div>
                 <button type="submit" class="btn-primary" style="margin-bottom: -4vh;">Save Changes</button>
+                <button type="button" class="btn-secondary" style="margin-top: 1vh;" onclick="resetAdminPassword()">Reset Password to 12345678</button>
             </form>
         </div>
     </div>

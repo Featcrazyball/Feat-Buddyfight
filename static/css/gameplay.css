@@ -323,10 +323,13 @@ body {
     cursor: pointer;
 }
 
-.filling-space{
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
+.deck-count{
+    color: white;
+    text-align: center;
+}
+
+.deck-count-wrapper{
+    padding-bottom: 1vh;
 }
 
 /* Monster areas in the center */

@@ -7,7 +7,7 @@ db = SQLAlchemy()
 class Card(db.Model):
     __bind_key__ = 'cards'
     id = db.Column(db.Integer, primary_key=True)
-    card_no = db.Column(db.String(50), nullable=False, unique=True)
+    card_no = db.Column(db.String(50))
     name = db.Column(db.String(200), nullable=False)
     rarity = db.Column(db.String(50))
     world = db.Column(db.String(100))

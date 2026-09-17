@@ -1,3 +1,10 @@
+anyNumberofCards = [
+    'Shadow Dragon "Re:B"',
+    'Shadow Dragon',
+    'Trump Soldier, Team Klyne',
+    'Venom Swamp'
+]
+
 document.addEventListener("DOMContentLoaded", function () {
     const unlockedCardsList = document.getElementById("unlocked-cards-list");
     const deckCardsList = document.getElementById("deck-cards-list");
@@ -106,6 +113,12 @@ document.addEventListener("DOMContentLoaded", function () {
     function addCardToDeck(card) {
         if (!currentDeck[card.name]) {
             currentDeck[card.name] = { cards: [], count: 0 };
+        }
+        if (anyNumberofCards.includes(card.name)) {
+            currentDeck[card.name].cards.push(card);
+            currentDeck[card.name].count += 1;
+            updateDeckCardsList();
+            return
         }
         if (currentDeck[card.name].count < 4) {
             currentDeck[card.name].cards.push(card);

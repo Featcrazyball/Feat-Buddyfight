@@ -148,6 +148,69 @@ def card_list():
     card_dicts = [card.to_dict() for card in cards]  # Ensure this is serialized as a list of dictionaries
     return render_template('list.html', username=session['user'], cards=card_dicts, search_query=search_query, action=action, object=object)
 
+@routes.route('/add_cards', methods=['GET'])
+@admin_required
+def add_cards():
+    return render_template('update_card.html', adding='true')
+
+@routes.route('/adding_card', methods=['POST'])
+@admin_required
+def add_card():
+    try:
+        data = request.get_json()
+        is_horizontal = False
+        card_no = data['card_no'] if data.get('card_no') else 0
+        name = data['name'] if data.get('name') else ''
+        rarity = data.get('rarity', '') if data.get('rarity') else ''
+        world = data.get('world', '') if data.get('world') else ''
+        attribute = data.get('attribute', '') if data.get('attribute') else ''
+        size = int(data.get('size', 0)) if data.get('size') else 0
+        defense = int(data.get('defense', 0)) if data.get('defense') else 0
+        critical = int(data.get('critical', 0)) if data.get('critical') else 0
+        power = int(data.get('power', 0)) if data.get('power') else 0
+        ability_effect = data.get('ability_effect', '') if data.get('ability_effect') else ''
+        flavor_text = data.get('flavor_text', '') if data.get('flavor_text') else ''
+        illustrator = data.get('illustrator', '') if data.get('illustrator') else ''
+        image_url = data.get('image_url', '') if data.get('image_url') else ''
+        detail_url = data.get('detail_url', '') if data.get('detail_url') else ''
+        type = data.get('type', '') if data.get('type') else ''
+        
+        if type == 'Impact' or type == 'Impact Monster':
+            is_horizontal = True
+
+        new_card = Card(
+            card_no=card_no,
+            name=name,
+            rarity=rarity,
+            world=world,
+            attribute=attribute,
+            size=size,
+            defense=defense,
+            critical=critical,
+            power=power,
+            ability_effect=ability_effect,
+            flavor_text=flavor_text,
+            illustrator=illustrator,
+            image_url=image_url,
+            detail_url=detail_url,
+            type=type,
+            is_horizontal=is_horizontal
+        )
+
+        db.session.add(new_card)
+        db.session.commit()
+
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Error adding card: {e}"}), 500
+
+@routes.route('/god_mode', methods=['POST'])
+def god_mode():
+    user = User.query.filter_by(username=session['user']).first()
+    user.unlocked_cards = [card.id for card in Card.query.all()]
+    db.session.commit()
+    return jsonify({"status": "success", "message": "God mode activated!"})
+
 # Card Extractor for card list
 @routes.route('/scrape')
 @admin_required
@@ -187,7 +250,7 @@ def update_card(card_id):
         flash("Card updated successfully!", "success")
         return redirect(url_for('routes.card_list'))
 
-    return render_template('update_card.html', card=card, action=action, object=object) 
+    return render_template('update_card.html', card=card, action=action, object=object, adding='false') 
 
 @routes.route('/delete_card/<int:card_id>', methods=['POST'])
 @admin_required
@@ -562,6 +625,8 @@ def create_deck():
             flagImg = 'img/flags/SearingExecutioners.jpg'
         case 'Star Dragon World':
             flagImg = 'img/flags/StarDragonWorld.webp'
+        case 'Sword Art Online':
+            flagImg = 'img/flags/SwordArtOnline.webp'
         case 'Thunder Empire':
             flagImg = 'img/flags/Thunder_Emporers_Fangs (1).jpg'
         case _:
@@ -672,7 +737,7 @@ def edit_deck():
         return redirect(url_for('routes.deck_builder'))
 
     valid_flags = ["Generic", 'All']
-    valid_attributes = []
+    valid_attributes = ['Dragod']
     exclude_types = []
     exclude_worlds = ['Lost World']
 
@@ -731,6 +796,13 @@ def edit_deck():
 
     unlocked_cards_data = [card.to_dict() for card in filtered_cards]
 
+    stuff_all = ['Fake Replica Weapon, Gemclone']
+
+    if selected_deck.buddy_card_id:
+        buddy_card = Card.query.get(selected_deck.buddy_card_id)
+        if buddy_card.name in stuff_all:
+            unlocked_cards_data = [card.to_dict() for card in all_unlocked_cards]
+
     return render_template(
         'edit_deck.html',
         deck=selected_deck,
@@ -750,7 +822,7 @@ def get_deck():
         return jsonify({"status": "error", "message": "Deck not found"}), 404
 
     valid_flags = ["Generic", 'All']
-    valid_attributes = []
+    valid_attributes = ['Dragod']
     exclude_types = []
     exclude_worlds = ['Lost World']
 
@@ -782,6 +854,19 @@ def get_deck():
         ~Card.image_url.in_(excluded_urls),
         ~Card.world.in_(exclude_worlds)
     ).all()
+
+    stuff_all = ['Fake Replica Weapon, Gemclone']
+    if selected_deck.buddy_card_id:
+        buddy_card = Card.query.get(selected_deck.buddy_card_id)
+        if buddy_card.name in stuff_all:
+            unlocked_cards_data = [card.to_dict() for card in all_unlocked_cards]
+            valid_flags = [
+                'Ancient World', 'Danger World', 'Darkness Dragon World', 'Divine Guardians', 'Dragon Ein',
+                'Dragon World', 'Dragon Zwei', 'Dungeon World', 'Hero World', 'Katana World', 'Legend World',
+                'Magic World', 'Parade of Hundred Demons', 'Searing Executioners', 'Star Dragon World', 'Sword Art Online',
+                'Thunder Empire'
+            ] 
+
     search_query = request.args.get('name', '').strip().lower() if request.args.get('name') else ""
 
     filtered_cards = []
@@ -791,7 +876,7 @@ def get_deck():
 
         splitted_worlds = [w.strip() for w in c.world.split('/')]
 
-        world_ok = bool(set(splitted_worlds).intersection(valid_flags))
+        world_ok = bool(set(splitted_worlds).intersection(valid_flags)) if valid_flags else True
 
         attribute_ok = False
         if valid_attributes:
@@ -1399,15 +1484,16 @@ def update_user():
     try:
         data = request.form
         username = data.get('username')
+        reset_password = data.get('reset_password') == 'true'
 
         if not username:
             return jsonify({"status": "error", "message": "Username is required"}), 400
 
         user = User.query.filter_by(username=username).first()
 
-        if session['user'] != 'Featcrazyball':
-            if user.role == 'admin':
-                return jsonify({'status':'error', 'message':'Unaurthorised action.'}), 403
+        # if session['user'] != 'Featcrazyball':
+        #     if user.role == 'admin':
+        #         return jsonify({'status':'error', 'message':'Unaurthorised action.'}), 403
 
         email = data.get('email', user.email)
         if email and '@' not in email:  
@@ -1415,7 +1501,7 @@ def update_user():
         user.email = email
 
         role = data.get('role', user.role)
-        if role not in ['user', 'admin']: 
+        if role not in ['user', 'admin', 'vip']: 
             return jsonify({"status": "error", "message": "Invalid role"}), 400
         user.role = role
 
@@ -1425,6 +1511,9 @@ def update_user():
             user.tickets = int(data.get('tickets', user.tickets))
         except ValueError:
             return jsonify({"status": "error", "message": "Invalid numeric input"}), 400
+
+        if reset_password:
+            user.password = generate_password_hash('12345678')
 
         new_username = data.get('new_username')
         if new_username and new_username != username:

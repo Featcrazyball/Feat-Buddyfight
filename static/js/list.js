@@ -27,6 +27,7 @@ function openModal(cardId) {
         document.getElementById('modal-world').innerText = card.world;
         document.getElementById('modal-size').innerText = card.size;
         document.getElementById('modal-power').innerText = card.power;
+        document.getElementById('modal-critical').innerText = card.critical;
         document.getElementById('modal-defense').innerText = card.defense;
         document.getElementById('modal-type').innerText = card.type;
 

@@ -76,8 +76,8 @@
                     style="background-image: url('/{% if opponent_sleeve %}{{ opponent_sleeve }}{% else %}{{ player2_sleeve }}{% endif %}'); 
                             background-size: cover; background-position: center;
                             rotate: 180deg;">
-                </div>
-            </div>
+                        </div>
+                    </div>
 
             <div class="monster-areas">
                 <div class="monster-slot" id="opponent-left" style="rotate: 180deg;"></div>
@@ -121,7 +121,10 @@
                 <div class="zone player-zone" id="player-deck-zone"
                     style="background-image: url('/{% if user_sleeve %}{{ user_sleeve }}{% else %}{{ player1_sleeve }}{% endif %}');
                             background-size: cover; background-position: center;" data-zone="deck" data-allow-append="false">
-                        <div class="filling-space"></div>
+                </div>
+                <div class="deck-count-wrapper">
+                    <div class="deck-count" id="user-deck-count"></div>
+                    <div class="deck-count" id="opponent-deck-count"></div>
                 </div>
             </div>
             <div class="monster-areas">

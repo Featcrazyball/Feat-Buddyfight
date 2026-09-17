@@ -359,6 +359,7 @@ input:focus {
     --DarknessDW:rgb(177, 0, 147);
     --HeroWorld:rgb(76, 0, 255);
     --AncientWorld:rgba(155, 139, 71, 1);
+    --SwordArtOnline: radial-gradient(circle, rgb(0, 0, 0), #ffffff);
     --DangerWorld: rgba(139, 38, 57, 1);
     --DungeonWorld: rgba(195, 144, 124, 1);
     --KatanaWorld: rgba(91, 122, 81, 1);

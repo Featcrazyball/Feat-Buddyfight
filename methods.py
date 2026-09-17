@@ -273,7 +273,7 @@ def english_checker(from_zone, to_zone, card, username):
     action = 'moves'
     place = f' from the {from_zone} to the {to_zone}'
     if from_zone == 'hand':
-        place = f"to the {to_zone}"
+        place = f" to the {to_zone}"
         action = 'calls'
         if to_zone == 'dropzone':
             action = 'drops'

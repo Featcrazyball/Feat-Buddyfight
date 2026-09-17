@@ -253,8 +253,19 @@ function deleteReport() {
 const editUserForm = document.getElementById('editUserForm');
 editUserForm.addEventListener('submit', function (event) {
     event.preventDefault();
+    submitEditUserForm(false);
+});
 
+function resetAdminPassword() {
+    submitEditUserForm(true);
+}
+
+function submitEditUserForm(resetPassword) {
     const formData = new FormData(editUserForm);
+
+    if (resetPassword) {
+        formData.append('reset_password', 'true');
+    }
 
     fetch('/admin/update_user', {
         method: 'POST',
@@ -271,7 +282,7 @@ editUserForm.addEventListener('submit', function (event) {
     })
     .catch(() => showModal('An unexpected error occurred. Please try again later.', 'error'))
     .finally(() => closeModal('edit-user-modal'));
-});
+}
 
 const displayModal = document.getElementById('modal');
 function closeDisplayModal() {

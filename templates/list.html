@@ -34,8 +34,19 @@
 
         <div class="line"></div>
     
+        {% if session.get('user_role', '') == 'vip' %}
+            <form action="/god_mode" style="display: inline;" method="post">
+                <button type="submit" class="scrape-btn" style="border: none; cursor: pointer; box-sizing:border-box; font-size: 1rem">God Account</button>
+            </form>
+        {% endif %}
         {% if session.get('user_role', '') == 'admin' %}
-        <a href="{{ url_for('routes.scrape_cards') }}" class="scrape-btn">Scrape Data</a>
+            <a href="{{ url_for('routes.scrape_cards') }}" class="scrape-btn">Scrape Data</a>
+
+            <a href="/add_cards" class="scrape-btn">Add Card</a>
+            <form action="/god_mode" style="display: inline;" method="post">
+                <button type="submit" class="scrape-btn" style="border: none; cursor: pointer; box-sizing:border-box; font-size: 1rem">God Account</button>
+            </form>
+            <a href="{{ url_for('routes.add_cards') }}"></a>
         {% endif %}
     
         <!-- Search -->
@@ -85,6 +96,7 @@
                     <option value="Legend World"></option>
                     <option value="Magic World"></option>
                     <option value="Star Dragon World"></option>
+                    <option value="Sword Art Online"></option>
                 </datalist>
         
                 <label for="size">Size:</label>
@@ -169,6 +181,7 @@
                 <p><strong>Attribute:</strong> <span id="modal-attribute"></span></p>
                 <p><strong>Size:</strong> <span id="modal-size"></span></p>
                 <p><strong>Power:</strong> <span id="modal-power"></span></p>
+                <p><strong>Critical:</strong> <span id="modal-critical"></span></p>
                 <p><strong>Defense:</strong> <span id="modal-defense"></span></p>
                 <p><strong>Ability:</strong></p>
                 <p id="modal-ability" style="margin-top: -20px;"></p>

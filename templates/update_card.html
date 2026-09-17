@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Update Card</title>
+    <title>
+        {% if adding == 'true' %}
+        Add Card
+        {% elif adding == 'false' %}
+        Update card
+        {% endif %}
+    </title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/update_card.css') }}">
     <link rel="website icon" href="{{ url_for('static', filename='img/Very-Basic-Update-Icon.png') }}">
 </head>
@@ -24,12 +30,16 @@
     </div>
     
     <div class="update-card-container">
+        {% if adding == 'true' %}
+        <h1>Add Card</h1>
+        {% elif adding == 'false' %}
         <h1>Update Card</h1>
+        {% endif %}
         <!-- Form Section -->
         <form class="update-card-form" method="POST" id="confirm-update-card">
             <div class="form-group">
                 <label for="card_no">Card No.</label>
-                <input type="text" id="card_no" name="card_no" value="{{ card.card_no if card else '' }}" required>
+                <input type="text" id="card_no" name="card_no" value="{{ card.card_no if card else '' }}">
             </div>
             <div class="form-group">
                 <label for="type">Card Type</label>
@@ -87,13 +97,17 @@
                 <label for="detail_url">Detail URL</label>
                 <input type="text" id="detail_url" name="detail_url" value="{{ card.detail_url if card else '' }}">
             </div>
+            {% if adding == 'true' %}
+            <button type="button" onclick="AddCard()" class="btn btn-submit">Add Card</button>
+            {% elif adding == 'false' %}
             <button type="button" onclick="showConfirmationModal()" class="btn btn-submit">Update Card</button>
+            {% endif %}
             <a href="{{ url_for('routes.card_list') }}" class="btn btn-secondary">Cancel</a>
         </form>
 
         <!-- Image Section -->
         <div class="card-image-preview">
-            <img src="{{ card.image_url if card else '/static/images/default_card.png' }}" alt="Card Image">
+            <img src="{{ card.image_url if card else 'img/sleeves/1Cardback.webp' }}" alt="Card Image">
         </div>
     </div>
     <script src="{{ url_for('static', filename='js/confirmation-modal.js') }}"></script>
@@ -102,6 +116,46 @@
         document.getElementById('confirm-yes').addEventListener('click', function () {
             document.getElementById('confirm-update-card').submit();
         });
+
+        function AddCard() {
+            fetch('/adding_card', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    card_no: document.getElementById('card_no').value,
+                    type: document.getElementById('type').value,
+                    name: document.getElementById('name').value,
+                    rarity: document.getElementById('rarity').value,
+                    world: document.getElementById('world').value,
+                    attribute: document.getElementById('attribute').value,
+                    size: document.getElementById('size').value,
+                    defense: document.getElementById('defense').value,
+                    critical: document.getElementById('critical').value,
+                    power: document.getElementById('power').value,
+                    ability_effect: document.getElementById('ability_effect').value,
+                    flavor_text: document.getElementById('flavor_text').value,
+                    illustrator: document.getElementById('illustrator').value,
+                    image_url: document.getElementById('image_url').value,
+                    detail_url: document.getElementById('detail_url').value
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+                window.location.href = window.location.href;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Optionally, show an error message to the user
+            });
+        }
     </script>
 </body>
 </html>

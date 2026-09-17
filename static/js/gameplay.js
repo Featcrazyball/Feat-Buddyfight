@@ -823,6 +823,9 @@ document.addEventListener('DOMContentLoaded', () => {
         opponentHighlight = opponentState.highlighter;
         opponentBuddyRest = opponentState.buddy_rest;
 
+        document.getElementById('user-deck-count').textContent = `User: ${userDeckListCount || 0} cards`;
+        document.getElementById('opponent-deck-count').textContent = `Opponent: ${opponentDeckListCount || 0} cards`;
+
         document.getElementById("player-life-total").textContent = userLife;
         document.getElementById("opponent-life-total").textContent = opponentLife;
 

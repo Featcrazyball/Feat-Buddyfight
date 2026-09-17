@@ -1,13 +1,28 @@
 from flask import request, url_for, session, redirect
 from flask_socketio import SocketIO, join_room, leave_room, emit, send, rooms, close_room, Namespace
 import gevent, requests, random
+import os
 # Personal Libraries
 from models import db, User, Deck, Match
 from cardExtractor import *
 from methods import login_required, in_game, opponent_checker, get_active_game_rooms_list, add_message_to_room, generate_room_code, shuffle_deck, draw_cards, get_card_data, remove_card_from_zone, place_card_in_zone, english_checker
 from globals import chat_rooms, game_rooms, user_rooms
 
-authorization = "nice try"
+authorization = os.getenv("DISCORD_BOT_TOKEN", "").strip()
+discord_channel_create = os.getenv("DISCORD_CHANNEL_CREATE", "").strip()
+discord_channel_win = os.getenv("DISCORD_CHANNEL_WIN", "").strip()
+
+
+def send_discord_message(url, content):
+    if not authorization:
+        return
+
+    requests.post(
+        url,
+        data={"content": content},
+        headers={"Authorization": authorization},
+        timeout=10,
+    )
 
 class Main:
     def __init__(self, socketio):
@@ -167,7 +182,7 @@ class LobbyCreation(Namespace):
                 "room_code": room_code,
             }, room=request.sid)
 
-            url = "https://discord.com/api/v9/channels/1335910968571461743/messages"
+            url = discord_channel_create
             data = {
                 "content": f"Room has been created by {username}"
             }
@@ -348,7 +363,7 @@ class LobbyCreation(Namespace):
                 }, room=room_code)
 
                 emit("active_game_rooms", {}, broadcast=True)
-                url = "https://discord.com/api/v9/channels/1335910968571461743/messages"
+                url = discord_channel_create
                 data = {
                     "content": f"{username} engages {opponent} in a heated battle!"
                 }
@@ -397,7 +412,7 @@ class LobbyCreation(Namespace):
                     db.session.add(loser_match)
                     db.session.commit()
 
-                    url = "https://discord.com/api/v9/channels/1336015583874912398/messages"
+                    url = discord_channel_win
                     data = {
                         "content": f"{remaining_user} has reign triumphant over {username}!"
                     }
@@ -872,7 +887,7 @@ class ArenaGameplay(Namespace):
             username = session['user']
             cards_dropped = data['soul_count']
 
-            highlighted_card = self.game_rooms[room_code]['players'][username]['highlighter']
+            highlighted_card = game_rooms[room_code]['players'][username]['highlighter']
             if highlighted_card is None:
                 return
 
@@ -887,7 +902,7 @@ class ArenaGameplay(Namespace):
             player_data = self.game_rooms[room_code]['players'][username]
             deck = player_data['deck_list']
 
-            if (player_data['current_deck_count'] - cards_dropped) < 0:
+            if (player_data['current_deck_count'] - cards_dropped) <= 0:
                 emit('mini_modal', {
                     'sender': 'System',
                     'status': 'error',
