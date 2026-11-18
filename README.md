@@ -40,7 +40,7 @@ Buddyfight's official servers and physical play scene have mostly faded, so ther
 |---|---|
 | <img width="100%" alt="Arena lobby" src="https://github.com/user-attachments/assets/a5073660-1b43-4101-98e1-2be38912e4b2" /> | <img width="100%" alt="Card database" src="https://github.com/user-attachments/assets/30d82901-8dda-427b-8fd5-d070a1032da7" /> |
 | **Your decks** | **Deck editor** |
-| <img width="100%" alt="Your decks" src="https://github.com/user-attachments/assets/5f9ebc0d-b27b-403e-af56-aadc2c906979" /> | <img width="100%" alt="Deck editor" src="https://github.com/user-attachments/assets/11cfdc0a-300e-4ab5-a610-7b7ad5459c28" /> |
+| <img width="1917" height="907" alt="image" src="https://github.com/user-attachments/assets/70824a20-0b32-4b34-a6ba-dcc54cc90a7f" /> | <img width="100%" alt="Deck editor" src="https://github.com/user-attachments/assets/11cfdc0a-300e-4ab5-a610-7b7ad5459c28" /> |
 
 ## Tech stack
 
