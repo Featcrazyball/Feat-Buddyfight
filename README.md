@@ -6,7 +6,7 @@ An online, real-time multiplayer platform for the **Future Card Buddyfight** tra
 
 **Live site:** [featcrazyball.com](https://featcrazyball.com)
 
-<img width="1917" height="908" alt="Screenshot 2026-11-18 163927" src="https://github.com/user-attachments/assets/fe4f73eb-f7a8-41b0-a3b8-0e76cbc9440c" />
+<img width="1917" height="911" alt="image" src="https://github.com/user-attachments/assets/60d01b2e-b707-40db-a21d-ba5ba682ed73" />
 *A live match: both players' fields, hands and gauge update in real time, with the game log and controls on the right.*
 
 ---
